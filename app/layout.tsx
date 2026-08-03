@@ -6,12 +6,10 @@ import { CartProvider } from "@/components/cart-provider";
 
 export const metadata: Metadata = {
   title: "KRVE — The Fashion Studio",
-  description: "Luxury fashion, premium tailoring and virtual try-on.",
+  description: "AI-powered luxury fashion and virtual try-on."
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{ children: React.ReactNode }>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body>
