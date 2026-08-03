@@ -1,46 +1,30 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 export default function SiteFooter() {
+  const pathname = usePathname();
+
+  if (pathname === "/") {
+    return null;
+  }
+
   return (
-    <footer className="krveFooter">
-      <div className="krveFooterBrand">
+    <footer className="inner-site-footer">
+      <div>
         <span>♛</span>
         <strong>KRVE</strong>
         <small>THE FASHION STUDIO</small>
-        <p>MOVE INTO STYLE</p>
       </div>
 
-      <div className="krveFooterGrid">
-        <div>
-          <h4>SHOP</h4>
-          <Link href="/collections">Collections</Link>
-          <Link href="/collections?category=Men">Men</Link>
-          <Link href="/collections?category=Women">Women</Link>
-          <Link href="/collections?category=Accessories">Accessories</Link>
-        </div>
+      <nav>
+        <Link href="/collections">Collections</Link>
+        <Link href="/virtual-try-on">Virtual Try-On</Link>
+        <Link href="/account">Account</Link>
+      </nav>
 
-        <div>
-          <h4>EXPERIENCE</h4>
-          <Link href="/virtual-try-on">Virtual Try-On</Link>
-          <Link href="/account">My Account</Link>
-          <Link href="/wishlist">Wishlist</Link>
-          <Link href="/cart">Shopping Bag</Link>
-        </div>
-
-        <div>
-          <h4>CLIENT CARE</h4>
-          <a href="mailto:care@krvefashionstudio.in">
-            care@krvefashionstudio.in
-          </a>
-          <span>Mon–Sat · 10 AM–7 PM</span>
-          <span>India</span>
-        </div>
-      </div>
-
-      <div className="krveFooterBottom">
-        <span>© 2026 KRVE — THE FASHION STUDIO</span>
-        <span>PRIVACY · TERMS · SHIPPING · RETURNS</span>
-      </div>
+      <p>© 2026 KRVE — THE FASHION STUDIO</p>
     </footer>
   );
 }
