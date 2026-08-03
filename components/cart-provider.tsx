@@ -9,9 +9,7 @@ import {
   type ReactNode,
 } from "react";
 
-import type {
-  Product,
-} from "@/lib/catalog";
+import type { Product } from "@/lib/catalog";
 
 export type CartItem = Product & {
   quantity: number;
@@ -21,9 +19,9 @@ export type CartItem = Product & {
 type CartContextValue = {
   cart: CartItem[];
   wishlist: string[];
-
   cartCount: number;
   cartSubtotal: number;
+  hydrated: boolean;
 
   addToCart: (
     product: Product,
@@ -40,11 +38,6 @@ type CartContextValue = {
 
   decreaseQuantity: (
     id: string,
-  ) => void;
-
-  updateQuantity: (
-    id: string,
-    quantity: number,
   ) => void;
 
   updateSize: (
@@ -70,7 +63,7 @@ const CART_STORAGE_KEY =
 const WISHLIST_STORAGE_KEY =
   "krve-wishlist";
 
-function readStoredCart(): CartItem[] {
+function loadCart(): CartItem[] {
   if (
     typeof window ===
     "undefined"
@@ -93,21 +86,17 @@ function readStoredCart(): CartItem[] {
         stored,
       ) as CartItem[];
 
-    if (
-      !Array.isArray(
-        parsed,
-      )
-    ) {
-      return [];
-    }
-
-    return parsed;
+    return Array.isArray(
+      parsed,
+    )
+      ? parsed
+      : [];
   } catch {
     return [];
   }
 }
 
-function readStoredWishlist(): string[] {
+function loadWishlist(): string[] {
   if (
     typeof window ===
     "undefined"
@@ -170,11 +159,11 @@ export function CartProvider({
   useEffect(
     () => {
       setCart(
-        readStoredCart(),
+        loadCart(),
       );
 
       setWishlist(
-        readStoredWishlist(),
+        loadWishlist(),
       );
 
       setHydrated(
@@ -228,10 +217,10 @@ export function CartProvider({
   ) => {
     setCart(
       (
-        currentItems,
+        currentCart,
       ) => {
-        const existingItem =
-          currentItems.find(
+        const existing =
+          currentCart.find(
             (
               item,
             ) =>
@@ -239,10 +228,8 @@ export function CartProvider({
               product.id,
           );
 
-        if (
-          existingItem
-        ) {
-          return currentItems.map(
+        if (existing) {
+          return currentCart.map(
             (
               item,
             ) =>
@@ -260,7 +247,7 @@ export function CartProvider({
         }
 
         return [
-          ...currentItems,
+          ...currentCart,
 
           {
             ...product,
@@ -279,9 +266,9 @@ export function CartProvider({
   ) => {
     setCart(
       (
-        currentItems,
+        currentCart,
       ) =>
-        currentItems.filter(
+        currentCart.filter(
           (
             item,
           ) =>
@@ -296,9 +283,9 @@ export function CartProvider({
   ) => {
     setCart(
       (
-        currentItems,
+        currentCart,
       ) =>
-        currentItems.map(
+        currentCart.map(
           (
             item,
           ) =>
@@ -321,9 +308,9 @@ export function CartProvider({
   ) => {
     setCart(
       (
-        currentItems,
+        currentCart,
       ) =>
-        currentItems
+        currentCart
           .map(
             (
               item,
@@ -334,11 +321,8 @@ export function CartProvider({
                     ...item,
 
                     quantity:
-                      Math.max(
-                        0,
-                        item.quantity -
-                          1,
-                      ),
+                      item.quantity -
+                      1,
                   }
                 : item,
           )
@@ -352,50 +336,15 @@ export function CartProvider({
     );
   };
 
-  const updateQuantity = (
-    id: string,
-    quantity: number,
-  ) => {
-    if (
-      quantity <=
-      0
-    ) {
-      removeFromCart(
-        id,
-      );
-
-      return;
-    }
-
-    setCart(
-      (
-        currentItems,
-      ) =>
-        currentItems.map(
-          (
-            item,
-          ) =>
-            item.id ===
-            id
-              ? {
-                  ...item,
-
-                  quantity,
-                }
-              : item,
-        ),
-    );
-  };
-
   const updateSize = (
     id: string,
     size: string,
   ) => {
     setCart(
       (
-        currentItems,
+        currentCart,
       ) =>
-        currentItems.map(
+        currentCart.map(
           (
             item,
           ) =>
@@ -416,12 +365,12 @@ export function CartProvider({
   ) => {
     setWishlist(
       (
-        currentItems,
+        currentWishlist,
       ) =>
-        currentItems.includes(
+        currentWishlist.includes(
           id,
         )
-          ? currentItems.filter(
+          ? currentWishlist.filter(
               (
                 itemId,
               ) =>
@@ -429,7 +378,7 @@ export function CartProvider({
                 id,
             )
           : [
-              ...currentItems,
+              ...currentWishlist,
               id,
             ],
     );
@@ -480,27 +429,17 @@ export function CartProvider({
     useMemo<CartContextValue>(
       () => ({
         cart,
-
         wishlist,
-
         cartCount,
-
         cartSubtotal,
+        hydrated,
 
         addToCart,
-
         removeFromCart,
-
         increaseQuantity,
-
         decreaseQuantity,
-
-        updateQuantity,
-
         updateSize,
-
         toggleWishlist,
-
         clearCart,
       }),
       [
@@ -508,6 +447,7 @@ export function CartProvider({
         wishlist,
         cartCount,
         cartSubtotal,
+        hydrated,
       ],
     );
 
