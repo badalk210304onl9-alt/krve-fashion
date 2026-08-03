@@ -1,79 +1,82 @@
-import Image from "next/image";
 import Link from "next/link";
 
-const hotspots = [
-  { href: "/", label: "Home", className: "hs-home" },
-  { href: "/collections", label: "Collections", className: "hs-collections" },
-  { href: "/collections?category=Men", label: "Men", className: "hs-men" },
-  { href: "/collections?category=Women", label: "Women", className: "hs-women" },
-  { href: "/collections?category=Accessories", label: "Accessories", className: "hs-accessories" },
-  { href: "/collections?sale=true", label: "Sale", className: "hs-sale" },
-  { href: "/collections", label: "Shop now", className: "hs-shop" },
-  { href: "/collections", label: "Explore collection", className: "hs-explore" },
-  { href: "/collections?category=Men", label: "Men collection", className: "hs-card-men" },
-  { href: "/collections?category=Women", label: "Women collection", className: "hs-card-women" },
-  { href: "/collections?category=Accessories", label: "Accessories collection", className: "hs-card-accessories" },
-  { href: "/collections?sale=true", label: "Sale collection", className: "hs-card-sale" },
-  { href: "/wishlist", label: "Wishlist", className: "hs-wishlist" },
-  { href: "/cart", label: "Bag", className: "hs-bag" },
-  { href: "/account", label: "Account", className: "hs-account" },
-  { href: "/virtual-try-on", label: "Virtual Try-On", className: "hs-virtual" },
+const trustItems = [
+  ["◇", "PREMIUM QUALITY", "Finest Materials"],
+  ["✺", "100% ORIGINAL", "Authentic Products"],
+  ["▱", "FREE SHIPPING", "Across India"],
+  ["↺", "EASY RETURNS", "15 Days Return"],
+  ["♢", "SECURE PAYMENTS", "100% Safe & Secure"],
+];
+
+const collections = [
+  { title: "MEN", subtitle: "COLLECTION", href: "/collections?category=Men", image: "/images/men.jpg" },
+  { title: "WOMEN", subtitle: "COLLECTION", href: "/collections?category=Women", image: "/images/women.jpg" },
+  { title: "ACCESSORIES", subtitle: "COLLECTION", href: "/collections?category=Accessories", image: "/images/accessories.jpg" },
+  { title: "SALE", subtitle: "UP TO 50% OFF", href: "/collections?sale=true", image: "/images/sale.jpg" },
 ];
 
 export default function HomePage() {
   return (
-    <main className="exact-home">
-      <section className="exact-desktop-stage" aria-label="KRVE luxury homepage">
-        <div className="exact-artboard">
-          <Image
-            src="/krve-home-reference.png"
-            alt="KRVE luxury fashion homepage"
-            fill
-            priority
-            sizes="100vw"
-            className="exact-reference-image"
-          />
-
-          {hotspots.map((item) => (
-            <Link
-              key={item.className}
-              href={item.href}
-              aria-label={item.label}
-              className={`exact-hotspot ${item.className}`}
-            />
-          ))}
-        </div>
-      </section>
-
-      <section className="exact-mobile-stage">
-        <div className="mobile-brand">
-          <span>♛</span>
-          <strong>KRVE</strong>
-          <small>THE FASHION STUDIO</small>
-        </div>
-
-        <div className="mobile-hero">
-          <div className="mobile-copy">
-            <p>TIMELESS STYLE. MODERN LUXURY.</p>
-            <h1>
-              CRAFTED TO INSPIRE.
-              <em>MADE TO LAST.</em>
-            </h1>
-            <span>
-              Elevate every moment with designs that define elegance.
-            </span>
-            <div>
-              <Link href="/collections">SHOP NOW</Link>
-              <Link href="/virtual-try-on">VIRTUAL TRY-ON</Link>
-            </div>
+    <main className="krve-home">
+      <section className="reference-hero">
+        <div className="hero-copy">
+          <div className="eyebrow"><i /> TIMELESS STYLE. MODERN LUXURY. <i /></div>
+          <h1>
+            <span>CRAFTED TO INSPIRE.</span>
+            <em>MADE TO LAST.</em>
+          </h1>
+          <div className="ornament"><i /><b>◇</b><i /></div>
+          <p>
+            Elevate every moment with designs that define elegance,
+            crafted for those who value quality and individuality.
+          </p>
+          <div className="hero-buttons">
+            <Link className="primary" href="/collections">SHOP NOW <span>→</span></Link>
+            <Link className="secondary" href="/collections">EXPLORE COLLECTION</Link>
           </div>
         </div>
 
-        <div className="mobile-collections">
-          <Link href="/collections?category=Men">MEN</Link>
-          <Link href="/collections?category=Women">WOMEN</Link>
-          <Link href="/collections?category=Accessories">ACCESSORIES</Link>
-          <Link href="/collections?sale=true">SALE</Link>
+        <div className="hero-visual" aria-hidden="true" />
+
+        <div className="brand-plaque" aria-label="KRVE brand">
+          <div className="crown">♛</div>
+          <strong>KRVE</strong>
+          <small>— THE FASHION STUDIO —</small>
+          <span>MOVE INTO STYLE</span>
+          <i />
+        </div>
+      </section>
+
+      <section className="trust-bar">
+        {trustItems.map(([icon, title, text]) => (
+          <div className="trust-item" key={title}>
+            <span className="trust-icon">{icon}</span>
+            <div><strong>{title}</strong><small>{text}</small></div>
+          </div>
+        ))}
+      </section>
+
+      <section className="collection-section">
+        <div className="section-title"><i /><h2>SHOP BY COLLECTION</h2><i /></div>
+        <div className="section-ornament">◇</div>
+        <div className="collection-grid">
+          {collections.map((item) => (
+            <Link
+              className="collection-card"
+              key={item.title}
+              href={item.href}
+              style={{ backgroundImage: `url(${item.image})` }}
+            >
+              <div className="shade" />
+              <span className="corner tl" />
+              <span className="corner tr" />
+              <div className="card-copy">
+                <h3>{item.title}</h3>
+                <p>{item.subtitle}</p>
+                <span>EXPLORE →</span>
+              </div>
+            </Link>
+          ))}
         </div>
       </section>
     </main>
