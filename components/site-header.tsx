@@ -10,37 +10,45 @@ export default function SiteHeader() {
 
   return (
     <header className="site-header">
-      <div className="top-strip">
-        <div>▱ <span>FREE SHIPPING ACROSS INDIA</span></div>
-        <div>◇ <span>CERTIFIED PREMIUM QUALITY</span></div>
-        <div>♢ <span>100% SECURE PAYMENTS</span></div>
-        <div>⌕ <span>+91 12345 67890</span></div>
+      <div className="announcement">
+        <span>Private client delivery across India</span>
+        <span className="announcement__center">Complimentary shipping above ₹5,000</span>
+        <a href="mailto:care@krvefashionstudio.in">Client Services</a>
       </div>
 
       <div className="nav-shell">
-        <button className="menu-btn" onClick={() => setOpen(!open)} aria-label="Menu">☰</button>
+        <button
+          className="menu-button"
+          aria-label="Toggle navigation"
+          aria-expanded={open}
+          onClick={() => setOpen((value) => !value)}
+        >
+          <span />
+          <span />
+        </button>
 
-        <Link className="logo" href="/">
-          <span>♛</span>
+        <Link className="brand" href="/" aria-label="KRVE home">
           <strong>KRVE</strong>
-          <small>— THE FASHION STUDIO —</small>
+          <span>THE FASHION STUDIO</span>
         </Link>
 
         <nav className={open ? "nav-links open" : "nav-links"}>
-          <Link className="active" href="/">HOME</Link>
-          <Link href="/collections">COLLECTIONS⌄</Link>
-          <Link href="/collections?category=Men">MEN⌄</Link>
-          <Link href="/collections?category=Women">WOMEN⌄</Link>
-          <Link href="/collections?category=Accessories">ACCESSORIES⌄</Link>
-          <Link className="sale" href="/collections?sale=true">SALE</Link>
-          <Link href="/virtual-try-on">VIRTUAL TRY-ON</Link>
+          <Link href="/collections" onClick={() => setOpen(false)}>New Collection</Link>
+          <Link href="/collections?category=Tailoring" onClick={() => setOpen(false)}>Tailoring</Link>
+          <Link href="/collections?category=Shirts" onClick={() => setOpen(false)}>Essentials</Link>
+          <Link href="/virtual-try-on" onClick={() => setOpen(false)}>Digital Atelier</Link>
         </nav>
 
         <div className="nav-actions">
-          <button aria-label="Search">⌕</button>
-          <Link href="/account" aria-label="Account">♙</Link>
-          <Link href="/wishlist" className="counter-link" aria-label="Wishlist">♡{wishlist.length > 0 && <span>{wishlist.length}</span>}</Link>
-          <Link href="/cart" className="counter-link" aria-label="Bag">▱<span>{cartCount}</span></Link>
+          <Link className="nav-account" href="/account">Account</Link>
+          <Link href="/wishlist" aria-label={`Wishlist with ${wishlist.length} items`}>
+            <span className="nav-icon">♡</span>
+            <small>{wishlist.length}</small>
+          </Link>
+          <Link href="/cart" aria-label={`Shopping bag with ${cartCount} items`}>
+            <span className="nav-icon">Bag</span>
+            <small>{cartCount}</small>
+          </Link>
         </div>
       </div>
     </header>
