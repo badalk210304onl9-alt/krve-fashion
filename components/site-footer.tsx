@@ -1,18 +1,12 @@
-import Link from "next/link";
-
 export default function SiteFooter() {
   return (
-    <footer className="site-footer exact-footer">
+    <footer className="footer">
       <div>
-        <strong>KRVE</strong>
-        <p>AI-powered luxury fashion, intelligent tailoring and immersive virtual try-on.</p>
+        <strong>KrvE</strong>
+        <p>THE FASHION STUDIO</p>
       </div>
-      <nav>
-        <Link href="/collections">Collections</Link>
-        <Link href="/virtual-try-on">Virtual Try-On</Link>
-        <Link href="/account">Account</Link>
-      </nav>
-      <span>© 2026 KRVE — THE FASHION STUDIO</span>
+      <p>Luxury fashion, intelligent fit and AI-powered personal styling.</p>
+      <p>© 2026 KRVE. All rights reserved.</p>
     </footer>
   );
 }
