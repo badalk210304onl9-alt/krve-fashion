@@ -3,176 +3,145 @@ import Link from "next/link";
 import ProductCard from "@/components/product-card";
 import { products } from "@/lib/catalog";
 
-const virtues = [
-  ["01", "Private Fit", "Body-aware recommendations shaped around you."],
-  ["02", "Modern Craft", "Quiet luxury, precise cuts and considered materials."],
-  ["03", "Digital Atelier", "Visualise every look before it enters your wardrobe."],
+const trustItems = [
+  ["◎", "FREE WORLDWIDE SHIPPING", "On all orders above ₹15,000"],
+  ["↻", "EASY RETURNS", "30-day return policy"],
+  ["◇", "PREMIUM QUALITY", "Finest materials"],
+  ["♙", "AI PERSONAL STYLIST", "Style that matches you"],
+  ["▣", "SECURE SHOPPING", "100% protected checkout"],
+];
+
+const housePoints = [
+  ["◈", "EXCLUSIVE COLLECTIONS", "Unique & limited designs"],
+  ["⬡", "LUXURY MATERIALS", "Premium & sustainable"],
+  ["✣", "CRAFTED TO PERFECTION", "Attention to every detail"],
+  ["♙", "TRUSTED BY THOUSANDS", "★★★★★  4.9/5"],
 ];
 
 export default function HomePage() {
   return (
-    <main className="home-page">
-      <section className="couture-hero">
-        <div className="couture-hero__media">
+    <main className="krve-home">
+      <section className="ai-banner">
+        <span>✦</span>
+        <Link href="/virtual-try-on">Meet Your Personal AI Stylist — Get Recommendations</Link>
+        <span>›</span>
+      </section>
+
+      <section className="hero-luxury">
+        <div className="hero-luxury__image">
           <Image
-            src="https://images.unsplash.com/photo-1617137968427-85924c800a22?auto=format&fit=crop&w=2200&q=92"
-            alt="KRVE tailored menswear"
+            src="https://images.unsplash.com/photo-1617137968427-85924c800a22?auto=format&fit=crop&w=2200&q=95"
+            alt="KRVE luxury menswear"
             fill
             priority
             sizes="100vw"
-            className="couture-hero__image"
+            className="hero-cover"
           />
-          <div className="couture-hero__veil" />
+          <div className="hero-luxury__shade" />
         </div>
 
-        <div className="couture-hero__content">
-          <div className="hero-index">KRVE / 01 — PRIVATE COLLECTION</div>
-          <p className="eyebrow">The House of Intelligent Tailoring</p>
+        <div className="hero-luxury__copy">
+          <p className="hero-kicker"><span /> AI-POWERED FASHION</p>
           <h1>
-            Designed to be
-            <span>remembered.</span>
+            FASHION THAT
+            <strong>UNDERSTANDS YOU</strong>
           </h1>
-          <p className="hero-copy">
-            An elevated fashion experience where precision tailoring, personal identity
-            and intelligent fit become one.
+          <p className="hero-description">
+            Experience the future of luxury fashion with AI-powered style recommendations,
+            precise fit intelligence and immersive virtual try-on.
           </p>
-          <div className="hero-actions">
-            <Link className="luxury-button luxury-button--light" href="/collections">
-              Enter the Collection
-            </Link>
-            <Link className="text-link text-link--light" href="/virtual-try-on">
-              Discover Virtual Try-On <span>↗</span>
-            </Link>
+          <div className="hero-cta-row">
+            <Link href="/collections" className="gold-cta">EXPLORE COLLECTIONS <span>→</span></Link>
+            <Link href="/virtual-try-on" className="outline-cta">VIRTUAL TRY-ON <span>✧</span></Link>
           </div>
         </div>
 
-        <div className="hero-signature">
-          <span>KRVE</span>
-          <small>THE FASHION STUDIO</small>
-        </div>
-
-        <div className="hero-scroll">SCROLL TO DISCOVER</div>
-      </section>
-
-      <section className="house-statement">
-        <div className="house-statement__number">EST. 2026</div>
-        <div className="house-statement__copy">
-          <p className="eyebrow eyebrow--dark">A New Language of Luxury</p>
-          <h2>
-            The finest wardrobe is not chosen for you.
-            <em>It is built around you.</em>
-          </h2>
-        </div>
-        <p className="house-statement__aside">
-          KRVE brings together refined silhouettes, intelligent measurements and a
-          private digital atelier to create a wardrobe with presence.
-        </p>
-      </section>
-
-      <section className="collection-feature">
-        <div className="collection-feature__media">
-          <Image
-            src="https://images.unsplash.com/photo-1610652492500-ded49ceeb378?auto=format&fit=crop&w=1800&q=90"
-            alt="KRVE evening tailoring"
-            fill
-            sizes="(max-width: 900px) 100vw, 62vw"
-            className="cover"
-          />
-          <div className="image-caption">THE NOIR EDIT — 2026</div>
-        </div>
-        <div className="collection-feature__content">
-          <p className="eyebrow">Noir, Reimagined</p>
-          <h2>Tailoring with quiet authority.</h2>
-          <p>
-            Sculpted shoulders. Fluid structure. A restrained palette. Every piece is
-            designed to feel timeless without ever feeling familiar.
-          </p>
-          <Link className="luxury-button luxury-button--outline" href="/collections?category=Tailoring">
-            Explore Tailoring
-          </Link>
+        <div className="hero-crest" aria-hidden="true">
+          <span>♛</span>
+          <strong>K</strong>
+          <small>KRVE</small>
         </div>
       </section>
 
-      <section className="new-edit section-shell">
-        <div className="section-heading section-heading--editorial">
-          <div>
-            <p className="eyebrow eyebrow--dark">The New Edit</p>
-            <h2>Objects of distinction.</h2>
-          </div>
-          <Link className="text-link" href="/collections">
-            View the full collection <span>↗</span>
-          </Link>
-        </div>
-        <div className="product-grid product-grid--luxury">
-          {products.slice(0, 4).map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
-      </section>
-
-      <section className="digital-atelier">
-        <div className="digital-atelier__content">
-          <p className="eyebrow">KRVE Digital Atelier</p>
-          <h2>Try the future on.</h2>
-          <p>
-            Create your digital twin, discover your most precise fit and experience
-            every garment before it reaches your wardrobe.
-          </p>
-          <div className="atelier-steps">
-            <span><b>01</b> Scan your silhouette</span>
-            <span><b>02</b> Build your digital twin</span>
-            <span><b>03</b> Curate your private wardrobe</span>
-          </div>
-          <Link className="luxury-button luxury-button--light" href="/virtual-try-on">
-            Begin the Experience
-          </Link>
-        </div>
-        <div className="digital-atelier__visual">
-          <div className="atelier-frame">
-            <div className="atelier-orbit atelier-orbit--one" />
-            <div className="atelier-orbit atelier-orbit--two" />
-            <div className="atelier-silhouette">
-              <span>K</span>
+      <section className="trust-strip">
+        {trustItems.map(([icon, title, text]) => (
+          <article key={title}>
+            <span className="trust-icon">{icon}</span>
+            <div>
+              <strong>{title}</strong>
+              <p>{text}</p>
             </div>
-            <div className="atelier-marker atelier-marker--top">SHOULDER / 46.2</div>
-            <div className="atelier-marker atelier-marker--mid">CHEST / 39.1</div>
-            <div className="atelier-marker atelier-marker--bottom">FIT PROFILE / SIGNATURE</div>
-          </div>
-        </div>
-      </section>
-
-      <section className="house-virtues">
-        {virtues.map(([index, title, copy]) => (
-          <article key={index}>
-            <span>{index}</span>
-            <h3>{title}</h3>
-            <p>{copy}</p>
           </article>
         ))}
       </section>
 
-      <section className="private-appointment">
-        <div className="private-appointment__image">
-          <Image
-            src="https://images.unsplash.com/photo-1555069519-127aadedf1ee?auto=format&fit=crop&w=2000&q=90"
-            alt="KRVE private styling appointment"
-            fill
-            sizes="100vw"
-            className="cover"
-          />
-          <div className="private-appointment__overlay" />
+      <section className="arrival-section">
+        <div className="arrival-heading">
+          <div>
+            <p className="gold-label">NEW ARRIVALS</p>
+            <span className="gold-diamond">◇</span>
+          </div>
+          <Link href="/collections">VIEW ALL <span>→</span></Link>
         </div>
-        <div className="private-appointment__content">
-          <p className="eyebrow">Private Client Service</p>
-          <h2>Your wardrobe, considered in private.</h2>
-          <p>
-            Create a KRVE account to save your fit, curate your wishlist and receive
-            personalised recommendations from the house.
-          </p>
-          <Link className="luxury-button luxury-button--light" href="/account">
-            Request Access
-          </Link>
+
+        <div className="arrival-layout">
+          <div className="arrival-products">
+            {products.slice(0, 4).map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+
+          <aside className="tryon-card">
+            <div className="tryon-card__copy">
+              <p>AI VIRTUAL TRY-ON STUDIO</p>
+              <h2>See your next look before you wear it.</h2>
+              <span>Upload your photo and preview KRVE pieces in real-time with intelligent fit guidance.</span>
+              <Link href="/virtual-try-on">TRY NOW <b>→</b></Link>
+            </div>
+            <div className="tryon-card__visual">
+              <div className="tryon-main-photo">
+                <Image
+                  src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=900&q=90"
+                  alt="Virtual try-on model"
+                  fill
+                  sizes="260px"
+                  className="cover"
+                />
+              </div>
+              <div className="tryon-mini tryon-mini--one">
+                <Image
+                  src="https://images.unsplash.com/photo-1617127365659-c47fa864d8bc?auto=format&fit=crop&w=500&q=90"
+                  alt="Suit preview"
+                  fill
+                  sizes="110px"
+                  className="cover"
+                />
+              </div>
+              <div className="tryon-mini tryon-mini--two">
+                <Image
+                  src="https://images.unsplash.com/photo-1610652492500-ded49ceeb378?auto=format&fit=crop&w=500&q=90"
+                  alt="Blazer preview"
+                  fill
+                  sizes="110px"
+                  className="cover"
+                />
+              </div>
+              <div className="tryon-focus">◎</div>
+            </div>
+          </aside>
         </div>
+      </section>
+
+      <section className="house-strip">
+        {housePoints.map(([icon, title, text]) => (
+          <article key={title}>
+            <span>{icon}</span>
+            <div>
+              <strong>{title}</strong>
+              <p>{text}</p>
+            </div>
+          </article>
+        ))}
       </section>
     </main>
   );
