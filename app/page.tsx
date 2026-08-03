@@ -1,41 +1,173 @@
-import Image from "next/image";
 import Link from "next/link";
 import ProductCard from "@/components/product-card";
 import { products } from "@/lib/catalog";
 
+const experienceItems = [
+  {
+    number: "01",
+    title: "Precision Fit",
+    text: "Intelligent sizing calibrated around your proportions.",
+  },
+  {
+    number: "02",
+    title: "Private Styling",
+    text: "A personal wardrobe direction shaped around your identity.",
+  },
+  {
+    number: "03",
+    title: "Virtual Try-On",
+    text: "Preview silhouettes before you commit to the final look.",
+  },
+];
+
 export default function HomePage() {
   return (
-    <main>
-      <section className="hero">
-        <Image src="https://images.unsplash.com/photo-1506629082955-511b1aa562c8?auto=format&fit=crop&w=2000&q=90" alt="KRVE luxury fashion" fill priority className="hero-image" />
-        <div className="hero-overlay" />
-        <div className="hero-content">
-          <p className="eyebrow">KRVE · Autumn/Winter 2026</p>
-          <h1>Fashion built<br /><em>around you.</em></h1>
-          <p>Luxury tailoring, intelligent fit and virtual try-on—crafted into one seamless fashion experience.</p>
-          <div className="hero-actions"><Link className="primary-button" href="/collections">Explore Collection</Link><Link className="ghost-button" href="/virtual-try-on">Create My Digital Twin</Link></div>
+    <main className="krve-home">
+      <section className="krve-hero">
+        <div className="krve-hero-dark">
+          <div className="krve-hero-brandline">
+            <span className="krve-monogram">K</span>
+            <div>
+              <strong>KRVE</strong>
+              <small>The Fashion Studio</small>
+            </div>
+          </div>
+
+          <div className="krve-hero-copy">
+            <div className="krve-pill">✦ Private Fashion House</div>
+            <p className="krve-kicker">Autumn / Winter 2026</p>
+            <h1>
+              Fashion that feels
+              <span>entirely yours.</span>
+            </h1>
+            <p className="krve-intro">
+              Luxury tailoring, intelligent fit and personal styling—brought
+              together in one refined fashion experience.
+            </p>
+
+            <div className="krve-hero-actions">
+              <Link className="krve-btn krve-btn-gold" href="/collections">
+                Explore the Collection <span>→</span>
+              </Link>
+              <Link className="krve-btn krve-btn-outline" href="/virtual-try-on">
+                Enter Virtual Studio
+              </Link>
+            </div>
+          </div>
+
+          <div className="krve-hero-metrics">
+            <div>
+              <span>01</span>
+              <strong>Made for your proportions</strong>
+            </div>
+            <div>
+              <span>02</span>
+              <strong>Curated luxury wardrobe</strong>
+            </div>
+            <div>
+              <span>03</span>
+              <strong>Private digital fitting</strong>
+            </div>
+          </div>
+        </div>
+
+        <div className="krve-hero-light">
+          <div className="krve-studio-card">
+            <div className="krve-card-topline">
+              <span className="krve-status-dot" />
+              Private Styling Suite
+              <span className="krve-card-code">KRVE / 26</span>
+            </div>
+
+            <div className="krve-look-frame">
+              <div className="krve-look-glow" />
+              <div className="krve-tailored-figure">
+                <span className="krve-head" />
+                <span className="krve-shoulders" />
+                <span className="krve-jacket" />
+                <span className="krve-leg krve-leg-left" />
+                <span className="krve-leg krve-leg-right" />
+              </div>
+              <div className="krve-scan-line" />
+              <div className="krve-frame-label">Digital Fit Profile</div>
+            </div>
+
+            <div className="krve-studio-copy">
+              <p>Personal Styling Session</p>
+              <h2>Your silhouette, refined.</h2>
+              <p>
+                Discover pieces selected for your proportions, preferences and
+                presence.
+              </p>
+            </div>
+
+            <div className="krve-studio-actions">
+              <Link href="/virtual-try-on">Begin fitting</Link>
+              <Link href="/account">Client account</Link>
+            </div>
+          </div>
+
+          <div className="krve-floating-note krve-note-one">
+            <span>Fit Profile</span>
+            <strong>Precision ready</strong>
+          </div>
+          <div className="krve-floating-note krve-note-two">
+            <span>Private Edit</span>
+            <strong>Curated for you</strong>
+          </div>
         </div>
       </section>
 
-      <section className="trust-strip">
-        <div><strong>AI Fit</strong><span>Personalised measurements</span></div>
-        <div><strong>Luxury Craft</strong><span>Premium construction</span></div>
-        <div><strong>Private by Design</strong><span>Customer-first data control</span></div>
-        <div><strong>India Delivery</strong><span>Tracked premium shipping</span></div>
+      <section className="krve-experience-strip">
+        {experienceItems.map((item) => (
+          <article key={item.number}>
+            <span>{item.number}</span>
+            <div>
+              <h3>{item.title}</h3>
+              <p>{item.text}</p>
+            </div>
+          </article>
+        ))}
       </section>
 
-      <section className="section-shell">
-        <div className="section-heading"><div><p className="eyebrow dark">The New Edit</p><h2>Designed for presence.</h2></div><Link href="/collections">View all pieces →</Link></div>
-        <div className="product-grid">{products.slice(0, 4).map((product) => <ProductCard key={product.id} product={product} />)}</div>
+      <section className="krve-editorial-section">
+        <div className="krve-section-header">
+          <div>
+            <p className="krve-kicker krve-kicker-dark">The KRVE Edit</p>
+            <h2>Quiet luxury. Strong presence.</h2>
+          </div>
+          <Link href="/collections">View all pieces →</Link>
+        </div>
+        <div className="product-grid">
+          {products.slice(0, 4).map((product) => (
+            <ProductCard key={product.id} product={product} />
+          ))}
+        </div>
       </section>
 
-      <section className="split-feature">
-        <div className="split-media"><Image src="https://images.unsplash.com/photo-1598808503746-f34c53b9323e?auto=format&fit=crop&w=1500&q=90" alt="Tailored luxury fashion" fill className="cover" /></div>
-        <div className="split-copy"><p className="eyebrow dark">The KRVE Difference</p><h2>Your body. Your style. Your fit.</h2><p>Our digital fitting journey measures, recommends and visualises your look before you buy. No guesswork. No generic sizing.</p><div className="feature-list"><span>01 · Body-aware size recommendation</span><span>02 · 3D digital twin experience</span><span>03 · AI outfit guidance</span><span>04 · Virtual try-on ready</span></div><Link className="primary-button dark-button" href="/virtual-try-on">Begin Virtual Try-On</Link></div>
-      </section>
-
-      <section className="editorial-banner">
-        <p className="eyebrow">Private Appointment</p><h2>Build a wardrobe that feels unmistakably yours.</h2><p>Discover curated tailoring, refined essentials and intelligent fashion guidance.</p><Link className="ghost-button" href="/account">Create Your KRVE Account</Link>
+      <section className="krve-private-section">
+        <div className="krve-private-copy">
+          <p className="krve-kicker">The House of KRVE</p>
+          <h2>Designed around the person, not the mannequin.</h2>
+          <p>
+            Every KRVE experience begins with who you are—your body, your
+            ambition and the impression you choose to leave.
+          </p>
+          <Link className="krve-btn krve-btn-gold" href="/virtual-try-on">
+            Create My Digital Twin <span>→</span>
+          </Link>
+        </div>
+        <div className="krve-private-art">
+          <div className="krve-art-card krve-art-card-one">
+            <span>Tailoring</span>
+            <strong>Built with intention</strong>
+          </div>
+          <div className="krve-art-card krve-art-card-two">
+            <span>Technology</span>
+            <strong>Made invisible</strong>
+          </div>
+          <div className="krve-gold-orbit" />
+        </div>
       </section>
     </main>
   );
