@@ -2,36 +2,31 @@ import Link from "next/link";
 
 export default function SiteFooter() {
   return (
-    <footer className="site-footer krve-footer">
-      <div className="krve-footer-intro">
-        <div>
-          <div className="footer-brand">KRVE</div>
-          <p>The Fashion Studio</p>
-        </div>
-        <h2>Move into style.</h2>
+    <footer className="site-footer">
+      <div className="footer-luxury-brand">
+        <div className="footer-crown">♛</div>
+        <strong>KRVE</strong>
+        <span>THE FASHION STUDIO</span>
+        <p>MOVE INTO STYLE</p>
       </div>
 
-      <div className="footer-grid">
+      <div className="footer-links-grid">
         <div>
-          <p>
-            A private fashion house blending luxury tailoring, intelligent fit
-            and digital styling into one seamless client experience.
-          </p>
-        </div>
-        <div>
-          <h4>House</h4>
+          <h4>SHOP</h4>
           <Link href="/collections">Collections</Link>
-          <Link href="/collections?category=Tailoring">Tailoring</Link>
-          <Link href="/virtual-try-on">Virtual Studio</Link>
+          <Link href="/collections?category=Men">Men</Link>
+          <Link href="/collections?category=Women">Women</Link>
+          <Link href="/collections?category=Accessories">Accessories</Link>
         </div>
         <div>
-          <h4>Client</h4>
-          <Link href="/account">Account</Link>
+          <h4>EXPERIENCE</h4>
+          <Link href="/virtual-try-on">Virtual Try-On</Link>
+          <Link href="/account">My Account</Link>
           <Link href="/wishlist">Wishlist</Link>
           <Link href="/cart">Shopping Bag</Link>
         </div>
         <div>
-          <h4>Private Services</h4>
+          <h4>CLIENT CARE</h4>
           <a href="mailto:care@krvefashionstudio.in">care@krvefashionstudio.in</a>
           <span>Mon–Sat · 10 AM–7 PM</span>
           <span>India</span>
@@ -39,8 +34,8 @@ export default function SiteFooter() {
       </div>
 
       <div className="footer-bottom">
-        <span>© 2026 KRVE — The Fashion Studio</span>
-        <span>Privacy · Terms · Shipping</span>
+        <span>© 2026 KRVE — THE FASHION STUDIO</span>
+        <span>PRIVACY · TERMS · SHIPPING · RETURNS</span>
       </div>
     </footer>
   );
