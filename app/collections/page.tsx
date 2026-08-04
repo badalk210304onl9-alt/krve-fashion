@@ -9,6 +9,14 @@ import { products } from "@/lib/catalog";
 
 import styles from "./collections.module.css";
 
+type Category =
+  | "ALL"
+  | "MENSWEAR"
+  | "WOMENSWEAR"
+  | "KIDSWEAR"
+  | "ACCESSORIES"
+  | "FOOTWEAR";
+
 type SortOption =
   | "featured"
   | "price-low"
@@ -25,15 +33,45 @@ const money = new Intl.NumberFormat("en-IN", {
   maximumFractionDigits: 0,
 });
 
-const filters = [
-  "ALL",
-  "TAILORING",
-  "SHIRTS",
-  "ACCESSORIES",
-  "FOOTWEAR",
+const categories: {
+  id: Category;
+  title: string;
+  subtitle: string;
+  number: string;
+}[] = [
+  {
+    id: "MENSWEAR",
+    title: "Menswear",
+    subtitle: "Tailoring, shirts and refined essentials",
+    number: "01",
+  },
+  {
+    id: "WOMENSWEAR",
+    title: "Womenswear",
+    subtitle: "Modern silhouettes and timeless elegance",
+    number: "02",
+  },
+  {
+    id: "KIDSWEAR",
+    title: "Kidswear",
+    subtitle: "Premium style for younger wardrobes",
+    number: "03",
+  },
+  {
+    id: "ACCESSORIES",
+    title: "Accessories",
+    subtitle: "Bags, watches, belts and finishing pieces",
+    number: "04",
+  },
+  {
+    id: "FOOTWEAR",
+    title: "Footwear",
+    subtitle: "Luxury shoes and contemporary sneakers",
+    number: "05",
+  },
 ];
 
-function HeartIcon({ size = 20 }: IconProps) {
+function HeartIcon({ size = 21 }: IconProps) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -46,7 +84,7 @@ function HeartIcon({ size = 20 }: IconProps) {
   );
 }
 
-function BagIcon({ size = 17 }: IconProps) {
+function BagIcon({ size = 18 }: IconProps) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -103,25 +141,47 @@ function FilterIcon({ size = 18 }: IconProps) {
   );
 }
 
-function normalizeCategory(category?: string) {
-  const value = (category || "").toLowerCase();
+function normalizeCategory(
+  productName?: string,
+  productCategory?: string,
+): Category {
+  const value = `${productName || ""} ${productCategory || ""}`.toLowerCase();
 
   if (
-    value.includes("blazer") ||
-    value.includes("tailor") ||
-    value.includes("suit")
+    value.includes("women") ||
+    value.includes("womenswear") ||
+    value.includes("woman") ||
+    value.includes("dress") ||
+    value.includes("gown") ||
+    value.includes("saree") ||
+    value.includes("kurti") ||
+    value.includes("skirt") ||
+    value.includes("heels") ||
+    value.includes("handbag")
   ) {
-    return "TAILORING";
+    return "WOMENSWEAR";
   }
 
-  if (value.includes("shirt")) {
-    return "SHIRTS";
+  if (
+    value.includes("kids") ||
+    value.includes("kidswear") ||
+    value.includes("child") ||
+    value.includes("children") ||
+    value.includes("junior") ||
+    value.includes("boy") ||
+    value.includes("girl")
+  ) {
+    return "KIDSWEAR";
   }
 
   if (
     value.includes("shoe") ||
+    value.includes("shoes") ||
     value.includes("sneaker") ||
-    value.includes("footwear")
+    value.includes("sneakers") ||
+    value.includes("footwear") ||
+    value.includes("loafer") ||
+    value.includes("boot")
   ) {
     return "FOOTWEAR";
   }
@@ -129,28 +189,50 @@ function normalizeCategory(category?: string) {
   if (
     value.includes("bag") ||
     value.includes("duffle") ||
-    value.includes("accessor")
+    value.includes("accessor") ||
+    value.includes("watch") ||
+    value.includes("belt") ||
+    value.includes("wallet") ||
+    value.includes("sunglass") ||
+    value.includes("cap")
   ) {
     return "ACCESSORIES";
   }
 
-  return category?.toUpperCase() || "KRVE COLLECTION";
+  return "MENSWEAR";
+}
+
+function getCategoryImage(category: Category) {
+  const matchedProduct = products.find(
+    (product) =>
+      normalizeCategory(product.name, product.category) === category,
+  );
+
+  if (matchedProduct) {
+    return matchedProduct.image;
+  }
+
+  return products[0]?.image || "/images/krve-placeholder.jpg";
 }
 
 export default function CollectionsPage() {
   const { wishlist, toggleWishlist } = useCart();
 
-  const [activeFilter, setActiveFilter] = useState("ALL");
+  const [activeCategory, setActiveCategory] =
+    useState<Category>("ALL");
+
   const [sortOption, setSortOption] =
     useState<SortOption>("featured");
 
   const visibleProducts = useMemo(() => {
     const filtered = products.filter((product) => {
-      if (activeFilter === "ALL") {
+      if (activeCategory === "ALL") {
         return true;
       }
 
-      return normalizeCategory(product.category) === activeFilter;
+      return (
+        normalizeCategory(product.name, product.category) === activeCategory
+      );
     });
 
     const sorted = [...filtered];
@@ -170,7 +252,20 @@ export default function CollectionsPage() {
     }
 
     return sorted;
-  }, [activeFilter, sortOption]);
+  }, [activeCategory, sortOption]);
+
+  function selectCategory(category: Category) {
+    setActiveCategory(category);
+
+    window.setTimeout(() => {
+      document
+        .getElementById("collection-products")
+        ?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+    }, 50);
+  }
 
   return (
     <main className={styles.page}>
@@ -182,20 +277,25 @@ export default function CollectionsPage() {
           <div className={styles.eyebrow}>
             <span />
             <SparkleIcon />
-            KRVE PRIVATE COLLECTION
+            KRVE PRIVATE COLLECTIONS
           </div>
 
           <h1>
-            Discover the
-            <em>KRVE collection.</em>
+            Designed for
+            <em>every wardrobe.</em>
           </h1>
 
           <p>
-            Timeless tailoring, intelligent essentials and refined
-            accessories—crafted for modern luxury.
+            Explore luxury menswear, womenswear, kidswear, accessories
+            and footwear—curated through the refined world of KRVE.
           </p>
 
           <div className={styles.heroMeta}>
+            <div>
+              <strong>05</strong>
+              <span>MAIN CATEGORIES</span>
+            </div>
+
             <div>
               <strong>{products.length}</strong>
               <span>CURATED PIECES</span>
@@ -205,27 +305,22 @@ export default function CollectionsPage() {
               <strong>2026</strong>
               <span>PRIVATE EDITION</span>
             </div>
-
-            <div>
-              <strong>KRVE</strong>
-              <span>DESIGN HOUSE</span>
-            </div>
           </div>
         </div>
 
         <div className={styles.heroCard}>
-          <SparkleIcon size={34} />
+          <SparkleIcon size={35} />
 
-          <p>INTELLIGENT FASHION</p>
+          <p>KRVE INTELLIGENCE</p>
 
           <h2>
-            Fashion selected
-            <em>around you.</em>
+            Your personal
+            <em>fashion edit.</em>
           </h2>
 
           <span>
-            Use KRVE AI Stylist to discover pieces aligned with your
-            personal aesthetic.
+            Let KRVE AI understand your style and recommend pieces
+            selected around your personality.
           </span>
 
           <Link href="/ai-stylist">
@@ -235,13 +330,77 @@ export default function CollectionsPage() {
         </div>
       </section>
 
-      <section className={styles.collectionArea}>
+      <section className={styles.categorySection}>
+        <header className={styles.categoryHeading}>
+          <div>
+            <p>EXPLORE BY CATEGORY</p>
+            <h2>Shop your world.</h2>
+          </div>
+
+          <span>
+            Five distinctive collections. One KRVE experience.
+          </span>
+        </header>
+
+        <div className={styles.categoryGrid}>
+          {categories.map((category) => (
+            <button
+              key={category.id}
+              type="button"
+              className={`${styles.categoryCard} ${
+                activeCategory === category.id
+                  ? styles.activeCategoryCard
+                  : ""
+              }`}
+              onClick={() => selectCategory(category.id)}
+            >
+              <Image
+                src={getCategoryImage(category.id)}
+                alt={category.title}
+                fill
+                sizes="(max-width: 650px) 100vw, (max-width: 1100px) 50vw, 20vw"
+              />
+
+              <span className={styles.categoryShade} />
+
+              <span className={styles.categoryNumber}>
+                {category.number}
+              </span>
+
+              <div className={styles.categoryCopy}>
+                <p>KRVE COLLECTION</p>
+                <h3>{category.title}</h3>
+                <span>{category.subtitle}</span>
+
+                <strong>
+                  EXPLORE
+                  <ArrowIcon />
+                </strong>
+              </div>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section
+        id="collection-products"
+        className={styles.collectionArea}
+      >
         <header className={styles.collectionHeader}>
           <div>
             <p>THE PRIVATE EDIT</p>
-            <h2>Collections</h2>
+
+            <h2>
+              {activeCategory === "ALL"
+                ? "All Collections"
+                : categories.find(
+                    (category) => category.id === activeCategory,
+                  )?.title}
+            </h2>
+
             <span>
-              Explore KRVE tailoring, footwear and accessories.
+              Explore premium pieces crafted for the modern KRVE
+              wardrobe.
             </span>
           </div>
 
@@ -258,18 +417,30 @@ export default function CollectionsPage() {
               FILTER
             </div>
 
-            {filters.map((filter) => (
+            <button
+              type="button"
+              className={
+                activeCategory === "ALL"
+                  ? styles.activeFilter
+                  : ""
+              }
+              onClick={() => setActiveCategory("ALL")}
+            >
+              ALL
+            </button>
+
+            {categories.map((category) => (
               <button
-                key={filter}
+                key={category.id}
                 type="button"
                 className={
-                  activeFilter === filter
+                  activeCategory === category.id
                     ? styles.activeFilter
                     : ""
                 }
-                onClick={() => setActiveFilter(filter)}
+                onClick={() => setActiveCategory(category.id)}
               >
-                {filter}
+                {category.title.toUpperCase()}
               </button>
             ))}
           </div>
@@ -284,9 +455,15 @@ export default function CollectionsPage() {
               }
             >
               <option value="featured">Featured</option>
-              <option value="price-low">Price: Low to High</option>
-              <option value="price-high">Price: High to Low</option>
-              <option value="name">Product Name</option>
+              <option value="price-low">
+                Price: Low to High
+              </option>
+              <option value="price-high">
+                Price: High to Low
+              </option>
+              <option value="name">
+                Product Name
+              </option>
             </select>
           </label>
         </div>
@@ -295,7 +472,11 @@ export default function CollectionsPage() {
           <div className={styles.productGrid}>
             {visibleProducts.map((product, index) => {
               const saved = wishlist.includes(product.id);
-              const category = normalizeCategory(product.category);
+
+              const category = normalizeCategory(
+                product.name,
+                product.category,
+              );
 
               return (
                 <article
@@ -333,6 +514,7 @@ export default function CollectionsPage() {
                     />
 
                     <span className={styles.imageShade} />
+
                     <span className={styles.categoryBadge}>
                       {category}
                     </span>
@@ -350,7 +532,9 @@ export default function CollectionsPage() {
                         <h3>{product.name}</h3>
                       </div>
 
-                      <strong>{money.format(product.price)}</strong>
+                      <strong>
+                        {money.format(product.price)}
+                      </strong>
                     </div>
 
                     <div className={styles.productActions}>
@@ -365,7 +549,6 @@ export default function CollectionsPage() {
                       <Link
                         href={`/product/${product.id}`}
                         className={styles.addButton}
-                        aria-label={`Select ${product.name}`}
                       >
                         <BagIcon />
                         ADD
@@ -379,22 +562,25 @@ export default function CollectionsPage() {
         ) : (
           <section className={styles.emptyState}>
             <div>
-              <SparkleIcon size={36} />
+              <SparkleIcon size={37} />
             </div>
 
-            <p>NO PIECES FOUND</p>
+            <p>COMING SOON</p>
 
-            <h2>This collection is being curated.</h2>
+            <h2>
+              This KRVE collection is being curated.
+            </h2>
 
             <span>
-              Select another category to continue discovering KRVE.
+              New pieces will appear here as soon as they are added
+              to the catalog.
             </span>
 
             <button
               type="button"
-              onClick={() => setActiveFilter("ALL")}
+              onClick={() => setActiveCategory("ALL")}
             >
-              VIEW ALL PIECES
+              VIEW ALL COLLECTIONS
               <ArrowIcon />
             </button>
           </section>
@@ -407,16 +593,17 @@ export default function CollectionsPage() {
         </div>
 
         <div>
-          <p>KRVE INTELLIGENCE</p>
+          <p>KRVE PERSONAL STYLIST</p>
 
           <h2>
-            Find your signature
-            <em>with KRVE AI.</em>
+            Find the collection
+            <em>made for you.</em>
           </h2>
 
           <span>
-            Create your personal style profile and receive luxury
-            recommendations selected around you.
+            Build your style profile and receive intelligent
+            recommendations across menswear, womenswear, kidswear,
+            accessories and footwear.
           </span>
         </div>
 
@@ -429,33 +616,46 @@ export default function CollectionsPage() {
       <section className={styles.serviceStrip}>
         <div>
           <strong>01</strong>
+
           <p>
-            PREMIUM QUALITY
-            <span>Finest selected materials</span>
+            MENSWEAR
+            <span>Refined modern tailoring</span>
           </p>
         </div>
 
         <div>
           <strong>02</strong>
+
           <p>
-            VIRTUAL TRY-ON
-            <span>Preview before purchase</span>
+            WOMENSWEAR
+            <span>Timeless feminine luxury</span>
           </p>
         </div>
 
         <div>
           <strong>03</strong>
+
           <p>
-            EASY RETURNS
-            <span>Refined shopping experience</span>
+            KIDSWEAR
+            <span>Premium younger wardrobes</span>
           </p>
         </div>
 
         <div>
           <strong>04</strong>
+
           <p>
-            SECURE SHOPPING
-            <span>Protected checkout</span>
+            ACCESSORIES
+            <span>The finishing KRVE detail</span>
+          </p>
+        </div>
+
+        <div>
+          <strong>05</strong>
+
+          <p>
+            FOOTWEAR
+            <span>Style from the ground up</span>
           </p>
         </div>
       </section>
