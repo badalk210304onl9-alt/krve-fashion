@@ -16,7 +16,12 @@ const money = new Intl.NumberFormat("en-IN", {
 
 function CloseIcon() {
   return (
-    <svg viewBox="0 0 24 24" width="25" height="25" aria-hidden="true">
+    <svg
+      viewBox="0 0 24 24"
+      width="25"
+      height="25"
+      aria-hidden="true"
+    >
       <path d="M5 5 19 19" />
       <path d="M19 5 5 19" />
     </svg>
@@ -25,7 +30,12 @@ function CloseIcon() {
 
 function TrashIcon() {
   return (
-    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+    <svg
+      viewBox="0 0 24 24"
+      width="18"
+      height="18"
+      aria-hidden="true"
+    >
       <path d="M4 7h16" />
       <path d="M9 7V4h6v3" />
       <path d="m7 7 1 13h8l1-13" />
@@ -37,7 +47,12 @@ function TrashIcon() {
 
 function HeartIcon() {
   return (
-    <svg viewBox="0 0 24 24" width="44" height="44" aria-hidden="true">
+    <svg
+      viewBox="0 0 24 24"
+      width="44"
+      height="44"
+      aria-hidden="true"
+    >
       <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z" />
     </svg>
   );
@@ -45,7 +60,12 @@ function HeartIcon() {
 
 function SparkleIcon() {
   return (
-    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+    <svg
+      viewBox="0 0 24 24"
+      width="20"
+      height="20"
+      aria-hidden="true"
+    >
       <path d="m12 2 1.6 5.4L19 9l-5.4 1.6L12 16l-1.6-5.4L5 9l5.4-1.6L12 2Z" />
       <path d="m19 15 .7 2.3L22 18l-2.3.7L19 21l-.7-2.3L16 18l2.3-.7L19 15Z" />
     </svg>
@@ -60,7 +80,7 @@ export default function WishlistPage() {
   } = useCart();
 
   const savedProducts = products.filter((product) =>
-    wishlist.includes(product.slug),
+    wishlist.includes(product.id),
   );
 
   return (
@@ -80,7 +100,9 @@ export default function WishlistPage() {
 
             <p>
               {savedProducts.length}{" "}
-              {savedProducts.length === 1 ? "SAVED PIECE" : "SAVED PIECES"}
+              {savedProducts.length === 1
+                ? "SAVED PIECE"
+                : "SAVED PIECES"}
             </p>
           </div>
 
@@ -136,11 +158,11 @@ export default function WishlistPage() {
             <div className={styles.productList}>
               {savedProducts.map((product) => (
                 <article
-                  key={product.slug}
+                  key={product.id}
                   className={styles.product}
                 >
                   <Link
-                    href={`/product/${product.slug}`}
+                    href={`/product/${product.id}`}
                     className={styles.imageBox}
                   >
                     <Image
@@ -156,17 +178,21 @@ export default function WishlistPage() {
                   <div className={styles.productInfo}>
                     <div className={styles.productHeading}>
                       <div>
-                        <Link href={`/product/${product.slug}`}>
+                        <Link href={`/product/${product.id}`}>
                           <h2>{product.name}</h2>
                         </Link>
 
-                        <p>KRVE PRIVATE COLLECTION</p>
+                        <p>
+                          KRVE PRIVATE COLLECTION
+                        </p>
                       </div>
 
                       <button
                         type="button"
                         className={styles.removeButton}
-                        onClick={() => toggleWishlist(product.slug)}
+                        onClick={() =>
+                          toggleWishlist(product.id)
+                        }
                         aria-label={`Remove ${product.name} from wishlist`}
                       >
                         <TrashIcon />
@@ -184,7 +210,7 @@ export default function WishlistPage() {
                       </strong>
 
                       <Link
-                        href={`/product/${product.slug}`}
+                        href={`/product/${product.id}`}
                         className={styles.viewButton}
                       >
                         VIEW PIECE <span>→</span>
