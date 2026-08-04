@@ -1,4 +1,7 @@
-import type { Metadata } from "next";
+import type {
+  Metadata,
+} from "next";
+
 import {
   Cormorant_Garamond,
   Manrope,
@@ -8,15 +11,22 @@ import "./globals.css";
 
 import SiteHeader from "@/components/site-header";
 import SiteFooter from "@/components/site-footer";
+
 import {
   CartProvider,
 } from "@/components/cart-provider";
 
+import AutoLoginModal from "@/components/auto-login-modal";
+
 const displayFont =
   Cormorant_Garamond({
-    subsets: ["latin"],
+    subsets: [
+      "latin",
+    ],
+
     variable:
       "--font-display",
+
     weight: [
       "400",
       "500",
@@ -27,9 +37,13 @@ const displayFont =
 
 const bodyFont =
   Manrope({
-    subsets: ["latin"],
+    subsets: [
+      "latin",
+    ],
+
     variable:
       "--font-body",
+
     weight: [
       "400",
       "500",
@@ -67,6 +81,8 @@ export default function RootLayout({
           {children}
 
           <SiteFooter />
+
+          <AutoLoginModal />
         </CartProvider>
       </body>
     </html>
