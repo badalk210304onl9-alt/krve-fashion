@@ -1,70 +1,351 @@
 import Image from "next/image";
 import Link from "next/link";
-import ProductCard from "@/components/product-card";
-import { products } from "@/lib/catalog";
 
-export default function HomePage() {
+import ProductCard from "@/components/product-card";
+
+import {
+  getNewArrivalProducts,
+  type KrveProduct,
+} from "@/lib/api";
+
+import type {
+  Product,
+} from "@/lib/catalog";
+
+export const dynamic = "force-dynamic";
+
+export const metadata = {
+  title:
+    "KRVE — The Fashion Studio",
+  description:
+    "Luxury fashion, intelligent fit and AI-powered personal styling.",
+};
+
+/*
+  Existing ProductCard abhi purane
+  catalog Product type ko use karta hai.
+
+  Ye function Central API product ko
+  ProductCard-compatible format me convert karta hai.
+*/
+
+function convertToProductCardProduct(
+  product: KrveProduct,
+): Product {
+  return {
+    id:
+      product.slug ||
+      product.id,
+
+    name:
+      product.name,
+
+    price:
+      product.price,
+
+    image:
+      product.image ||
+      product.imageUrl ||
+      product.gallery?.[0] ||
+      "/images/products/product-1.jpg",
+
+    category:
+      getCategoryLabel(
+        product.category,
+      ),
+
+    description:
+      product.description ||
+      product.shortDescription ||
+      "A refined piece from the KRVE private collection.",
+  };
+}
+
+function getCategoryLabel(
+  category:
+    KrveProduct["category"],
+) {
+  if (
+    category === "womenswear"
+  ) {
+    return "Womenswear";
+  }
+
+  if (
+    category === "kidswear"
+  ) {
+    return "Kidswear";
+  }
+
+  if (
+    category === "accessories"
+  ) {
+    return "Accessories";
+  }
+
+  if (
+    category === "footwear"
+  ) {
+    return "Footwear";
+  }
+
+  return "Menswear";
+}
+
+async function loadNewArrivals() {
+  try {
+    const liveProducts =
+      await getNewArrivalProducts(
+        4,
+      );
+
+    return liveProducts.map(
+      convertToProductCardProduct,
+    );
+  } catch (error) {
+    console.error(
+      "HOME_NEW_ARRIVALS_ERROR",
+      error,
+    );
+
+    return [];
+  }
+}
+
+export default async function HomePage() {
+  const newArrivalProducts =
+    await loadNewArrivals();
+
   return (
     <main>
       <section className="hero">
         <div className="hero-silk" />
+
         <div className="hero-copy">
-          <div className="eyebrow"><span /> AI-POWERED FASHION</div>
+          <div className="eyebrow">
+            <span />
+
+            AI-POWERED FASHION
+          </div>
+
           <h1>
             FASHION THAT
-            <strong>UNDERSTANDS YOU</strong>
+
+            <strong>
+              UNDERSTANDS YOU
+            </strong>
           </h1>
-          <p>Experience the future of luxury fashion with AI-powered style recommendations.</p>
+
+          <p>
+            Experience the future
+            of luxury fashion with
+            AI-powered style
+            recommendations.
+          </p>
+
           <div className="hero-buttons">
-            <Link href="/collections" className="button solid">EXPLORE COLLECTIONS →</Link>
-            <Link href="/virtual-try-on" className="button ghost">VIRTUAL TRY-ON ✦</Link>
+            <Link
+              href="/collections"
+              className="button solid"
+            >
+              EXPLORE COLLECTIONS
+              →
+            </Link>
+
+            <Link
+              href="/virtual-try-on"
+              className="button ghost"
+            >
+              VIRTUAL TRY-ON ✦
+            </Link>
           </div>
         </div>
 
         <div className="hero-model">
-          <Image src="/images/hero-model.jpg" alt="KRVE luxury fashion model" fill priority />
+          <Image
+            src="/images/hero-model.jpg"
+            alt="KRVE luxury fashion model"
+            fill
+            priority
+            sizes="70vw"
+          />
         </div>
 
         <div className="crest">
-          <Image src="/images/crest.jpg" alt="KRVE crest" fill priority />
+          <Image
+            src="/images/crest.jpg"
+            alt="KRVE crest"
+            fill
+            priority
+            sizes="220px"
+          />
         </div>
       </section>
 
       <section className="benefits">
         {[
-          ["◎", "FREE WORLDWIDE SHIPPING", "On all orders above $200"],
-          ["◌", "EASY RETURNS", "30-day return policy"],
-          ["♜", "PREMIUM QUALITY", "Finest materials"],
-          ["♙", "AI PERSONAL STYLIST", "Style that matches you"],
-          ["▣", "SECURE SHOPPING", "100% protected checkout"]
-        ].map(([icon, title, text]) => (
-          <div key={title}>
-            <span>{icon}</span>
-            <p><strong>{title}</strong><small>{text}</small></p>
-          </div>
-        ))}
+          [
+            "◎",
+            "FREE WORLDWIDE SHIPPING",
+            "On all orders above $200",
+          ],
+          [
+            "◌",
+            "EASY RETURNS",
+            "30-day return policy",
+          ],
+          [
+            "♜",
+            "PREMIUM QUALITY",
+            "Finest materials",
+          ],
+          [
+            "♙",
+            "AI PERSONAL STYLIST",
+            "Style that matches you",
+          ],
+          [
+            "▣",
+            "SECURE SHOPPING",
+            "100% protected checkout",
+          ],
+        ].map(
+          ([
+            icon,
+            title,
+            text,
+          ]) => (
+            <div key={title}>
+              <span>
+                {icon}
+              </span>
+
+              <p>
+                <strong>
+                  {title}
+                </strong>
+
+                <small>
+                  {text}
+                </small>
+              </p>
+            </div>
+          ),
+        )}
       </section>
 
       <section className="new-arrivals">
         <div className="section-heading">
-          <h2>NEW ARRIVALS</h2>
-          <Link href="/collections">VIEW ALL →</Link>
+          <div>
+            <h2>
+              NEW ARRIVALS
+            </h2>
+
+            <small>
+              LIVE FROM KEOS
+              CENTER
+            </small>
+          </div>
+
+          <Link href="/collections">
+            VIEW ALL →
+          </Link>
         </div>
 
         <div className="arrival-layout">
           <div className="product-grid">
-            {products.map((product) => <ProductCard key={product.id} product={product} />)}
+            {newArrivalProducts.length >
+            0 ? (
+              newArrivalProducts.map(
+                (product) => (
+                  <ProductCard
+                    key={
+                      product.id
+                    }
+                    product={
+                      product
+                    }
+                  />
+                ),
+              )
+            ) : (
+              <div
+                className="
+                  homepage-products-empty
+                "
+              >
+                <span>
+                  ✦
+                </span>
+
+                <div>
+                  <strong>
+                    NEW COLLECTION
+                    COMING SOON
+                  </strong>
+
+                  <p>
+                    Publish a
+                    product from
+                    KEOS Center
+                    with New
+                    Arrival enabled
+                    and it will
+                    automatically
+                    appear here.
+                  </p>
+
+                  <Link
+                    href="/collections"
+                    className="button ghost"
+                  >
+                    EXPLORE
+                    COLLECTIONS →
+                  </Link>
+                </div>
+              </div>
+            )}
           </div>
 
           <article className="tryon-card">
             <div>
-              <p className="gold-label">AI VIRTUAL TRY-ON STUDIO</p>
-              <h3>See how every look feels before you wear it.</h3>
-              <p>Upload your photo and preview refined KRVE outfits in real time.</p>
-              <Link href="/virtual-try-on" className="button ghost">TRY NOW →</Link>
+              <p className="gold-label">
+                AI VIRTUAL TRY-ON
+                STUDIO
+              </p>
+
+              <h3>
+                See how every look
+                feels before you
+                wear it.
+              </h3>
+
+              <p>
+                Upload your photo
+                and preview refined
+                KRVE outfits in
+                real time.
+              </p>
+
+              <Link
+                href="/virtual-try-on"
+                className="button ghost"
+              >
+                TRY NOW →
+              </Link>
             </div>
+
             <div className="tryon-image">
-              <Image src="/images/try-on.jpg" alt="AI virtual try-on" fill />
+              <Image
+                src="/images/try-on.jpg"
+                alt="AI virtual try-on"
+                fill
+                sizes="
+                  (max-width: 900px)
+                  100vw,
+                  380px
+                "
+              />
             </div>
           </article>
         </div>
@@ -72,13 +353,49 @@ export default function HomePage() {
 
       <section className="bottom-strip">
         {[
-          ["◈", "EXCLUSIVE COLLECTIONS", "Unique & limited designs"],
-          ["◇", "LUXURY MATERIALS", "Premium & sustainable"],
-          ["✤", "CRAFTED TO PERFECTION", "Attention to every detail"],
-          ["♙", "TRUSTED BY THOUSANDS", "★★★★★ 4.9/5"]
-        ].map(([icon, title, text]) => (
-          <div key={title}><span>{icon}</span><p><strong>{title}</strong><small>{text}</small></p></div>
-        ))}
+          [
+            "◈",
+            "EXCLUSIVE COLLECTIONS",
+            "Unique & limited designs",
+          ],
+          [
+            "◇",
+            "LUXURY MATERIALS",
+            "Premium & sustainable",
+          ],
+          [
+            "✤",
+            "CRAFTED TO PERFECTION",
+            "Attention to every detail",
+          ],
+          [
+            "♙",
+            "TRUSTED BY THOUSANDS",
+            "★★★★★ 4.9/5",
+          ],
+        ].map(
+          ([
+            icon,
+            title,
+            text,
+          ]) => (
+            <div key={title}>
+              <span>
+                {icon}
+              </span>
+
+              <p>
+                <strong>
+                  {title}
+                </strong>
+
+                <small>
+                  {text}
+                </small>
+              </p>
+            </div>
+          ),
+        )}
       </section>
     </main>
   );
