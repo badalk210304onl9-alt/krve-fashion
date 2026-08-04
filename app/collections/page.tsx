@@ -34,7 +34,7 @@ const money = new Intl.NumberFormat("en-IN", {
 });
 
 const categories: {
-  id: Category;
+  id: Exclude<Category, "ALL">;
   title: string;
   subtitle: string;
   number: string;
@@ -144,7 +144,7 @@ function FilterIcon({ size = 18 }: IconProps) {
 function normalizeCategory(
   productName?: string,
   productCategory?: string,
-): Category {
+): Exclude<Category, "ALL"> {
   const value = `${productName || ""} ${productCategory || ""}`.toLowerCase();
 
   if (
@@ -202,17 +202,13 @@ function normalizeCategory(
   return "MENSWEAR";
 }
 
-function getCategoryImage(category: Category) {
+function getCategoryImage(category: Exclude<Category, "ALL">) {
   const matchedProduct = products.find(
     (product) =>
       normalizeCategory(product.name, product.category) === category,
   );
 
-  if (matchedProduct) {
-    return matchedProduct.image;
-  }
-
-  return products[0]?.image || "/images/krve-placeholder.jpg";
+  return matchedProduct?.image || products[0]?.image || "/images/placeholder.jpg";
 }
 
 export default function CollectionsPage() {
@@ -369,7 +365,9 @@ export default function CollectionsPage() {
 
               <div className={styles.categoryCopy}>
                 <p>KRVE COLLECTION</p>
+
                 <h3>{category.title}</h3>
+
                 <span>{category.subtitle}</span>
 
                 <strong>
@@ -399,8 +397,7 @@ export default function CollectionsPage() {
             </h2>
 
             <span>
-              Explore premium pieces crafted for the modern KRVE
-              wardrobe.
+              Explore premium pieces crafted for the modern KRVE wardrobe.
             </span>
           </div>
 
@@ -455,15 +452,9 @@ export default function CollectionsPage() {
               }
             >
               <option value="featured">Featured</option>
-              <option value="price-low">
-                Price: Low to High
-              </option>
-              <option value="price-high">
-                Price: High to Low
-              </option>
-              <option value="name">
-                Product Name
-              </option>
+              <option value="price-low">Price: Low to High</option>
+              <option value="price-high">Price: High to Low</option>
+              <option value="name">Product Name</option>
             </select>
           </label>
         </div>
@@ -505,6 +496,7 @@ export default function CollectionsPage() {
                   <Link
                     href={`/product/${product.id}`}
                     className={styles.productImage}
+                    aria-label={`Open ${product.name}`}
                   >
                     <Image
                       src={product.image}
@@ -518,11 +510,6 @@ export default function CollectionsPage() {
                     <span className={styles.categoryBadge}>
                       {category}
                     </span>
-
-                    <div className={styles.quickView}>
-                      VIEW PIECE
-                      <ArrowIcon />
-                    </div>
                   </Link>
 
                   <div className={styles.productContent}>
@@ -549,6 +536,7 @@ export default function CollectionsPage() {
                       <Link
                         href={`/product/${product.id}`}
                         className={styles.addButton}
+                        aria-label={`Add ${product.name}`}
                       >
                         <BagIcon />
                         ADD
