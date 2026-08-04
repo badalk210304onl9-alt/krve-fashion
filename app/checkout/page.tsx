@@ -8,21 +8,16 @@ import {
   type FormEvent,
 } from "react";
 
-import {
-  useCart,
-} from "@/components/cart-provider";
+import { useCart } from "@/components/cart-provider";
+import { loadRazorpayScript } from "@/lib/load-razorpay";
 
 import styles from "./checkout.module.css";
 
-const money =
-  new Intl.NumberFormat(
-    "en-IN",
-    {
-      style: "currency",
-      currency: "INR",
-      maximumFractionDigits: 0,
-    },
-  );
+const money = new Intl.NumberFormat("en-IN", {
+  style: "currency",
+  currency: "INR",
+  maximumFractionDigits: 0,
+});
 
 type CheckoutForm = {
   email: string;
@@ -34,6 +29,32 @@ type CheckoutForm = {
   city: string;
   state: string;
   postalCode: string;
+};
+
+type RazorpayOrderResponse = {
+  success: boolean;
+  message?: string;
+  keyId?: string;
+  order?: {
+    id: string;
+    amount: number | string;
+    currency: string;
+    receipt?: string;
+    status?: string;
+  };
+};
+
+type RazorpayVerificationResponse = {
+  success: boolean;
+  message?: string;
+  paymentId?: string;
+  orderId?: string;
+};
+
+type RazorpaySuccessResponse = {
+  razorpay_payment_id: string;
+  razorpay_order_id: string;
+  razorpay_signature: string;
 };
 
 const initialForm: CheckoutForm = {
@@ -78,14 +99,7 @@ function LockIcon() {
         rx="2"
       />
 
-      <path
-        d="
-          M8 10
-          V7
-          a4 4 0 0 1 8 0
-          v3
-        "
-      />
+      <path d="M8 10V7a4 4 0 0 1 8 0v3" />
     </svg>
   );
 }
@@ -98,18 +112,7 @@ function ShieldIcon() {
       height="30"
       aria-hidden="true"
     >
-      <path
-        d="
-          M12 2
-          20 5
-          v6
-          c0 5-3.4 8.6-8 11
-          -4.6-2.4-8-6-8-11
-          V5
-          l8-3Z
-        "
-      />
-
+      <path d="M12 2 20 5v6c0 5-3.4 8.6-8 11-4.6-2.4-8-6-8-11V5l8-3Z" />
       <path d="m9 12 2 2 4-5" />
     </svg>
   );
@@ -134,59 +137,33 @@ export default function CheckoutPage() {
     cartCount,
     cartSubtotal,
     hydrated,
+    clearCart,
   } = useCart();
 
-  const [
-    form,
-    setForm,
-  ] =
-    useState<CheckoutForm>(
-      initialForm,
-    );
+  const [form, setForm] =
+    useState<CheckoutForm>(initialForm);
 
-  const [
-    deliveryMethod,
-    setDeliveryMethod,
-  ] =
-    useState<
-      "standard" | "express"
-    >("standard");
+  const [deliveryMethod, setDeliveryMethod] =
+    useState<"standard" | "express">("standard");
 
-  const [
-    acceptedTerms,
-    setAcceptedTerms,
-  ] =
+  const [acceptedTerms, setAcceptedTerms] =
     useState(false);
 
-  const [
-    formError,
-    setFormError,
-  ] =
+  const [formError, setFormError] =
     useState("");
 
-  const [
-    isPreparingPayment,
-    setIsPreparingPayment,
-  ] =
+  const [isPreparingPayment, setIsPreparingPayment] =
     useState(false);
 
   const shipping =
-    deliveryMethod ===
-    "express"
+    deliveryMethod === "express"
       ? 499
       : 0;
 
-  const estimatedTax =
-    useMemo(
-      () =>
-        Math.round(
-          cartSubtotal *
-            0.075,
-        ),
-      [
-        cartSubtotal,
-      ],
-    );
+  const estimatedTax = useMemo(
+    () => Math.round(cartSubtotal * 0.075),
+    [cartSubtotal],
+  );
 
   const total =
     cartSubtotal +
@@ -194,18 +171,13 @@ export default function CheckoutPage() {
     estimatedTax;
 
   function updateField(
-    field:
-      keyof CheckoutForm,
+    field: keyof CheckoutForm,
     value: string,
   ) {
-    setForm(
-      (
-        current,
-      ) => ({
-        ...current,
-        [field]: value,
-      }),
-    );
+    setForm((current) => ({
+      ...current,
+      [field]: value,
+    }));
 
     if (formError) {
       setFormError("");
@@ -213,9 +185,7 @@ export default function CheckoutPage() {
   }
 
   function validateForm() {
-    const requiredFields: Array<
-      keyof CheckoutForm
-    > = [
+    const requiredFields: Array<keyof CheckoutForm> = [
       "email",
       "phone",
       "firstName",
@@ -226,15 +196,9 @@ export default function CheckoutPage() {
       "postalCode",
     ];
 
-    const missingField =
-      requiredFields.find(
-        (
-          field,
-        ) =>
-          !form[
-            field
-          ].trim(),
-      );
+    const missingField = requiredFields.find(
+      (field) => !form[field].trim(),
+    );
 
     if (missingField) {
       setFormError(
@@ -245,9 +209,8 @@ export default function CheckoutPage() {
     }
 
     if (
-      !form.email.includes(
-        "@",
-      )
+      !form.email.includes("@") ||
+      !form.email.includes(".")
     ) {
       setFormError(
         "Please enter a valid email address.",
@@ -256,15 +219,19 @@ export default function CheckoutPage() {
       return false;
     }
 
-    if (
-      form.phone.replace(
-        /\D/g,
-        "",
-      ).length <
-      10
-    ) {
+    const cleanPhone = form.phone.replace(/\D/g, "");
+
+    if (cleanPhone.length < 10) {
       setFormError(
-        "Please enter a valid mobile number.",
+        "Please enter a valid 10-digit mobile number.",
+      );
+
+      return false;
+    }
+
+    if (form.postalCode.replace(/\D/g, "").length !== 6) {
+      setFormError(
+        "Please enter a valid 6-digit postal code.",
       );
 
       return false;
@@ -278,97 +245,256 @@ export default function CheckoutPage() {
       return false;
     }
 
+    if (cart.length === 0 || total <= 0) {
+      setFormError(
+        "Your shopping bag is empty.",
+      );
+
+      return false;
+    }
+
     return true;
   }
 
-  function handleCheckout(
-    event:
-      FormEvent<HTMLFormElement>,
+  async function handleCheckout(
+    event: FormEvent<HTMLFormElement>,
   ) {
     event.preventDefault();
 
-    if (
-      !validateForm()
-    ) {
+    if (!validateForm()) {
       return;
     }
 
-    setIsPreparingPayment(
-      true,
-    );
+    setIsPreparingPayment(true);
+    setFormError("");
 
-    /*
-      RAZORPAY WILL BE CONNECTED HERE.
+    try {
+      const razorpayLoaded =
+        await loadRazorpayScript();
 
-      Later this function will:
-
-      1. Create an order from the backend.
-      2. Receive Razorpay order_id.
-      3. Open Razorpay Checkout.
-      4. Verify payment signature.
-      5. Save the completed KRVE order.
-    */
-
-    window.setTimeout(
-      () => {
-        setIsPreparingPayment(
-          false,
+      if (!razorpayLoaded || !window.Razorpay) {
+        throw new Error(
+          "Razorpay Checkout could not be loaded. Please check your internet connection and try again.",
         );
+      }
 
-        window.alert(
-          "Checkout is ready. Razorpay payment integration will be connected to this button.",
+      const createOrderResponse = await fetch(
+        "/api/razorpay/create-order",
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type": "application/json",
+          },
+
+          body: JSON.stringify({
+            amount: total,
+
+            receipt: `krve_${Date.now()}`,
+
+            customerName:
+              `${form.firstName} ${form.lastName}`.trim(),
+
+            customerEmail: form.email,
+
+            customerPhone:
+              form.phone.replace(/\D/g, ""),
+          }),
+        },
+      );
+
+      const orderData =
+        (await createOrderResponse.json()) as RazorpayOrderResponse;
+
+      if (
+        !createOrderResponse.ok ||
+        !orderData.success ||
+        !orderData.keyId ||
+        !orderData.order
+      ) {
+        throw new Error(
+          orderData.message ||
+            "Unable to create Razorpay order.",
         );
-      },
-      700,
-    );
+      }
+
+      const razorpay = new window.Razorpay({
+        key: orderData.keyId,
+
+        amount: orderData.order.amount,
+
+        currency: orderData.order.currency,
+
+        name: "KRVE",
+
+        description: "KRVE Fashion Order",
+
+        order_id: orderData.order.id,
+
+        prefill: {
+          name:
+            `${form.firstName} ${form.lastName}`.trim(),
+
+          email: form.email,
+
+          contact:
+            form.phone.replace(/\D/g, ""),
+        },
+
+        notes: {
+          address: [
+            form.address,
+            form.apartment,
+            form.city,
+            form.state,
+            form.postalCode,
+          ]
+            .filter(Boolean)
+            .join(", "),
+
+          delivery_method:
+            deliveryMethod,
+
+          items: String(cartCount),
+        },
+
+        theme: {
+          color: "#d6a72c",
+          backdrop_color: "#020202",
+        },
+
+        retry: {
+          enabled: true,
+          max_count: 3,
+        },
+
+        modal: {
+          escape: true,
+          confirm_close: true,
+
+          ondismiss: () => {
+            setIsPreparingPayment(false);
+          },
+        },
+
+        handler: async (
+          paymentResponse: RazorpaySuccessResponse,
+        ) => {
+          try {
+            setIsPreparingPayment(true);
+
+            const verificationResponse = await fetch(
+              "/api/razorpay/verify-payment",
+              {
+                method: "POST",
+
+                headers: {
+                  "Content-Type": "application/json",
+                },
+
+                body: JSON.stringify({
+                  razorpay_payment_id:
+                    paymentResponse.razorpay_payment_id,
+
+                  razorpay_order_id:
+                    paymentResponse.razorpay_order_id,
+
+                  razorpay_signature:
+                    paymentResponse.razorpay_signature,
+                }),
+              },
+            );
+
+            const verificationData =
+              (await verificationResponse.json()) as RazorpayVerificationResponse;
+
+            if (
+              !verificationResponse.ok ||
+              !verificationData.success
+            ) {
+              throw new Error(
+                verificationData.message ||
+                  "Payment verification failed.",
+              );
+            }
+
+            clearCart();
+
+            const successParams = new URLSearchParams({
+              payment_id:
+                verificationData.paymentId ||
+                paymentResponse.razorpay_payment_id,
+
+              order_id:
+                verificationData.orderId ||
+                paymentResponse.razorpay_order_id,
+            });
+
+            window.location.href =
+              `/order-success?${successParams.toString()}`;
+          } catch (verificationError) {
+            setIsPreparingPayment(false);
+
+            setFormError(
+              verificationError instanceof Error
+                ? verificationError.message
+                : "Payment verification failed. Please contact KRVE support.",
+            );
+          }
+        },
+      });
+
+      razorpay.on(
+        "payment.failed",
+        (response) => {
+          setIsPreparingPayment(false);
+
+          const description =
+            response.error?.description;
+
+          setFormError(
+            description ||
+              "Payment failed. Please try again.",
+          );
+        },
+      );
+
+      razorpay.open();
+    } catch (error) {
+      setIsPreparingPayment(false);
+
+      setFormError(
+        error instanceof Error
+          ? error.message
+          : "Unable to start Razorpay payment.",
+      );
+    }
   }
 
   if (!hydrated) {
     return (
-      <main
-        className={
-          styles.loadingPage
-        }
-      >
+      <main className={styles.loadingPage}>
         <div>
-          Preparing secure
-          checkout...
+          Preparing secure checkout...
         </div>
       </main>
     );
   }
 
-  if (
-    cart.length ===
-    0
-  ) {
+  if (cart.length === 0) {
     return (
-      <main
-        className={
-          styles.emptyPage
-        }
-      >
-        <div
-          className={
-            styles.emptyCard
-          }
-        >
+      <main className={styles.emptyPage}>
+        <div className={styles.emptyCard}>
           <span>K</span>
 
-          <p>
-            YOUR BAG IS EMPTY
-          </p>
+          <p>YOUR BAG IS EMPTY</p>
 
           <h1>
-            Add something
-            exceptional first.
+            Add something exceptional first.
           </h1>
 
-          <Link
-            href="/collections"
-          >
-            EXPLORE COLLECTIONS
-            →
+          <Link href="/collections">
+            EXPLORE COLLECTIONS →
           </Link>
         </div>
       </main>
@@ -376,186 +502,107 @@ export default function CheckoutPage() {
   }
 
   return (
-    <main
-      className={
-        styles.checkoutPage
-      }
-    >
-      <div
-        className={
-          styles.checkoutShell
-        }
-      >
-        <section
-          className={
-            styles.formSection
-          }
-        >
-          <div
-            className={
-              styles.pageHeader
-            }
-          >
+    <main className={styles.checkoutPage}>
+      <div className={styles.checkoutShell}>
+        <section className={styles.formSection}>
+          <div className={styles.pageHeader}>
             <Link
               href="/cart"
-              className={
-                styles.backLink
-              }
+              className={styles.backLink}
             >
               <ArrowLeftIcon />
-
               BACK TO BAG
             </Link>
 
-            <p>
-              SECURE CHECKOUT
-            </p>
+            <p>SECURE CHECKOUT</p>
 
             <h1>
-              Complete your
-              order.
+              Complete your order.
             </h1>
 
             <span>
-              Enter your delivery
-              details and proceed
-              to secure payment.
+              Enter your delivery details and proceed
+              to secure Razorpay payment.
             </span>
           </div>
 
-          <form
-            onSubmit={
-              handleCheckout
-            }
-          >
-            <section
-              className={
-                styles.formBlock
-              }
-            >
-              <div
-                className={
-                  styles.blockHeading
-                }
-              >
+          <form onSubmit={handleCheckout}>
+            <section className={styles.formBlock}>
+              <div className={styles.blockHeading}>
                 <span>01</span>
 
                 <div>
                   <h2>
-                    Contact
-                    Information
+                    Contact Information
                   </h2>
 
                   <p>
-                    Your order
-                    confirmation will
-                    be sent here.
+                    Your order confirmation will be sent here.
                   </p>
                 </div>
               </div>
 
-              <div
-                className={
-                  styles.fieldGrid
-                }
-              >
-                <label
-                  className={
-                    styles.fullField
-                  }
-                >
+              <div className={styles.fieldGrid}>
+                <label className={styles.fullField}>
                   <span>
                     EMAIL ADDRESS *
                   </span>
 
                   <input
                     type="email"
-                    value={
-                      form.email
-                    }
-                    onChange={(
-                      event,
-                    ) =>
+                    value={form.email}
+                    onChange={(event) =>
                       updateField(
                         "email",
-                        event.target
-                          .value,
+                        event.target.value,
                       )
                     }
                     placeholder="you@example.com"
+                    autoComplete="email"
                   />
                 </label>
 
-                <label
-                  className={
-                    styles.fullField
-                  }
-                >
+                <label className={styles.fullField}>
                   <span>
                     MOBILE NUMBER *
                   </span>
 
-                  <div
-                    className={
-                      styles.phoneField
-                    }
-                  >
-                    <strong>
-                      +91
-                    </strong>
+                  <div className={styles.phoneField}>
+                    <strong>+91</strong>
 
                     <input
                       type="tel"
-                      value={
-                        form.phone
-                      }
-                      onChange={(
-                        event,
-                      ) =>
+                      value={form.phone}
+                      onChange={(event) =>
                         updateField(
                           "phone",
-                          event.target
-                            .value,
+                          event.target.value,
                         )
                       }
                       placeholder="98765 43210"
+                      autoComplete="tel"
                     />
                   </div>
                 </label>
               </div>
             </section>
 
-            <section
-              className={
-                styles.formBlock
-              }
-            >
-              <div
-                className={
-                  styles.blockHeading
-                }
-              >
+            <section className={styles.formBlock}>
+              <div className={styles.blockHeading}>
                 <span>02</span>
 
                 <div>
                   <h2>
-                    Delivery
-                    Address
+                    Delivery Address
                   </h2>
 
                   <p>
-                    Where should we
-                    deliver your KRVE
-                    order?
+                    Where should we deliver your KRVE order?
                   </p>
                 </div>
               </div>
 
-              <div
-                className={
-                  styles.fieldGrid
-                }
-              >
+              <div className={styles.fieldGrid}>
                 <label>
                   <span>
                     FIRST NAME *
@@ -563,19 +610,15 @@ export default function CheckoutPage() {
 
                   <input
                     type="text"
-                    value={
-                      form.firstName
-                    }
-                    onChange={(
-                      event,
-                    ) =>
+                    value={form.firstName}
+                    onChange={(event) =>
                       updateField(
                         "firstName",
-                        event.target
-                          .value,
+                        event.target.value,
                       )
                     }
                     placeholder="First name"
+                    autoComplete="given-name"
                   />
                 </label>
 
@@ -586,71 +629,49 @@ export default function CheckoutPage() {
 
                   <input
                     type="text"
-                    value={
-                      form.lastName
-                    }
-                    onChange={(
-                      event,
-                    ) =>
+                    value={form.lastName}
+                    onChange={(event) =>
                       updateField(
                         "lastName",
-                        event.target
-                          .value,
+                        event.target.value,
                       )
                     }
                     placeholder="Last name"
+                    autoComplete="family-name"
                   />
                 </label>
 
-                <label
-                  className={
-                    styles.fullField
-                  }
-                >
+                <label className={styles.fullField}>
                   <span>
                     ADDRESS *
                   </span>
 
                   <input
                     type="text"
-                    value={
-                      form.address
-                    }
-                    onChange={(
-                      event,
-                    ) =>
+                    value={form.address}
+                    onChange={(event) =>
                       updateField(
                         "address",
-                        event.target
-                          .value,
+                        event.target.value,
                       )
                     }
                     placeholder="House number and street"
+                    autoComplete="street-address"
                   />
                 </label>
 
-                <label
-                  className={
-                    styles.fullField
-                  }
-                >
+                <label className={styles.fullField}>
                   <span>
-                    APARTMENT,
-                    SUITE, LANDMARK
+                    APARTMENT, SUITE OR LANDMARK
                   </span>
 
                   <input
                     type="text"
-                    value={
-                      form.apartment
-                    }
-                    onChange={(
-                      event,
-                    ) =>
+                    value={form.apartment}
+                    onChange={(event) =>
                       updateField(
                         "apartment",
-                        event.target
-                          .value,
+                        event.target.value,
                       )
                     }
                     placeholder="Optional"
@@ -658,48 +679,36 @@ export default function CheckoutPage() {
                 </label>
 
                 <label>
-                  <span>
-                    CITY *
-                  </span>
+                  <span>CITY *</span>
 
                   <input
                     type="text"
-                    value={
-                      form.city
-                    }
-                    onChange={(
-                      event,
-                    ) =>
+                    value={form.city}
+                    onChange={(event) =>
                       updateField(
                         "city",
-                        event.target
-                          .value,
+                        event.target.value,
                       )
                     }
                     placeholder="City"
+                    autoComplete="address-level2"
                   />
                 </label>
 
                 <label>
-                  <span>
-                    STATE *
-                  </span>
+                  <span>STATE *</span>
 
                   <input
                     type="text"
-                    value={
-                      form.state
-                    }
-                    onChange={(
-                      event,
-                    ) =>
+                    value={form.state}
+                    onChange={(event) =>
                       updateField(
                         "state",
-                        event.target
-                          .value,
+                        event.target.value,
                       )
                     }
                     placeholder="State"
+                    autoComplete="address-level1"
                   />
                 </label>
 
@@ -711,26 +720,20 @@ export default function CheckoutPage() {
                   <input
                     type="text"
                     inputMode="numeric"
-                    value={
-                      form.postalCode
-                    }
-                    onChange={(
-                      event,
-                    ) =>
+                    value={form.postalCode}
+                    onChange={(event) =>
                       updateField(
                         "postalCode",
-                        event.target
-                          .value,
+                        event.target.value,
                       )
                     }
                     placeholder="221005"
+                    autoComplete="postal-code"
                   />
                 </label>
 
                 <label>
-                  <span>
-                    COUNTRY
-                  </span>
+                  <span>COUNTRY</span>
 
                   <input
                     type="text"
@@ -741,16 +744,8 @@ export default function CheckoutPage() {
               </div>
             </section>
 
-            <section
-              className={
-                styles.formBlock
-              }
-            >
-              <div
-                className={
-                  styles.blockHeading
-                }
-              >
+            <section className={styles.formBlock}>
+              <div className={styles.blockHeading}>
                 <span>03</span>
 
                 <div>
@@ -759,22 +754,15 @@ export default function CheckoutPage() {
                   </h2>
 
                   <p>
-                    Choose your
-                    preferred delivery
-                    experience.
+                    Choose your preferred delivery experience.
                   </p>
                 </div>
               </div>
 
-              <div
-                className={
-                  styles.deliveryOptions
-                }
-              >
+              <div className={styles.deliveryOptions}>
                 <label
                   className={
-                    deliveryMethod ===
-                    "standard"
+                    deliveryMethod === "standard"
                       ? styles.activeDelivery
                       : ""
                   }
@@ -783,25 +771,20 @@ export default function CheckoutPage() {
                     type="radio"
                     name="delivery"
                     checked={
-                      deliveryMethod ===
-                      "standard"
+                      deliveryMethod === "standard"
                     }
                     onChange={() =>
-                      setDeliveryMethod(
-                        "standard",
-                      )
+                      setDeliveryMethod("standard")
                     }
                   />
 
                   <div>
                     <strong>
-                      Complimentary
-                      Delivery
+                      Complimentary Delivery
                     </strong>
 
                     <span>
-                      Estimated 4–7
-                      business days
+                      Estimated 4–7 business days
                     </span>
                   </div>
 
@@ -810,8 +793,7 @@ export default function CheckoutPage() {
 
                 <label
                   className={
-                    deliveryMethod ===
-                    "express"
+                    deliveryMethod === "express"
                       ? styles.activeDelivery
                       : ""
                   }
@@ -820,13 +802,10 @@ export default function CheckoutPage() {
                     type="radio"
                     name="delivery"
                     checked={
-                      deliveryMethod ===
-                      "express"
+                      deliveryMethod === "express"
                     }
                     onChange={() =>
-                      setDeliveryMethod(
-                        "express",
-                      )
+                      setDeliveryMethod("express")
                     }
                   />
 
@@ -836,136 +815,82 @@ export default function CheckoutPage() {
                     </strong>
 
                     <span>
-                      Estimated 1–3
-                      business days
+                      Estimated 1–3 business days
                     </span>
                   </div>
 
                   <b>
-                    {money.format(
-                      499,
-                    )}
+                    {money.format(499)}
                   </b>
                 </label>
               </div>
             </section>
 
-            <label
-              className={
-                styles.terms
-              }
-            >
+            <label className={styles.terms}>
               <input
                 type="checkbox"
-                checked={
-                  acceptedTerms
-                }
-                onChange={(
-                  event,
-                ) =>
+                checked={acceptedTerms}
+                onChange={(event) =>
                   setAcceptedTerms(
-                    event.target
-                      .checked,
+                    event.target.checked,
                   )
                 }
               />
 
-              <span
-                className={
-                  styles.customCheckbox
-                }
-              >
-                {acceptedTerms && (
-                  <CheckIcon />
-                )}
+              <span className={styles.customCheckbox}>
+                {acceptedTerms && <CheckIcon />}
               </span>
 
               <p>
-                I agree to the
-                KRVE Terms of
-                Service, Privacy
-                Policy and Return
-                Policy.
+                I agree to the KRVE Terms of Service,
+                Privacy Policy and Return Policy.
               </p>
             </label>
 
             {formError && (
-              <p
-                className={
-                  styles.formError
-                }
-              >
+              <p className={styles.formError}>
                 {formError}
               </p>
             )}
 
             <button
               type="submit"
-              className={
-                styles.payButton
-              }
-              disabled={
-                isPreparingPayment
-              }
+              className={styles.payButton}
+              disabled={isPreparingPayment}
             >
               <LockIcon />
 
               <span>
                 {isPreparingPayment
-                  ? "PREPARING PAYMENT..."
-                  : `PAY SECURELY ${money.format(
-                      total,
-                    )}`}
+                  ? "OPENING RAZORPAY..."
+                  : `PAY SECURELY ${money.format(total)}`}
               </span>
 
               <b>→</b>
             </button>
 
-            <div
-              className={
-                styles.paymentNotice
-              }
-            >
+            <div className={styles.paymentNotice}>
               <ShieldIcon />
 
               <div>
                 <strong>
-                  SECURE PAYMENT
+                  SECURE RAZORPAY PAYMENT
                 </strong>
 
                 <p>
-                  Razorpay will be
-                  connected to this
-                  checkout button.
+                  UPI, cards, net banking and supported payment methods.
                 </p>
               </div>
             </div>
           </form>
         </section>
 
-        <aside
-          className={
-            styles.summarySection
-          }
-        >
-          <div
-            className={
-              styles.summaryCard
-            }
-          >
-            <div
-              className={
-                styles.summaryHeader
-              }
-            >
+        <aside className={styles.summarySection}>
+          <div className={styles.summaryCard}>
+            <div className={styles.summaryHeader}>
               <div>
-                <p>
-                  ORDER SUMMARY
-                </p>
-
-                <h2>
-                  Your selections
-                </h2>
+                <p>ORDER SUMMARY</p>
+                <h2>Your selections</h2>
               </div>
 
               <span>
@@ -976,97 +901,53 @@ export default function CheckoutPage() {
               </span>
             </div>
 
-            <div
-              className={
-                styles.summaryItems
-              }
-            >
-              {cart.map(
-                (
-                  item,
-                ) => (
-                  <article
-                    key={
-                      item.id
-                    }
-                    className={
-                      styles.summaryItem
-                    }
-                  >
-                    <div
-                      className={
-                        styles.summaryImage
-                      }
-                    >
-                      <Image
-                        src={
-                          item.image
-                        }
-                        alt={
-                          item.name
-                        }
-                        fill
-                        sizes="90px"
-                      />
+            <div className={styles.summaryItems}>
+              {cart.map((item) => (
+                <article
+                  key={item.id}
+                  className={styles.summaryItem}
+                >
+                  <div className={styles.summaryImage}>
+                    <Image
+                      src={item.image}
+                      alt={item.name}
+                      fill
+                      sizes="90px"
+                    />
 
-                      <span>
-                        {
-                          item.quantity
-                        }
-                      </span>
-                    </div>
+                    <span>
+                      {item.quantity}
+                    </span>
+                  </div>
 
-                    <div
-                      className={
-                        styles.summaryDetails
-                      }
-                    >
-                      <h3>
-                        {
-                          item.name
-                        }
-                      </h3>
+                  <div className={styles.summaryDetails}>
+                    <h3>{item.name}</h3>
 
-                      <p>
-                        Size:{" "}
-                        {
-                          item.size
-                        }
-                      </p>
+                    <p>
+                      Size: {item.size}
+                    </p>
 
-                      <strong>
-                        {money.format(
-                          item.price *
-                            item.quantity,
-                        )}
-                      </strong>
-                    </div>
-                  </article>
-                ),
-              )}
+                    <strong>
+                      {money.format(
+                        item.price * item.quantity,
+                      )}
+                    </strong>
+                  </div>
+                </article>
+              ))}
             </div>
 
-            <div
-              className={
-                styles.priceSummary
-              }
-            >
+            <div className={styles.priceSummary}>
               <div>
-                <span>
-                  Subtotal
-                </span>
+                <span>Subtotal</span>
 
                 <strong>
-                  {money.format(
-                    cartSubtotal,
-                  )}
+                  {money.format(cartSubtotal)}
                 </strong>
               </div>
 
               <div>
-                <span>
-                  Delivery
-                </span>
+                <span>Delivery</span>
 
                 <strong
                   className={
@@ -1077,9 +958,7 @@ export default function CheckoutPage() {
                 >
                   {shipping === 0
                     ? "Complimentary"
-                    : money.format(
-                        shipping,
-                      )}
+                    : money.format(shipping)}
                 </strong>
               </div>
 
@@ -1089,40 +968,24 @@ export default function CheckoutPage() {
                 </span>
 
                 <strong>
-                  {money.format(
-                    estimatedTax,
-                  )}
+                  {money.format(estimatedTax)}
                 </strong>
               </div>
             </div>
 
-            <div
-              className={
-                styles.grandTotal
-              }
-            >
-              <span>
-                TOTAL
-              </span>
+            <div className={styles.grandTotal}>
+              <span>TOTAL</span>
 
               <strong>
-                {money.format(
-                  total,
-                )}
+                {money.format(total)}
               </strong>
             </div>
 
-            <div
-              className={
-                styles.summarySecurity
-              }
-            >
+            <div className={styles.summarySecurity}>
               <LockIcon />
 
               <p>
-                Your payment and
-                personal information
-                are protected.
+                Your payment and personal information are protected.
               </p>
             </div>
           </div>
