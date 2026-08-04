@@ -4,28 +4,22 @@
 
   inset: 0;
 
-  padding: 24px;
+  padding: 22px;
 
   display: grid;
   place-items: center;
 
-  background:
-    rgba(
-      0,
-      0,
-      0,
-      0.56
-    );
+  background: rgba(0, 0, 0, 0.62);
 
-  backdrop-filter:
-    blur(4px);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
 
   animation:
-    overlayIn
-    0.35s ease both;
+    overlayAppear
+    0.3s ease both;
 }
 
-.overlayCloseArea {
+.backdropButton {
   position: absolute;
 
   inset: 0;
@@ -37,8 +31,7 @@
 
   border: 0;
 
-  background:
-    transparent;
+  background: transparent;
 
   cursor: default;
 }
@@ -47,80 +40,49 @@
   position: relative;
   z-index: 2;
 
-  width:
-    min(
-      100%,
-      760px
-    );
-
-  min-height: 470px;
+  width: min(100%, 760px);
+  max-height: calc(100vh - 44px);
 
   overflow: hidden;
 
   border:
     1px solid
-    rgba(
-      220,
-      170,
-      45,
-      0.55
-    );
+    rgba(230, 180, 58, 0.62);
 
   display: grid;
 
   grid-template-columns:
-    minmax(
-      270px,
-      0.88fr
-    )
-    minmax(
-      360px,
-      1.12fr
-    );
+    minmax(285px, 0.88fr)
+    minmax(400px, 1.12fr);
 
   background: #050505;
 
   box-shadow:
-    0 45px 120px
-    rgba(
-      0,
-      0,
-      0,
-      0.78
-    );
+    0 45px 130px
+    rgba(0, 0, 0, 0.85);
 
   animation:
-    modalIn
+    modalAppear
     0.42s
-    cubic-bezier(
-      0.16,
-      1,
-      0.3,
-      1
-    )
+    cubic-bezier(0.16, 1, 0.3, 1)
     both;
 }
 
 .closeButton {
   position: absolute;
-  z-index: 10;
+  z-index: 20;
 
   top: 15px;
   right: 15px;
 
-  width: 40px;
-  height: 40px;
+  width: 42px;
+  height: 42px;
 
   padding: 0;
 
   border:
     1px solid
-    rgba(
-      218,
-      168,
-      43,
-      0.45
-    );
+    rgba(230, 180, 58, 0.55);
 
   border-radius: 50%;
 
@@ -128,80 +90,63 @@
   place-items: center;
 
   background:
-    rgba(
-      0,
-      0,
-      0,
-      0.74
-    );
+    rgba(0, 0, 0, 0.78);
 
-  color:
-    #e7b435;
+  color: #e6b43a;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
 }
 
 .closeButton:hover {
-  background:
-    #e7b435;
-
+  background: #e6b43a;
   color: #050505;
+
+  transform: rotate(4deg);
 }
 
 .closeButton svg,
-.inputShell svg,
-.primaryButton svg,
 .security svg {
   fill: none;
 
-  stroke:
-    currentColor;
-
+  stroke: currentColor;
   stroke-width: 1.7;
 
-  stroke-linecap:
-    round;
-
-  stroke-linejoin:
-    round;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .brandPanel {
   position: relative;
 
-  min-height: 470px;
+  min-height: 520px;
 
   overflow: hidden;
 
-  padding:
-    30px 28px;
+  padding: 31px 28px;
 
   border-right:
     1px solid
-    rgba(
-      218,
-      168,
-      43,
-      0.35
-    );
+    rgba(230, 180, 58, 0.32);
 
   display: flex;
   flex-direction: column;
 
   background:
     radial-gradient(
-      circle at 35% 30%,
-      rgba(
-        218,
-        168,
-        43,
-        0.12
-      ),
-      transparent 35%
+      circle at 25% 25%,
+      rgba(230, 180, 58, 0.13),
+      transparent 34%
     ),
     repeating-linear-gradient(
       120deg,
       #050505 0 16px,
-      #0b0b0b 16px 31px,
-      #040404 31px 48px
+      #0a0a0a 16px 31px,
+      #030303 31px 48px
     );
 }
 
@@ -216,135 +161,109 @@
     linear-gradient(
       180deg,
       transparent,
-      rgba(
-        0,
-        0,
-        0,
-        0.7
-      )
+      rgba(0, 0, 0, 0.76)
     );
 
   pointer-events: none;
 }
 
 .brand,
-.brandContent,
-.monogram {
+.monogram,
+.brandMessage {
   position: relative;
   z-index: 2;
 }
 
 .brand {
+  width: max-content;
+
   display: flex;
   flex-direction: column;
-
-  width: max-content;
 }
 
 .brand > span {
-  color:
-    #e8b438;
+  color: #e6b43a;
 
-  font-family:
-    var(--font-display);
-
+  font-family: var(--font-display);
   font-size: 42px;
   font-weight: 500;
 
-  line-height: 0.9;
+  line-height: 0.92;
 }
 
 .brand small {
   margin-top: 10px;
 
-  color:
-    #c89525;
+  color: #c89525;
 
   font-size: 7px;
   font-weight: 800;
 
-  letter-spacing:
-    0.18em;
-}
-
-.brandContent {
-  margin-top: auto;
-  margin-bottom: 30px;
-}
-
-.brandContent > p {
-  margin:
-    0 0 12px;
-
-  color:
-    #e5b234;
-
-  font-size: 8px;
-  font-weight: 800;
-
-  letter-spacing:
-    0.15em;
-}
-
-.brandContent h2 {
-  margin:
-    0 0 14px;
-
-  color:
-    #f6f0e7;
-
-  font-family:
-    var(--font-display);
-
-  font-size: 34px;
-  font-weight: 500;
-
-  line-height: 0.98;
-}
-
-.brandContent > span {
-  display: block;
-
-  max-width: 250px;
-
-  color:
-    #aaa298;
-
-  font-size: 10px;
-
-  line-height: 1.65;
+  letter-spacing: 0.18em;
 }
 
 .monogram {
   position: absolute;
 
-  top: 115px;
+  top: 118px;
   right: 28px;
 
   color:
-    rgba(
-      218,
-      168,
-      43,
-      0.11
-    );
+    rgba(230, 180, 58, 0.11);
 
-  font-family:
-    var(--font-display);
-
+  font-family: var(--font-display);
   font-size: 190px;
   font-weight: 600;
 
   line-height: 1;
 }
 
-.formPanel {
-  position: relative;
+.brandMessage {
+  margin-top: auto;
+  margin-bottom: 29px;
+}
 
-  min-height: 470px;
+.brandMessage > p {
+  margin: 0 0 12px;
 
-  padding:
-    46px 42px 28px;
+  color: #e6b43a;
+
+  font-size: 8px;
+  font-weight: 800;
+
+  letter-spacing: 0.15em;
+}
+
+.brandMessage h2 {
+  margin: 0 0 14px;
+
+  color: #f6f0e7;
+
+  font-family: var(--font-display);
+  font-size: 34px;
+  font-weight: 500;
+
+  line-height: 0.98;
+}
+
+.brandMessage > span {
+  display: block;
+
+  max-width: 255px;
+
+  color: #aaa298;
+
+  font-size: 10px;
+
+  line-height: 1.65;
+}
+
+.authPanel {
+  min-height: 520px;
+
+  padding: 43px 42px 23px;
+
+  overflow-y: auto;
 
   display: flex;
   flex-direction: column;
@@ -352,422 +271,78 @@
   background:
     radial-gradient(
       circle at 100% 0,
-      rgba(
-        218,
-        168,
-        43,
-        0.05
-      ),
-      transparent 32%
+      rgba(230, 180, 58, 0.055),
+      transparent 31%
     ),
     #080808;
-}
 
-.formHeader {
-  margin-bottom: 27px;
-}
+  scrollbar-width: thin;
 
-.formHeader > p {
-  margin:
-    0 0 10px;
-
-  color:
-    #e8b438;
-
-  font-size: 8px;
-  font-weight: 800;
-
-  letter-spacing:
-    0.16em;
-}
-
-.formHeader h1 {
-  margin: 0;
-
-  color:
-    #f5efe6;
-
-  font-family:
-    var(--font-display);
-
-  font-size: 38px;
-  font-weight: 500;
-
-  line-height: 1;
-}
-
-.formHeader > span {
-  display: block;
-
-  max-width: 330px;
-
-  margin-top: 12px;
-
-  color:
-    #918a82;
-
-  font-size: 10px;
-
-  line-height: 1.6;
-}
-
-.formHeader strong {
-  color:
-    #dcb044;
-
-  font-weight: 600;
-}
-
-.field {
-  display: flex;
-  flex-direction: column;
-
-  gap: 8px;
-}
-
-.field > span {
-  color:
-    #989188;
-
-  font-size: 8px;
-  font-weight: 800;
-
-  letter-spacing:
-    0.09em;
-}
-
-.inputShell {
-  height: 48px;
-
-  border:
-    1px solid
-    rgba(
-      218,
-      168,
-      43,
-      0.4
-    );
-
-  display: grid;
-
-  grid-template-columns:
-    45px
-    minmax(
-      0,
-      1fr
-    );
-
-  align-items: center;
-
-  background:
-    rgba(
-      2,
-      2,
-      2,
-      0.8
-    );
-
-  color:
-    #d7aa36;
-}
-
-.inputShell:focus-within {
-  border-color:
-    #e8b438;
-
-  box-shadow:
-    0 0 0 2px
-    rgba(
-      218,
-      168,
-      43,
-      0.08
-    );
-}
-
-.inputShell svg {
-  margin: auto;
-}
-
-.inputShell input {
-  width: 100%;
-  height: 46px;
-
-  padding:
-    0 14px 0 0;
-
-  border: 0;
-
-  outline: none;
-
-  background:
+  scrollbar-color:
+    rgba(230, 180, 58, 0.36)
     transparent;
-
-  color:
-    #f1ebe2;
-
-  font-size: 11px;
 }
 
-.inputShell input::placeholder {
-  color:
-    #625d57;
+.authPanel::-webkit-scrollbar {
+  width: 4px;
 }
 
-.otpInput {
-  width: 100%;
-  height: 54px;
-
-  padding:
-    0 16px;
-
-  border:
-    1px solid
-    rgba(
-      218,
-      168,
-      43,
-      0.45
-    );
-
-  outline: none;
-
+.authPanel::-webkit-scrollbar-thumb {
   background:
-    #030303;
-
-  color:
-    #e8b438;
-
-  font-family:
-    var(--font-display);
-
-  font-size: 27px;
-  font-weight: 600;
-
-  letter-spacing:
-    0.35em;
-
-  text-align: center;
+    rgba(230, 180, 58, 0.36);
 }
 
-.otpInput:focus {
-  border-color:
-    #e8b438;
+.authEyebrow {
+  margin: 3px 0 9px;
 
-  box-shadow:
-    0 0 0 2px
-    rgba(
-      218,
-      168,
-      43,
-      0.08
-    );
-}
-
-.error {
-  margin:
-    9px 0 0;
-
-  color:
-    #e17d7d;
-
-  font-size: 9px;
-
-  line-height: 1.4;
-}
-
-.primaryButton {
-  width: 100%;
-  min-height: 49px;
-
-  margin-top: 17px;
-
-  padding:
-    0 18px;
-
-  border:
-    1px solid
-    #e6b337;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  gap: 15px;
-
-  background:
-    linear-gradient(
-      135deg,
-      #ca8610,
-      #efbd43,
-      #d99e20
-    );
-
-  color:
-    #050505;
-
-  font-size: 9px;
-  font-weight: 900;
-
-  letter-spacing:
-    0.12em;
-}
-
-.primaryButton:hover {
-  filter:
-    brightness(1.08);
-}
-
-.divider {
-  margin:
-    19px 0;
-
-  display: grid;
-
-  grid-template-columns:
-    1fr
-    auto
-    1fr;
-
-  align-items: center;
-
-  gap: 11px;
-}
-
-.divider span {
-  height: 1px;
-
-  background:
-    rgba(
-      218,
-      168,
-      43,
-      0.18
-    );
-}
-
-.divider p {
-  margin: 0;
-
-  color:
-    #756e66;
+  color: #e6b43a;
 
   font-size: 8px;
+  font-weight: 800;
+
+  letter-spacing: 0.16em;
 }
 
 .guestButton {
   width: 100%;
   min-height: 45px;
 
+  margin-top: 7px;
+
   border:
     1px solid
-    rgba(
-      218,
-      168,
-      43,
-      0.4
-    );
+    rgba(230, 180, 58, 0.42);
 
-  background:
-    transparent;
+  background: transparent;
 
-  color:
-    #e9e2d9;
+  color: #f0e9df;
 
   font-size: 9px;
   font-weight: 800;
 
-  letter-spacing:
-    0.11em;
+  letter-spacing: 0.11em;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
 }
 
 .guestButton:hover {
   background:
-    rgba(
-      218,
-      168,
-      43,
-      0.06
-    );
+    rgba(230, 180, 58, 0.07);
 
-  color:
-    #e8b438;
-}
-
-.createAccount {
-  margin:
-    18px 0 0;
-
-  color:
-    #7f7870;
-
-  font-size: 9px;
-
-  text-align: center;
-}
-
-.createAccount button {
-  margin-left: 5px;
-
-  padding: 0;
-
-  border: 0;
-
-  background:
-    transparent;
-
-  color:
-    #e8b438;
-
-  font-size: inherit;
-  font-weight: 700;
-}
-
-.otpActions {
-  margin-top: 18px;
-
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  gap: 14px;
-}
-
-.otpActions button {
-  padding: 0;
-
-  border: 0;
-
-  background:
-    transparent;
-
-  color:
-    #ad8a37;
-
-  font-size: 8px;
-  font-weight: 800;
-
-  letter-spacing:
-    0.05em;
-}
-
-.otpActions button:hover {
-  color:
-    #e8b438;
+  color: #e6b43a;
 }
 
 .security {
-  margin-top: auto;
-  padding-top: 18px;
+  margin-top: 18px;
+  padding-top: 16px;
 
   border-top:
     1px solid
-    rgba(
-      218,
-      168,
-      43,
-      0.15
-    );
+    rgba(230, 180, 58, 0.16);
 
   display: flex;
   align-items: center;
@@ -775,20 +350,18 @@
 
   gap: 8px;
 
-  color:
-    #bd9130;
+  color: #bd9130;
 }
 
 .security span {
-  color:
-    #716b64;
+  color: #716b64;
 
   font-size: 8px;
 
   line-height: 1.4;
 }
 
-@keyframes overlayIn {
+@keyframes overlayAppear {
   from {
     opacity: 0;
   }
@@ -798,13 +371,13 @@
   }
 }
 
-@keyframes modalIn {
+@keyframes modalAppear {
   from {
     opacity: 0;
 
     transform:
-      translateY(18px)
-      scale(0.97);
+      translateY(17px)
+      scale(0.975);
   }
 
   to {
@@ -816,76 +389,52 @@
   }
 }
 
-@media (
-  max-width: 760px
-) {
+@media (max-width: 780px) {
   .overlay {
     padding: 14px;
   }
 
   .modal {
     width: 100%;
-    max-width: 430px;
+    max-width: 450px;
 
-    grid-template-columns:
-      1fr;
+    grid-template-columns: 1fr;
+
+    overflow-y: auto;
   }
 
   .brandPanel {
-    min-height: 150px;
+    min-height: 145px;
 
-    padding:
-      24px 23px;
+    padding: 23px;
 
     border-right: 0;
 
     border-bottom:
       1px solid
-      rgba(
-        218,
-        168,
-        43,
-        0.3
-      );
+      rgba(230, 180, 58, 0.3);
   }
 
-  .brandContent {
-    margin:
-      28px 0 0;
-  }
-
-  .brandContent h2 {
-    max-width: 260px;
-
-    font-size: 27px;
-  }
-
-  .brandContent > span {
+  .brandMessage {
     display: none;
   }
 
   .monogram {
-    top: 25px;
-    right: 35px;
+    top: 10px;
+    right: 45px;
 
     font-size: 125px;
   }
 
-  .formPanel {
-    min-height: 410px;
+  .authPanel {
+    min-height: 430px;
 
     padding:
-      35px 23px 24px;
-  }
-
-  .formHeader h1 {
-    font-size: 33px;
+      38px 24px 24px;
   }
 }
 
-@media (
-  max-width: 430px
-) {
+@media (max-width: 470px) {
   .overlay {
     align-items: end;
 
@@ -894,9 +443,7 @@
 
   .modal {
     max-width: none;
-    max-height: 92vh;
-
-    overflow-y: auto;
+    max-height: 94vh;
 
     border-left: 0;
     border-right: 0;
@@ -904,14 +451,15 @@
   }
 
   .brandPanel {
-    min-height: 135px;
+    min-height: 120px;
   }
 
-  .brandContent {
-    display: none;
+  .brand > span {
+    font-size: 36px;
   }
 
-  .formPanel {
-    min-height: 440px;
+  .authPanel {
+    padding:
+      34px 18px 22px;
   }
 }
