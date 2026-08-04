@@ -1,0 +1,17 @@
+.navIcon{
+  width:42px;
+  height:42px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:transparent;
+  border:none;
+  color:#ffffff;
+  cursor:pointer;
+  transition:all .3s ease;
+}
+
+.navIcon:hover{
+  color:#d6a63a;
+  transform:scale(1.08);
+}
