@@ -12,39 +12,22 @@ import "./globals.css";
 import SiteHeader from "@/components/site-header";
 import SiteFooter from "@/components/site-footer";
 import AutoLoginModal from "@/components/auto-login-modal";
-
 import { CartProvider } from "@/components/cart-provider";
 
 const displayFont = Cormorant_Garamond({
   subsets: ["latin"],
-
   variable: "--font-display",
-
-  weight: [
-    "400",
-    "500",
-    "600",
-    "700",
-  ],
+  weight: ["400", "500", "600", "700"],
 });
 
 const bodyFont = Manrope({
   subsets: ["latin"],
-
   variable: "--font-body",
-
-  weight: [
-    "400",
-    "500",
-    "600",
-    "700",
-    "800",
-  ],
+  weight: ["400", "500", "600", "700", "800"],
 });
 
 export const metadata: Metadata = {
   title: "KRVE — The Fashion Studio",
-
   description:
     "AI-powered luxury fashion, intelligent styling and virtual try-on.",
 };
@@ -62,23 +45,27 @@ export default function RootLayout({
           colorBackground: "#070707",
           colorForeground: "#f6efe5",
           colorMutedForeground: "#958d84",
-          colorInputBackground: "#030303",
-          colorInputForeground: "#f6efe5",
-          colorBorder: "rgba(230, 180, 58, 0.42)",
+          colorNeutral: "#958d84",
+          colorDanger: "#df8585",
           borderRadius: "0px",
           fontFamily: "var(--font-body)",
         },
 
         elements: {
-          card: {
-            background: "transparent",
-            boxShadow: "none",
-            border: "none",
+          rootBox: {
             width: "100%",
           },
 
-          rootBox: {
+          cardBox: {
             width: "100%",
+            boxShadow: "none",
+          },
+
+          card: {
+            width: "100%",
+            background: "transparent",
+            border: "none",
+            boxShadow: "none",
           },
 
           headerTitle: {
@@ -94,11 +81,11 @@ export default function RootLayout({
           },
 
           socialButtonsBlockButton: {
+            minHeight: "46px",
             background: "#080808",
             border: "1px solid rgba(230, 180, 58, 0.35)",
-            color: "#f6efe5",
             borderRadius: "0px",
-            minHeight: "46px",
+            color: "#f6efe5",
           },
 
           socialButtonsBlockButtonText: {
@@ -171,8 +158,8 @@ export default function RootLayout({
           otpCodeFieldInput: {
             background: "#030303",
             border: "1px solid rgba(230, 180, 58, 0.45)",
-            color: "#e6b43a",
             borderRadius: "0px",
+            color: "#e6b43a",
           },
 
           alertText: {
@@ -184,10 +171,7 @@ export default function RootLayout({
     >
       <html lang="en">
         <body
-          className={`
-            ${displayFont.variable}
-            ${bodyFont.variable}
-          `}
+          className={`${displayFont.variable} ${bodyFont.variable}`}
         >
           <CartProvider>
             <SiteHeader />
