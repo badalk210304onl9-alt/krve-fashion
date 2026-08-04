@@ -1,63 +1,33 @@
 "use client";
 
 import {
+  useCallback,
   useEffect,
   useState,
-  type FormEvent,
 } from "react";
+
+import {
+  SignIn,
+  useUser,
+} from "@clerk/nextjs";
 
 import styles from "./auto-login-modal.module.css";
 
-const MODAL_SESSION_KEY =
-  "krve-login-popup-seen";
+const POPUP_DELAY = 5000;
 
-type LoginStep =
-  | "login"
-  | "otp";
+const SESSION_STORAGE_KEY =
+  "krve_clerk_login_modal_closed";
 
 function CloseIcon() {
   return (
     <svg
       viewBox="0 0 24 24"
-      width="22"
-      height="22"
+      width="23"
+      height="23"
       aria-hidden="true"
     >
       <path d="M5 5 19 19" />
       <path d="M19 5 5 19" />
-    </svg>
-  );
-}
-
-function UserIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      width="19"
-      height="19"
-      aria-hidden="true"
-    >
-      <circle
-        cx="12"
-        cy="8"
-        r="4"
-      />
-
-      <path d="M4.5 21a7.5 7.5 0 0 1 15 0" />
-    </svg>
-  );
-}
-
-function ArrowIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      width="17"
-      height="17"
-      aria-hidden="true"
-    >
-      <path d="M5 12h14" />
-      <path d="m14 7 5 5-5 5" />
     </svg>
   );
 }
@@ -77,68 +47,70 @@ function ShieldIcon() {
 }
 
 export default function AutoLoginModal() {
+  const {
+    isLoaded,
+    isSignedIn,
+  } = useUser();
+
   const [
     isOpen,
     setIsOpen,
-  ] =
-    useState(false);
+  ] = useState(false);
 
-  const [
-    step,
-    setStep,
-  ] =
-    useState<LoginStep>(
-      "login",
+  const closeModal = useCallback(() => {
+    setIsOpen(false);
+
+    document.body.style.overflow = "";
+
+    window.sessionStorage.setItem(
+      SESSION_STORAGE_KEY,
+      "true",
     );
-
-  const [
-    identifier,
-    setIdentifier,
-  ] =
-    useState("");
-
-  const [
-    otp,
-    setOtp,
-  ] =
-    useState("");
-
-  const [
-    error,
-    setError,
-  ] =
-    useState("");
+  }, []);
 
   useEffect(() => {
-    const alreadySeen =
-      window.sessionStorage.getItem(
-        MODAL_SESSION_KEY,
-      );
-
-    if (alreadySeen) {
+    if (
+      !isLoaded ||
+      isSignedIn
+    ) {
+      setIsOpen(false);
+      document.body.style.overflow = "";
       return;
     }
 
-    const timer =
-      window.setTimeout(
-        () => {
-          setIsOpen(true);
-
-          document.body.style.overflow =
-            "hidden";
-        },
-        5000,
+    const wasClosed =
+      window.sessionStorage.getItem(
+        SESSION_STORAGE_KEY,
       );
+
+    if (wasClosed) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      setIsOpen(true);
+      document.body.style.overflow = "hidden";
+    }, POPUP_DELAY);
 
     return () => {
-      window.clearTimeout(
-        timer,
-      );
-
-      document.body.style.overflow =
-        "";
+      window.clearTimeout(timer);
     };
-  }, []);
+  }, [
+    isLoaded,
+    isSignedIn,
+  ]);
+
+  useEffect(() => {
+    if (isSignedIn) {
+      setIsOpen(false);
+      document.body.style.overflow = "";
+
+      window.sessionStorage.setItem(
+        SESSION_STORAGE_KEY,
+        "true",
+      );
+    }
+  }, [isSignedIn]);
 
   useEffect(() => {
     function handleEscape(
@@ -162,463 +134,122 @@ export default function AutoLoginModal() {
         "keydown",
         handleEscape,
       );
+
+      document.body.style.overflow = "";
     };
-  }, [isOpen]);
+  }, [
+    closeModal,
+    isOpen,
+  ]);
 
-  function closeModal() {
-    setIsOpen(false);
-
-    window.sessionStorage.setItem(
-      MODAL_SESSION_KEY,
-      "true",
-    );
-
-    document.body.style.overflow =
-      "";
-  }
-
-  function validateIdentifier() {
-    const value =
-      identifier.trim();
-
-    if (!value) {
-      setError(
-        "Please enter your email address or mobile number.",
-      );
-
-      return false;
-    }
-
-    const isEmail =
-      value.includes("@") &&
-      value.includes(".");
-
-    const mobileDigits =
-      value.replace(
-        /\D/g,
-        "",
-      );
-
-    const isMobile =
-      mobileDigits.length >=
-      10;
-
-    if (
-      !isEmail &&
-      !isMobile
-    ) {
-      setError(
-        "Please enter a valid email address or mobile number.",
-      );
-
-      return false;
-    }
-
-    return true;
-  }
-
-  function handleRequestOtp(
-    event:
-      FormEvent<HTMLFormElement>,
+  if (
+    !isLoaded ||
+    isSignedIn ||
+    !isOpen
   ) {
-    event.preventDefault();
-
-    if (
-      !validateIdentifier()
-    ) {
-      return;
-    }
-
-    setError("");
-    setStep("otp");
-  }
-
-  function handleVerifyOtp(
-    event:
-      FormEvent<HTMLFormElement>,
-  ) {
-    event.preventDefault();
-
-    if (
-      otp.trim().length !==
-      6
-    ) {
-      setError(
-        "Please enter the 6-digit OTP.",
-      );
-
-      return;
-    }
-
-    setError("");
-
-    /*
-      Actual OTP verification API
-      will be connected here later.
-    */
-
-    closeModal();
-  }
-
-  if (!isOpen) {
     return null;
   }
 
   return (
     <div
-      className={
-        styles.overlay
-      }
+      className={styles.overlay}
       role="presentation"
     >
       <button
         type="button"
-        className={
-          styles.overlayCloseArea
-        }
-        onClick={
-          closeModal
-        }
-        aria-label="Close login popup"
+        className={styles.backdropButton}
+        onClick={closeModal}
+        aria-label="Close sign-in window"
       />
 
       <section
-        className={
-          styles.modal
-        }
+        className={styles.modal}
         role="dialog"
         aria-modal="true"
-        aria-labelledby="krve-login-title"
+        aria-label="KRVE customer sign in"
       >
         <button
           type="button"
-          className={
-            styles.closeButton
-          }
-          onClick={
-            closeModal
-          }
-          aria-label="Close login popup"
+          className={styles.closeButton}
+          onClick={closeModal}
+          aria-label="Close sign-in window"
         >
           <CloseIcon />
         </button>
 
-        <div
-          className={
-            styles.brandPanel
-          }
-        >
-          <div
-            className={
-              styles.brand
-            }
-          >
-            <span>
-              KrvE
-            </span>
+        <aside className={styles.brandPanel}>
+          <div className={styles.brand}>
+            <span>KrvE</span>
 
             <small>
               THE FASHION STUDIO
             </small>
           </div>
 
-          <div
-            className={
-              styles.brandContent
-            }
-          >
-            <p>
-              PRIVATE ACCESS
-            </p>
+          <div className={styles.monogram}>
+            K
+          </div>
+
+          <div className={styles.brandMessage}>
+            <p>PRIVATE ACCESS</p>
 
             <h2>
               Your wardrobe,
-              intelligently
-              curated.
+              intelligently curated.
             </h2>
 
             <span>
-              Sign in to access
-              orders, wishlist,
-              recommendations and
-              virtual try-on.
+              Access your orders, wishlist,
+              recommendations and virtual
+              try-on experience.
             </span>
           </div>
+        </aside>
 
-          <div
-            className={
-              styles.monogram
-            }
-          >
-            K
+        <div className={styles.authPanel}>
+          <div className={styles.authEyebrow}>
+            MEMBER LOGIN
           </div>
-        </div>
 
-        <div
-          className={
-            styles.formPanel
-          }
-        >
-          {step ===
-          "login" ? (
-            <>
-              <div
-                className={
-                  styles.formHeader
-                }
-              >
-                <p>
-                  MEMBER LOGIN
-                </p>
+          <SignIn
+            routing="hash"
+            signUpUrl="/sign-up"
+            forceRedirectUrl="/"
+            appearance={{
+              elements: {
+                headerTitle: {
+                  fontSize: "35px",
+                },
 
-                <h1
-                  id="krve-login-title"
-                >
-                  Welcome to
-                  KRVE.
-                </h1>
+                headerSubtitle: {
+                  maxWidth: "340px",
+                },
 
-                <span>
-                  Enter your email
-                  address or mobile
-                  number to continue.
-                </span>
-              </div>
+                footer: {
+                  background: "transparent",
+                },
 
-              <form
-                onSubmit={
-                  handleRequestOtp
-                }
-              >
-                <label
-                  className={
-                    styles.field
-                  }
-                >
-                  <span>
-                    EMAIL OR MOBILE
-                    NUMBER
-                  </span>
+                footerPages: {
+                  display: "none",
+                },
+              },
+            }}
+          />
 
-                  <div
-                    className={
-                      styles.inputShell
-                    }
-                  >
-                    <UserIcon />
-
-                    <input
-                      type="text"
-                      value={
-                        identifier
-                      }
-                      onChange={(
-                        event,
-                      ) => {
-                        setIdentifier(
-                          event.target
-                            .value,
-                        );
-
-                        setError("");
-                      }}
-                      placeholder="Enter email or mobile number"
-                      autoFocus
-                      autoComplete="email"
-                    />
-                  </div>
-                </label>
-
-                {error && (
-                  <p
-                    className={
-                      styles.error
-                    }
-                  >
-                    {error}
-                  </p>
-                )}
-
-                <button
-                  type="submit"
-                  className={
-                    styles.primaryButton
-                  }
-                >
-                  REQUEST OTP
-
-                  <ArrowIcon />
-                </button>
-              </form>
-
-              <div
-                className={
-                  styles.divider
-                }
-              >
-                <span />
-                <p>OR</p>
-                <span />
-              </div>
-
-              <button
-                type="button"
-                className={
-                  styles.guestButton
-                }
-                onClick={
-                  closeModal
-                }
-              >
-                CONTINUE AS GUEST
-              </button>
-
-              <p
-                className={
-                  styles.createAccount
-                }
-              >
-                New to KRVE?
-
-                <button
-                  type="button"
-                >
-                  Create an account
-                </button>
-              </p>
-            </>
-          ) : (
-            <>
-              <div
-                className={
-                  styles.formHeader
-                }
-              >
-                <p>
-                  OTP VERIFICATION
-                </p>
-
-                <h1
-                  id="krve-login-title"
-                >
-                  Verify your
-                  identity.
-                </h1>
-
-                <span>
-                  Enter the 6-digit
-                  OTP sent to{" "}
-                  <strong>
-                    {identifier}
-                  </strong>
-                </span>
-              </div>
-
-              <form
-                onSubmit={
-                  handleVerifyOtp
-                }
-              >
-                <label
-                  className={
-                    styles.field
-                  }
-                >
-                  <span>
-                    6-DIGIT OTP
-                  </span>
-
-                  <input
-                    className={
-                      styles.otpInput
-                    }
-                    type="text"
-                    inputMode="numeric"
-                    maxLength={6}
-                    value={
-                      otp
-                    }
-                    onChange={(
-                      event,
-                    ) => {
-                      const value =
-                        event.target.value.replace(
-                          /\D/g,
-                          "",
-                        );
-
-                      setOtp(value);
-                      setError("");
-                    }}
-                    placeholder="••••••"
-                    autoFocus
-                    autoComplete="one-time-code"
-                  />
-                </label>
-
-                {error && (
-                  <p
-                    className={
-                      styles.error
-                    }
-                  >
-                    {error}
-                  </p>
-                )}
-
-                <button
-                  type="submit"
-                  className={
-                    styles.primaryButton
-                  }
-                >
-                  VERIFY & CONTINUE
-
-                  <ArrowIcon />
-                </button>
-              </form>
-
-              <div
-                className={
-                  styles.otpActions
-                }
-              >
-                <button
-                  type="button"
-                  onClick={() => {
-                    setStep(
-                      "login",
-                    );
-
-                    setOtp("");
-                    setError("");
-                  }}
-                >
-                  CHANGE EMAIL OR
-                  NUMBER
-                </button>
-
-                <button
-                  type="button"
-                >
-                  RESEND OTP
-                </button>
-              </div>
-            </>
-          )}
-
-          <div
-            className={
-              styles.security
-            }
+          <button
+            type="button"
+            className={styles.guestButton}
+            onClick={closeModal}
           >
+            CONTINUE AS GUEST
+          </button>
+
+          <div className={styles.security}>
             <ShieldIcon />
 
             <span>
-              Your personal
-              information is
-              protected and
-              encrypted.
+              Your personal information is
+              protected and encrypted.
             </span>
           </div>
         </div>
