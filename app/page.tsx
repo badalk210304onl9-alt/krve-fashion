@@ -12,22 +12,16 @@ import type {
   Product,
 } from "@/lib/catalog";
 
-export const dynamic = "force-dynamic";
+export const dynamic =
+  "force-dynamic";
 
 export const metadata = {
   title:
     "KRVE — The Fashion Studio",
+
   description:
     "Luxury fashion, intelligent fit and AI-powered personal styling.",
 };
-
-/*
-  Existing ProductCard abhi purane
-  catalog Product type ko use karta hai.
-
-  Ye function Central API product ko
-  ProductCard-compatible format me convert karta hai.
-*/
 
 function convertToProductCardProduct(
   product: KrveProduct,
@@ -37,11 +31,21 @@ function convertToProductCardProduct(
       product.slug ||
       product.id,
 
+    slug:
+      product.slug ||
+      product.id,
+
     name:
       product.name,
 
     price:
       product.price,
+
+    compareAtPrice:
+      product.compareAtPrice,
+
+    currency:
+      product.currency,
 
     image:
       product.image ||
@@ -49,47 +53,64 @@ function convertToProductCardProduct(
       product.gallery?.[0] ||
       "/images/products/product-1.jpg",
 
+    imageUrl:
+      product.image ||
+      product.imageUrl ||
+      product.gallery?.[0] ||
+      "/images/products/product-1.jpg",
+
+    gallery:
+      product.gallery?.length
+        ? product.gallery
+        : [
+            product.image ||
+              product.imageUrl ||
+              "/images/products/product-1.jpg",
+          ],
+
     category:
-      getCategoryLabel(
-        product.category,
-      ),
+      product.category,
 
     description:
       product.description ||
       product.shortDescription ||
       "A refined piece from the KRVE private collection.",
+
+    shortDescription:
+      product.shortDescription ||
+      product.description ||
+      "A refined piece from the KRVE private collection.",
+
+    sizes:
+      product.sizes || [],
+
+    colours:
+      product.colours || [],
+
+    sku:
+      product.sku,
+
+    stockQuantity:
+      product.stockQuantity,
+
+    inStock:
+      product.inStock,
+
+    featured:
+      product.featured,
+
+    newArrival:
+      product.newArrival,
+
+    status:
+      product.status,
+
+    createdAt:
+      product.createdAt,
+
+    updatedAt:
+      product.updatedAt,
   };
-}
-
-function getCategoryLabel(
-  category:
-    KrveProduct["category"],
-) {
-  if (
-    category === "womenswear"
-  ) {
-    return "Womenswear";
-  }
-
-  if (
-    category === "kidswear"
-  ) {
-    return "Kidswear";
-  }
-
-  if (
-    category === "accessories"
-  ) {
-    return "Accessories";
-  }
-
-  if (
-    category === "footwear"
-  ) {
-    return "Footwear";
-  }
-
-  return "Menswear";
 }
 
 async function loadNewArrivals() {
@@ -269,11 +290,7 @@ export default async function HomePage() {
                 ),
               )
             ) : (
-              <div
-                className="
-                  homepage-products-empty
-                "
-              >
+              <div className="homepage-products-empty">
                 <span>
                   ✦
                 </span>
@@ -285,14 +302,12 @@ export default async function HomePage() {
                   </strong>
 
                   <p>
-                    Publish a
-                    product from
-                    KEOS Center
-                    with New
-                    Arrival enabled
-                    and it will
-                    automatically
-                    appear here.
+                    Publish a product
+                    from KEOS Center
+                    with New Arrival
+                    enabled and it will
+                    automatically appear
+                    here.
                   </p>
 
                   <Link
