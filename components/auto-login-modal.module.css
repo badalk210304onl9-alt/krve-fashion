@@ -1,38 +1,32 @@
 .overlay {
   position: fixed;
   z-index: 999999;
-
   inset: 0;
 
-  padding: 22px;
+  padding: 20px;
 
   display: grid;
   place-items: center;
 
-  background: rgba(0, 0, 0, 0.62);
+  background: rgba(0, 0, 0, 0.68);
 
   backdrop-filter: blur(5px);
   -webkit-backdrop-filter: blur(5px);
 
-  animation:
-    overlayAppear
-    0.3s ease both;
+  animation: overlayAppear 0.3s ease both;
 }
 
 .backdropButton {
   position: absolute;
-
   inset: 0;
 
   width: 100%;
   height: 100%;
 
   padding: 0;
-
   border: 0;
 
   background: transparent;
-
   cursor: default;
 }
 
@@ -41,19 +35,17 @@
   z-index: 2;
 
   width: min(100%, 760px);
-  max-height: calc(100vh - 44px);
+  height: min(590px, calc(100vh - 40px));
+  max-height: calc(100vh - 40px);
 
   overflow: hidden;
 
-  border:
-    1px solid
-    rgba(230, 180, 58, 0.62);
+  border: 1px solid rgba(230, 180, 58, 0.62);
 
   display: grid;
-
   grid-template-columns:
     minmax(285px, 0.88fr)
-    minmax(400px, 1.12fr);
+    minmax(0, 1.12fr);
 
   background: #050505;
 
@@ -70,7 +62,7 @@
 
 .closeButton {
   position: absolute;
-  z-index: 20;
+  z-index: 50;
 
   top: 15px;
   right: 15px;
@@ -80,18 +72,13 @@
 
   padding: 0;
 
-  border:
-    1px solid
-    rgba(230, 180, 58, 0.55);
-
+  border: 1px solid rgba(230, 180, 58, 0.55);
   border-radius: 50%;
 
   display: grid;
   place-items: center;
 
-  background:
-    rgba(0, 0, 0, 0.78);
-
+  background: rgba(0, 0, 0, 0.88);
   color: #e6b43a;
 
   cursor: pointer;
@@ -115,7 +102,6 @@
 
   stroke: currentColor;
   stroke-width: 1.7;
-
   stroke-linecap: round;
   stroke-linejoin: round;
 }
@@ -123,15 +109,15 @@
 .brandPanel {
   position: relative;
 
-  min-height: 520px;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
 
   overflow: hidden;
 
   padding: 31px 28px;
 
-  border-right:
-    1px solid
-    rgba(230, 180, 58, 0.32);
+  border-right: 1px solid rgba(230, 180, 58, 0.32);
 
   display: flex;
   flex-direction: column;
@@ -154,7 +140,6 @@
   content: "";
 
   position: absolute;
-
   inset: 0;
 
   background:
@@ -208,8 +193,7 @@
   top: 118px;
   right: 28px;
 
-  color:
-    rgba(230, 180, 58, 0.11);
+  color: rgba(230, 180, 58, 0.11);
 
   font-family: var(--font-display);
   font-size: 190px;
@@ -254,16 +238,20 @@
   color: #aaa298;
 
   font-size: 10px;
-
   line-height: 1.65;
 }
 
 .authPanel {
-  min-height: 520px;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
 
-  padding: 43px 42px 23px;
+  padding: 43px 42px 25px;
 
+  overflow-x: hidden;
   overflow-y: auto;
+
+  overscroll-behavior: contain;
 
   display: flex;
   flex-direction: column;
@@ -277,19 +265,26 @@
     #080808;
 
   scrollbar-width: thin;
-
   scrollbar-color:
-    rgba(230, 180, 58, 0.36)
-    transparent;
+    rgba(230, 180, 58, 0.55)
+    rgba(255, 255, 255, 0.03);
 }
 
 .authPanel::-webkit-scrollbar {
-  width: 4px;
+  width: 6px;
+}
+
+.authPanel::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.03);
 }
 
 .authPanel::-webkit-scrollbar-thumb {
-  background:
-    rgba(230, 180, 58, 0.36);
+  background: rgba(230, 180, 58, 0.55);
+  border-radius: 20px;
+}
+
+.authPanel::-webkit-scrollbar-thumb:hover {
+  background: #e6b43a;
 }
 
 .authEyebrow {
@@ -306,15 +301,13 @@
 .guestButton {
   width: 100%;
   min-height: 45px;
+  flex: 0 0 auto;
 
-  margin-top: 7px;
+  margin-top: 10px;
 
-  border:
-    1px solid
-    rgba(230, 180, 58, 0.42);
+  border: 1px solid rgba(230, 180, 58, 0.42);
 
   background: transparent;
-
   color: #f0e9df;
 
   font-size: 9px;
@@ -330,19 +323,17 @@
 }
 
 .guestButton:hover {
-  background:
-    rgba(230, 180, 58, 0.07);
-
+  background: rgba(230, 180, 58, 0.07);
   color: #e6b43a;
 }
 
 .security {
-  margin-top: 18px;
-  padding-top: 16px;
+  flex: 0 0 auto;
 
-  border-top:
-    1px solid
-    rgba(230, 180, 58, 0.16);
+  margin-top: 18px;
+  padding: 16px 0 5px;
+
+  border-top: 1px solid rgba(230, 180, 58, 0.16);
 
   display: flex;
   align-items: center;
@@ -357,7 +348,6 @@
   color: #716b64;
 
   font-size: 8px;
-
   line-height: 1.4;
 }
 
@@ -391,28 +381,28 @@
 
 @media (max-width: 780px) {
   .overlay {
-    padding: 14px;
+    padding: 12px;
   }
 
   .modal {
     width: 100%;
     max-width: 450px;
 
-    grid-template-columns: 1fr;
+    height: min(720px, calc(100vh - 24px));
+    max-height: calc(100vh - 24px);
 
-    overflow-y: auto;
+    grid-template-columns: 1fr;
+    grid-template-rows: 125px minmax(0, 1fr);
   }
 
   .brandPanel {
-    min-height: 145px;
+    height: 125px;
+    min-height: 125px;
 
     padding: 23px;
 
     border-right: 0;
-
-    border-bottom:
-      1px solid
-      rgba(230, 180, 58, 0.3);
+    border-bottom: 1px solid rgba(230, 180, 58, 0.3);
   }
 
   .brandMessage {
@@ -420,17 +410,19 @@
   }
 
   .monogram {
-    top: 10px;
+    top: 5px;
     right: 45px;
 
-    font-size: 125px;
+    font-size: 115px;
   }
 
   .authPanel {
-    min-height: 430px;
+    height: 100%;
+    min-height: 0;
 
-    padding:
-      38px 24px 24px;
+    padding: 36px 24px 24px;
+
+    overflow-y: auto;
   }
 }
 
@@ -442,24 +434,42 @@
   }
 
   .modal {
+    width: 100%;
     max-width: none;
+
+    height: 94vh;
     max-height: 94vh;
 
     border-left: 0;
     border-right: 0;
     border-bottom: 0;
+
+    grid-template-rows: 105px minmax(0, 1fr);
   }
 
   .brandPanel {
-    min-height: 120px;
+    height: 105px;
+    min-height: 105px;
+
+    padding: 19px;
   }
 
   .brand > span {
     font-size: 36px;
   }
 
+  .brand small {
+    margin-top: 7px;
+  }
+
+  .monogram {
+    top: -3px;
+    right: 42px;
+
+    font-size: 100px;
+  }
+
   .authPanel {
-    padding:
-      34px 18px 22px;
+    padding: 33px 18px 24px;
   }
 }
