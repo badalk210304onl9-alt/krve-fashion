@@ -1,18 +1,20 @@
 import Image from "next/image";
 import Link from "next/link";
-import {
-  notFound,
-} from "next/navigation";
+import { notFound } from "next/navigation";
+
+import ProductDetailsSections from "@/components/product/product-details-sections";
+import ProductPurchasePanel from "@/components/product/product-purchase-panel";
+import SimilarProducts from "@/components/product/similar-products";
 
 import {
   getProductBySlug,
+  getProductsByCategory,
   type KrveProduct,
 } from "@/lib/api";
 
 import styles from "./page.module.css";
 
-export const dynamic =
-  "force-dynamic";
+export const dynamic = "force-dynamic";
 
 type ProductPageProps = {
   params: Promise<{
@@ -20,24 +22,32 @@ type ProductPageProps = {
   }>;
 };
 
-function formatPrice(
-  price: number,
-  currency = "INR",
-) {
-  return new Intl.NumberFormat(
-    "en-IN",
-    {
-      style: "currency",
-      currency,
-      maximumFractionDigits: 0,
-    },
-  ).format(price);
+function getProductImage(product: KrveProduct) {
+  return (
+    product.imageUrl ||
+    product.image ||
+    product.gallery?.[0] ||
+    "/images/products/product-1.jpg"
+  );
 }
 
-function getCategoryLabel(
-  category:
-    KrveProduct["category"],
-) {
+function getGalleryImages(product: KrveProduct) {
+  const images = [
+    getProductImage(product),
+    ...(Array.isArray(product.gallery) ? product.gallery : []),
+  ];
+
+  return Array.from(
+    new Set(
+      images.filter(
+        (image): image is string =>
+          typeof image === "string" && image.trim().length > 0,
+      ),
+    ),
+  );
+}
+
+function getCategoryLabel(category: KrveProduct["category"]) {
   switch (category) {
     case "womenswear":
       return "Womenswear";
@@ -56,80 +66,17 @@ function getCategoryLabel(
   }
 }
 
-function getMainImage(
-  product: KrveProduct,
-) {
-  return (
-    product.imageUrl ||
-    product.image ||
-    product.gallery?.[0] ||
-    "/images/products/product-1.jpg"
-  );
-}
-
-function getGalleryImages(
-  product: KrveProduct,
-) {
-  const mainImage =
-    getMainImage(product);
-
-  return Array.from(
-    new Set(
-      [
-        mainImage,
-        ...(product.gallery || []),
-      ].filter(
-        (
-          image,
-        ): image is string =>
-          typeof image ===
-            "string" &&
-          image.trim().length >
-            0,
-      ),
-    ),
-  );
-}
-
-function getDiscountPercentage(
-  price: number,
-  compareAtPrice:
-    | number
-    | null,
-) {
-  if (
-    !compareAtPrice ||
-    compareAtPrice <= price
-  ) {
-    return null;
-  }
-
-  return Math.round(
-    ((compareAtPrice -
-      price) /
-      compareAtPrice) *
-      100,
-  );
-}
-
 export default async function ProductPage({
   params,
 }: ProductPageProps) {
-  const {
-    slug,
-  } = await params;
+  const { slug } = await params;
 
-  let product:
-    | KrveProduct
-    | null = null;
+  let product: KrveProduct | null = null;
 
   try {
-    product =
-      await getProductBySlug(
-        decodeURIComponent(
-          slug,
-        ),
-      );
+    product = await getProductBySlug(
+      decodeURIComponent(slug),
+    );
   } catch (error) {
     console.error(
       "KRVE_PRODUCT_PAGE_ERROR",
@@ -139,311 +86,214 @@ export default async function ProductPage({
 
   if (
     !product ||
-    product.status !==
-      "published"
+    product.status !== "published"
   ) {
     notFound();
   }
 
+  let similarProducts: KrveProduct[] = [];
+
+  try {
+    const categoryProducts =
+      await getProductsByCategory(
+        product.category,
+        12,
+      );
+
+    similarProducts = categoryProducts
+      .filter(
+        (item) =>
+          item.id !== product.id &&
+          item.status === "published",
+      )
+      .slice(0, 8);
+  } catch (error) {
+    console.error(
+      "KRVE_SIMILAR_PRODUCTS_ERROR",
+      error,
+    );
+  }
+
+  const galleryImages =
+    getGalleryImages(product);
+
   const mainImage =
-    getMainImage(product);
+    galleryImages[0] ||
+    "/images/products/product-1.jpg";
 
-  const gallery =
-    getGalleryImages(
-      product,
-    );
-
-  const discountPercentage =
-    getDiscountPercentage(
-      product.price,
-      product.compareAtPrice,
-    );
-
-  const description =
-    product.description ||
-    product.shortDescription ||
-    "A refined KRVE creation designed with contemporary styling, premium craftsmanship and timeless character.";
+  const secondaryImages =
+    galleryImages.slice(1);
 
   return (
     <main className={styles.page}>
-      <section
-        className={
-          styles.breadcrumbSection
-        }
-      >
-        <div
-          className={
-            styles.container
-          }
-        >
+      <section className={styles.breadcrumbBar}>
+        <div className={styles.container}>
           <nav
-            className={
-              styles.breadcrumb
-            }
+            className={styles.breadcrumb}
             aria-label="Breadcrumb"
           >
             <Link href="/">
               Home
             </Link>
 
-            <span>
-              /
-            </span>
+            <span>/</span>
 
             <Link href="/collections">
               Collections
             </Link>
 
-            <span>
-              /
-            </span>
+            <span>/</span>
 
-            <span>
+            <Link
+              href={`/collections?category=${product.category}`}
+            >
+              {getCategoryLabel(
+                product.category,
+              )}
+            </Link>
+
+            <span>/</span>
+
+            <strong>
               {product.name}
-            </span>
+            </strong>
           </nav>
         </div>
       </section>
 
-      <section
-        className={
-          styles.productSection
-        }
-      >
+      <section className={styles.productArea}>
         <div
-          className={`${styles.container} ${styles.productLayout}`}
+          className={`${styles.container} ${styles.productGrid}`}
         >
-          <div
-            className={
-              styles.galleryColumn
-            }
-          >
-            <div
-              className={
-                styles.mainImageCard
-              }
+          <div className={styles.leftColumn}>
+            <section
+              className={styles.gallerySection}
             >
-              <Image
-                src={mainImage}
-                alt={product.name}
-                fill
-                priority
-                sizes="(max-width: 900px) 100vw, 56vw"
-                className={
-                  styles.mainImage
-                }
-              />
-
               <div
-                className={
-                  styles.imageTopBar
-                }
+                className={styles.mainImageCard}
               >
-                <span
+                <Image
+                  src={mainImage}
+                  alt={product.name}
+                  fill
+                  priority
+                  sizes="(max-width: 900px) 100vw, 58vw"
+                  className={styles.mainImage}
+                />
+
+                <div
+                  className={styles.imageLabels}
+                >
+                  <span>
+                    {getCategoryLabel(
+                      product.category,
+                    )}
+                  </span>
+
+                  {product.newArrival && (
+                    <strong>
+                      New Arrival
+                    </strong>
+                  )}
+                </div>
+
+                <button
+                  type="button"
                   className={
-                    styles.categoryBadge
+                    styles.imageWishlist
+                  }
+                  aria-label="Add product to wishlist"
+                >
+                  ♡
+                </button>
+              </div>
+
+              {secondaryImages.length > 0 && (
+                <div
+                  className={
+                    styles.secondaryImageGrid
                   }
                 >
-                  {getCategoryLabel(
-                    product.category,
-                  )}
-                </span>
-
-                {product.newArrival && (
-                  <span
-                    className={
-                      styles.newBadge
-                    }
-                  >
-                    New Arrival
-                  </span>
-                )}
-              </div>
-
-              <button
-                type="button"
-                className={
-                  styles.wishlistButton
-                }
-                aria-label="Add product to wishlist"
-              >
-                ♡
-              </button>
-            </div>
-
-            {gallery.length >
-              1 && (
-              <div
-                className={
-                  styles.thumbnailGrid
-                }
-              >
-                {gallery.map(
-                  (
-                    galleryImage,
-                    index,
-                  ) => (
-                    <div
-                      key={`${galleryImage}-${index}`}
-                      className={
-                        styles.thumbnailCard
-                      }
-                    >
-                      <Image
-                        src={
-                          galleryImage
-                        }
-                        alt={`${product.name} view ${index + 1}`}
-                        fill
-                        sizes="160px"
+                  {secondaryImages.map(
+                    (image, index) => (
+                      <div
+                        key={`${image}-${index}`}
                         className={
-                          styles.thumbnailImage
+                          styles.secondaryImageCard
                         }
-                      />
-                    </div>
-                  ),
-                )}
-              </div>
-            )}
+                      >
+                        <Image
+                          src={image}
+                          alt={`${product.name} view ${index + 2}`}
+                          fill
+                          sizes="(max-width: 700px) 100vw, 28vw"
+                          className={
+                            styles.secondaryImage
+                          }
+                        />
+                      </div>
+                    ),
+                  )}
+                </div>
+              )}
+            </section>
+
+            <ProductPurchasePanel
+              product={product}
+            />
           </div>
 
-          <aside
-            className={
-              styles.informationColumn
-            }
-          >
-            <div
-              className={
-                styles.productHeader
-              }
+          <aside className={styles.rightColumn}>
+            <section
+              className={styles.productIdentity}
             >
-              <p
-                className={
-                  styles.collectionLabel
-                }
-              >
-                KRVE Private Collection
+              <p className={styles.eyebrow}>
+                KRVE Signature Collection
               </p>
 
-              <h1
-                className={
-                  styles.productTitle
-                }
-              >
+              <h1>
                 {product.name}
               </h1>
 
-              <div
-                className={
-                  styles.ratingRow
-                }
-              >
-                <span
-                  className={
-                    styles.stars
-                  }
-                >
-                  ★★★★★
-                </span>
+              <div className={styles.ratingLine}>
+                <strong>
+                  4.7 ★
+                </strong>
 
                 <span>
-                  Premium KRVE
-                  product
+                  Premium customer rating
                 </span>
               </div>
-            </div>
+            </section>
 
-            <div
-              className={
-                styles.priceSection
-              }
+            <section
+              className={styles.descriptionSection}
             >
-              <strong
-                className={
-                  styles.currentPrice
-                }
-              >
-                {formatPrice(
-                  product.price,
-                  product.currency,
-                )}
-              </strong>
+              <h2>
+                Product Story
+              </h2>
 
-              {product.compareAtPrice !==
-                null &&
-                product.compareAtPrice >
-                  product.price && (
-                  <>
-                    <del
-                      className={
-                        styles.comparePrice
-                      }
-                    >
-                      {formatPrice(
-                        product.compareAtPrice,
-                        product.currency,
-                      )}
-                    </del>
+              <p>
+                {product.description ||
+                  product.shortDescription ||
+                  "A premium KRVE creation designed for modern luxury, comfort and confident everyday styling."}
+              </p>
+            </section>
 
-                    {discountPercentage !==
-                      null && (
-                      <span
-                        className={
-                          styles.discountBadge
-                        }
-                      >
-                        {
-                          discountPercentage
-                        }
-                        % OFF
-                      </span>
-                    )}
-                  </>
-                )}
-            </div>
-
-            <p
-              className={
-                styles.taxNote
-              }
+            <section
+              className={styles.quickMeta}
             >
-              Inclusive of all
-              taxes
-            </p>
-
-            <p
-              className={
-                styles.description
-              }
-            >
-              {description}
-            </p>
-
-            <div
-              className={
-                styles.metaPanel
-              }
-            >
-              <div
-                className={
-                  styles.metaRow
-                }
-              >
+              <div>
                 <span>
                   SKU
                 </span>
 
                 <strong>
-                  {product.sku ||
-                    "KRVE"}
+                  {product.sku || "KRVE"}
                 </strong>
               </div>
 
-              <div
-                className={
-                  styles.metaRow
-                }
-              >
+              <div>
                 <span>
                   Category
                 </span>
@@ -455,11 +305,7 @@ export default async function ProductPage({
                 </strong>
               </div>
 
-              <div
-                className={
-                  styles.metaRow
-                }
-              >
+              <div>
                 <span>
                   Availability
                 </span>
@@ -467,8 +313,8 @@ export default async function ProductPage({
                 <strong
                   className={
                     product.inStock
-                      ? styles.inStock
-                      : styles.outOfStock
+                      ? styles.available
+                      : styles.unavailable
                   }
                 >
                   {product.inStock
@@ -476,353 +322,20 @@ export default async function ProductPage({
                     : "Out of stock"}
                 </strong>
               </div>
-            </div>
+            </section>
 
-            {product.sizes.length >
-              0 && (
-              <section
-                className={
-                  styles.optionSection
-                }
-              >
-                <div
-                  className={
-                    styles.optionHeading
-                  }
-                >
-                  <p>
-                    Select size
-                  </p>
-
-                  <button
-                    type="button"
-                  >
-                    Size guide
-                  </button>
-                </div>
-
-                <div
-                  className={
-                    styles.optionButtons
-                  }
-                >
-                  {product.sizes.map(
-                    (size) => (
-                      <button
-                        type="button"
-                        key={size}
-                        className={
-                          styles.optionButton
-                        }
-                      >
-                        {size}
-                      </button>
-                    ),
-                  )}
-                </div>
-              </section>
-            )}
-
-            {product.colours.length >
-              0 && (
-              <section
-                className={
-                  styles.optionSection
-                }
-              >
-                <div
-                  className={
-                    styles.optionHeading
-                  }
-                >
-                  <p>
-                    Select colour
-                  </p>
-                </div>
-
-                <div
-                  className={
-                    styles.optionButtons
-                  }
-                >
-                  {product.colours.map(
-                    (colour) => (
-                      <button
-                        type="button"
-                        key={colour}
-                        className={
-                          styles.colourButton
-                        }
-                      >
-                        <span
-                          className={
-                            styles.colourDot
-                          }
-                        />
-
-                        {colour}
-                      </button>
-                    ),
-                  )}
-                </div>
-              </section>
-            )}
-
-            <div
-              className={
-                styles.actionArea
-              }
-            >
-              <button
-                type="button"
-                disabled={
-                  !product.inStock
-                }
-                className={
-                  styles.addToBagButton
-                }
-              >
-                <span>
-                  ♧
-                </span>
-
-                {product.inStock
-                  ? "Add to bag"
-                  : "Out of stock"}
-              </button>
-
-              <button
-                type="button"
-                className={
-                  styles.buyNowButton
-                }
-                disabled={
-                  !product.inStock
-                }
-              >
-                Buy now
-              </button>
-
-              <Link
-                href={`/virtual-try-on?product=${encodeURIComponent(
-                  product.slug,
-                )}`}
-                className={
-                  styles.tryOnButton
-                }
-              >
-                <span>
-                  ✦
-                </span>
-
-                Try with AI
-                Virtual Try-On
-              </Link>
-            </div>
-
-            <div
-              className={
-                styles.deliveryCard
-              }
-            >
-              <div
-                className={
-                  styles.deliveryItem
-                }
-              >
-                <span>
-                  ◇
-                </span>
-
-                <div>
-                  <strong>
-                    Premium
-                    quality
-                  </strong>
-
-                  <p>
-                    Carefully
-                    selected
-                    materials
-                  </p>
-                </div>
-              </div>
-
-              <div
-                className={
-                  styles.deliveryItem
-                }
-              >
-                <span>
-                  ↺
-                </span>
-
-                <div>
-                  <strong>
-                    Easy returns
-                  </strong>
-
-                  <p>
-                    30-day return
-                    policy
-                  </p>
-                </div>
-              </div>
-
-              <div
-                className={
-                  styles.deliveryItem
-                }
-              >
-                <span>
-                  ♙
-                </span>
-
-                <div>
-                  <strong>
-                    Secure
-                    checkout
-                  </strong>
-
-                  <p>
-                    Protected
-                    payment
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div
-              className={
-                styles.accordionArea
-              }
-            >
-              <details open>
-                <summary>
-                  Product details
-                </summary>
-
-                <p>
-                  {description}
-                </p>
-              </details>
-
-              <details>
-                <summary>
-                  Shipping and
-                  returns
-                </summary>
-
-                <p>
-                  Orders are
-                  securely packed.
-                  Eligible products
-                  can be returned
-                  according to the
-                  KRVE return
-                  policy.
-                </p>
-              </details>
-
-              <details>
-                <summary>
-                  Care
-                  instructions
-                </summary>
-
-                <p>
-                  Follow the care
-                  instructions
-                  provided with the
-                  product to
-                  preserve its fit,
-                  finish and
-                  appearance.
-                </p>
-              </details>
-            </div>
+            <ProductDetailsSections
+              product={product}
+            />
           </aside>
         </div>
       </section>
 
-      <section
-        className={
-          styles.bottomStrip
-        }
-      >
-        <div
-          className={`${styles.container} ${styles.bottomStripGrid}`}
-        >
-          <div>
-            <span>
-              ✦
-            </span>
-
-            <p>
-              <strong>
-                KRVE
-                Craftsmanship
-              </strong>
-
-              <small>
-                Refined design
-                and premium
-                finish
-              </small>
-            </p>
-          </div>
-
-          <div>
-            <span>
-              ◇
-            </span>
-
-            <p>
-              <strong>
-                Secure Shopping
-              </strong>
-
-              <small>
-                Protected
-                checkout
-              </small>
-            </p>
-          </div>
-
-          <div>
-            <span>
-              ↺
-            </span>
-
-            <p>
-              <strong>
-                Easy Returns
-              </strong>
-
-              <small>
-                Simple return
-                support
-              </small>
-            </p>
-          </div>
-
-          <div>
-            <span>
-              ♙
-            </span>
-
-            <p>
-              <strong>
-                AI Styling
-              </strong>
-
-              <small>
-                Personalised
-                fashion
-                experience
-              </small>
-            </p>
-          </div>
+      <section className={styles.similarArea}>
+        <div className={styles.container}>
+          <SimilarProducts
+            products={similarProducts}
+          />
         </div>
       </section>
     </main>
