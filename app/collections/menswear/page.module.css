@@ -1,0 +1,422 @@
+.page {
+  min-height: 100vh;
+  background: #050505;
+  color: #ffffff;
+}
+
+.container {
+  width: min(
+    1380px,
+    calc(100% - 48px)
+  );
+  margin-inline: auto;
+}
+
+.hero {
+  position: relative;
+  min-height: 390px;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+  border-bottom: 1px solid
+    rgba(218, 168, 38, 0.32);
+  background:
+    linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.96),
+      rgba(0, 0, 0, 0.48)
+    ),
+    url("/images/categories/menswear-hero.jpg")
+      center 32% / cover no-repeat;
+}
+
+.heroOverlay {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      180deg,
+      transparent,
+      rgba(0, 0, 0, 0.78)
+    );
+}
+
+.hero .container {
+  position: relative;
+  z-index: 2;
+  padding-bottom: 54px;
+}
+
+.eyebrow {
+  margin: 0;
+  color: #dfaa20;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+}
+
+.hero h1 {
+  margin: 10px 0 0;
+  font-family:
+    Georgia,
+    "Times New Roman",
+    serif;
+  font-size: clamp(
+    58px,
+    8vw,
+    110px
+  );
+  font-weight: 400;
+  line-height: 0.92;
+}
+
+.heroText {
+  max-width: 590px;
+  margin: 24px 0 0;
+  color: #b6b6b6;
+  font-size: 14px;
+  line-height: 1.75;
+}
+
+.categorySection {
+  border-bottom: 1px solid
+    rgba(218, 168, 38, 0.22);
+  background: #080808;
+  padding: 25px 0 23px;
+}
+
+.categoryScroller {
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  scrollbar-width: thin;
+  scrollbar-color:
+    #a87908 #151515;
+}
+
+.categoryItem {
+  width: 128px;
+  flex: 0 0 128px;
+  color: #ffffff;
+  text-align: center;
+  text-decoration: none;
+}
+
+.categoryImage {
+  position: relative;
+  width: 108px;
+  height: 108px;
+  margin-inline: auto;
+  overflow: hidden;
+  border-radius: 24px;
+  border: 1px solid
+    rgba(224, 172, 37, 0.48);
+  background:
+    linear-gradient(
+      145deg,
+      #f6e9a7,
+      #d7b74d
+    );
+}
+
+.categoryImage img {
+  object-fit: cover;
+  transition:
+    transform 300ms ease;
+}
+
+.categoryItem:hover
+.categoryImage img {
+  transform: scale(1.06);
+}
+
+.categoryItem span {
+  display: block;
+  margin-top: 10px;
+  color: #d8d8d8;
+  font-size: 11px;
+  line-height: 1.3;
+}
+
+.productsSection {
+  padding: 56px 0 80px;
+}
+
+.sectionHeading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 25px;
+  margin-bottom: 28px;
+}
+
+.sectionHeading p {
+  margin: 0;
+  color: #dca61c;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+}
+
+.sectionHeading h2 {
+  margin: 9px 0 0;
+  font-family:
+    Georgia,
+    "Times New Roman",
+    serif;
+  font-size: clamp(
+    42px,
+    5vw,
+    70px
+  );
+  font-weight: 400;
+  line-height: 1;
+}
+
+.sectionHeading > span {
+  color: #858585;
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.productGrid {
+  display: grid;
+  grid-template-columns:
+    repeat(
+      4,
+      minmax(0, 1fr)
+    );
+  gap: 16px;
+}
+
+.productCard {
+  display: block;
+  overflow: hidden;
+  border: 1px solid
+    rgba(214, 162, 28, 0.34);
+  background: #080808;
+  color: inherit;
+  text-decoration: none;
+  transition:
+    transform 220ms ease,
+    border-color 220ms ease;
+}
+
+.productCard:hover {
+  transform:
+    translateY(-4px);
+  border-color: #dca61d;
+}
+
+.productImage {
+  position: relative;
+  height: 410px;
+  overflow: hidden;
+  background: #111111;
+}
+
+.productImage img {
+  object-fit: cover;
+  transition:
+    transform 420ms ease;
+}
+
+.productCard:hover
+.productImage img {
+  transform: scale(1.035);
+}
+
+.newBadge {
+  position: absolute;
+  top: 13px;
+  left: 13px;
+  border: 1px solid #dba51a;
+  background:
+    rgba(0, 0, 0, 0.8);
+  padding: 7px 10px;
+  color: #e8b326;
+  font-size: 8px;
+  font-weight: 900;
+}
+
+.wishlistButton {
+  position: absolute;
+  top: 13px;
+  right: 13px;
+  width: 42px;
+  height: 42px;
+  border: 1px solid
+    rgba(222, 169, 31, 0.7);
+  border-radius: 50%;
+  background:
+    rgba(0, 0, 0, 0.72);
+  color: #e2ac20;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+.productInfo {
+  padding: 17px;
+}
+
+.productCategory {
+  margin: 0;
+  color: #dba51b;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.13em;
+}
+
+.productInfo h3 {
+  min-height: 46px;
+  margin: 9px 0 0;
+  font-family:
+    Georgia,
+    "Times New Roman",
+    serif;
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 1.15;
+}
+
+.priceRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-top: 13px;
+}
+
+.priceRow strong {
+  color: #edb92a;
+  font-size: 16px;
+}
+
+.priceRow del {
+  color: #686868;
+  font-size: 11px;
+}
+
+.stock {
+  margin: 10px 0 0;
+  color: #61d89a;
+  font-size: 9px;
+}
+
+.emptyState {
+  min-height: 360px;
+  display: grid;
+  place-content: center;
+  border: 1px solid
+    rgba(214, 162, 28, 0.28);
+  padding: 35px;
+  text-align: center;
+}
+
+.emptyState h3 {
+  margin: 0;
+  font-family:
+    Georgia,
+    "Times New Roman",
+    serif;
+  font-size: 34px;
+  font-weight: 400;
+}
+
+.emptyState p {
+  max-width: 480px;
+  margin: 16px auto 0;
+  color: #858585;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+@media (
+  max-width: 1050px
+) {
+  .productGrid {
+    grid-template-columns:
+      repeat(
+        3,
+        minmax(0, 1fr)
+      );
+  }
+}
+
+@media (
+  max-width: 780px
+) {
+  .container {
+    width: calc(
+      100% - 28px
+    );
+  }
+
+  .hero {
+    min-height: 330px;
+  }
+
+  .productGrid {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
+  }
+
+  .productImage {
+    height: 340px;
+  }
+}
+
+@media (
+  max-width: 520px
+) {
+  .container {
+    width: calc(
+      100% - 20px
+    );
+  }
+
+  .hero {
+    min-height: 290px;
+  }
+
+  .hero .container {
+    padding-bottom: 35px;
+  }
+
+  .categoryItem {
+    width: 103px;
+    flex-basis: 103px;
+  }
+
+  .categoryImage {
+    width: 88px;
+    height: 88px;
+    border-radius: 20px;
+  }
+
+  .sectionHeading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .productGrid {
+    gap: 9px;
+  }
+
+  .productImage {
+    height: 260px;
+  }
+
+  .productInfo {
+    padding: 12px;
+  }
+
+  .productInfo h3 {
+    min-height: 41px;
+    font-size: 16px;
+  }
+}
