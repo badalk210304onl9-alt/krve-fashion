@@ -2,8 +2,8 @@
   min-height: 100vh;
   background:
     radial-gradient(
-      circle at 10% 5%,
-      rgba(202, 151, 22, 0.08),
+      circle at 8% 5%,
+      rgba(218, 166, 31, 0.08),
       transparent 30%
     ),
     #050505;
@@ -12,53 +12,58 @@
 
 .container {
   width: min(
-    1320px,
-    calc(100% - 44px)
+    1360px,
+    calc(100% - 48px)
   );
   margin-inline: auto;
 }
 
 .breadcrumbBar {
   border-top: 1px solid
-    rgba(212, 161, 31, 0.2);
+    rgba(216, 165, 30, 0.22);
   border-bottom: 1px solid
-    rgba(212, 161, 31, 0.25);
+    rgba(216, 165, 30, 0.25);
   background: #080808;
 }
 
 .breadcrumb {
-  min-height: 56px;
+  min-height: 58px;
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 10px;
-  color: #777;
+  color: #777777;
   font-size: 9px;
   font-weight: 800;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.11em;
   text-transform: uppercase;
 }
 
 .breadcrumb a {
-  color: #b6b6b6;
+  color: #b4b4b4;
   text-decoration: none;
+  transition: color 180ms ease;
+}
+
+.breadcrumb a:hover {
+  color: #e5b127;
 }
 
 .breadcrumb strong {
-  color: #e1ad21;
+  color: #e5b127;
 }
 
 .productArea {
-  padding: 38px 0 70px;
+  padding: 36px 0 72px;
 }
 
 .productGrid {
   display: grid;
   grid-template-columns:
-    minmax(0, 1.1fr)
-    minmax(390px, 0.75fr);
+    minmax(0, 1.08fr)
+    minmax(390px, 0.72fr);
   align-items: start;
-  gap: 46px;
+  gap: 44px;
 }
 
 .leftColumn,
@@ -66,69 +71,153 @@
   min-width: 0;
 }
 
-.imageGrid {
+.gallerySection {
+  width: 100%;
+}
+
+.mainImageCard {
+  position: relative;
+  width: 100%;
+  height: min(
+    720px,
+    calc(100vh - 190px)
+  );
+  min-height: 560px;
+  max-height: 720px;
+  overflow: hidden;
+  border: 1px solid
+    rgba(211, 159, 25, 0.48);
+  background:
+    linear-gradient(
+      145deg,
+      #111111,
+      #080808
+    );
+}
+
+.mainImage {
+  object-fit: contain;
+  object-position: center;
+  padding: 18px;
+  transition: transform 450ms ease;
+}
+
+.mainImageCard:hover .mainImage {
+  transform: scale(1.02);
+}
+
+.imageLabels {
+  position: absolute;
+  z-index: 2;
+  top: 17px;
+  left: 17px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.imageLabels span,
+.imageLabels strong {
+  display: inline-flex;
+  min-height: 30px;
+  align-items: center;
+  border: 1px solid #be8e11;
+  background:
+    rgba(0, 0, 0, 0.82);
+  padding: 0 11px;
+  color: #e8b326;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  backdrop-filter: blur(10px);
+}
+
+.imageLabels strong {
+  border-color:
+    rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+}
+
+.imageWishlist {
+  position: absolute;
+  z-index: 2;
+  top: 17px;
+  right: 17px;
+  width: 44px;
+  height: 44px;
+  border: 1px solid #9f7509;
+  border-radius: 50%;
+  background:
+    rgba(0, 0, 0, 0.75);
+  color: #e5ae1e;
+  font-size: 23px;
+  cursor: pointer;
+  transition:
+    background 180ms ease,
+    color 180ms ease,
+    transform 180ms ease;
+}
+
+.imageWishlist:hover {
+  transform: scale(1.05);
+  background: #dfa91d;
+  color: #060606;
+}
+
+.secondaryImageGrid {
   display: grid;
   grid-template-columns:
     repeat(2, minmax(0, 1fr));
   gap: 12px;
+  margin-top: 12px;
 }
 
-.imageCard {
+.secondaryImageCard {
   position: relative;
-  min-height: 420px;
+  min-height: 430px;
   overflow: hidden;
   border: 1px solid
-    rgba(211, 159, 26, 0.38);
+    rgba(211, 159, 25, 0.35);
   background: #0c0c0c;
 }
 
-.primaryImage {
-  grid-column: 1 / -1;
-  min-height: 690px;
-}
-
-.imageCard img {
+.secondaryImage {
   object-fit: contain;
   object-position: center;
   padding: 10px;
+  transition: transform 350ms ease;
 }
 
-.imageBadge {
-  position: absolute;
-  left: 15px;
-  bottom: 15px;
-  border: 1px solid #c89411;
-  background:
-    rgba(0, 0, 0, 0.82);
-  padding: 8px 12px;
-  color: #e9b524;
-  font-size: 9px;
-  font-weight: 900;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+.secondaryImageCard:hover
+.secondaryImage {
+  transform: scale(1.025);
 }
 
 .rightColumn {
   position: sticky;
-  top: 145px;
+  top: 135px;
 }
 
 .productIdentity {
-  border-bottom: 1px solid
-    rgba(215, 163, 29, 0.2);
   padding-bottom: 25px;
+  border-bottom: 1px solid
+    rgba(213, 162, 28, 0.22);
 }
 
-.productIdentity > p {
-  margin: 0 0 12px;
+.eyebrow {
+  margin: 0 0 13px;
   color: #dca61d;
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 900;
   letter-spacing: 0.16em;
+  text-transform: uppercase;
 }
 
 .productIdentity h1 {
   margin: 0;
+  max-width: 620px;
+  color: #ffffff;
   font-family:
     Georgia,
     "Times New Roman",
@@ -136,67 +225,74 @@
   font-size: clamp(
     38px,
     4vw,
-    60px
+    62px
   );
   font-weight: 400;
-  line-height: 1;
-  letter-spacing: -0.04em;
+  line-height: 0.98;
+  letter-spacing: -0.045em;
 }
 
 .ratingLine {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-top: 19px;
+  flex-wrap: wrap;
+  gap: 11px;
+  margin-top: 20px;
 }
 
 .ratingLine strong {
   border-radius: 4px;
-  background: #138a50;
+  background: #148951;
   padding: 6px 9px;
   color: #ffffff;
-  font-size: 12px;
-}
-
-.ratingLine span {
-  color: #8d8d8d;
   font-size: 11px;
 }
 
-.description {
-  padding: 26px 0;
-  border-bottom: 1px solid
-    rgba(215, 163, 29, 0.2);
+.ratingLine span {
+  color: #858585;
+  font-size: 10px;
 }
 
-.description h2 {
+.descriptionSection {
+  padding: 25px 0;
+  border-bottom: 1px solid
+    rgba(213, 162, 28, 0.22);
+}
+
+.descriptionSection h2 {
   margin: 0 0 13px;
   color: #eeeeee;
-  font-size: 14px;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  letter-spacing: 0.09em;
 }
 
-.description p {
+.descriptionSection p {
   margin: 0;
-  color: #aaa;
+  max-height: 290px;
+  overflow-y: auto;
+  padding-right: 8px;
+  color: #a7a7a7;
   font-size: 13px;
-  line-height: 1.85;
+  line-height: 1.78;
   white-space: pre-line;
+  scrollbar-width: thin;
+  scrollbar-color:
+    #9b720b #151515;
 }
 
 .quickMeta {
   border-bottom: 1px solid
-    rgba(215, 163, 29, 0.2);
+    rgba(213, 162, 28, 0.22);
 }
 
 .quickMeta > div {
   min-height: 49px;
   display: flex;
   align-items: center;
-  justify-content:
-    space-between;
-  gap: 20px;
+  justify-content: space-between;
+  gap: 25px;
   border-bottom: 1px solid
     rgba(255, 255, 255, 0.06);
 }
@@ -206,72 +302,91 @@
 }
 
 .quickMeta span {
-  color: #707070;
-  font-size: 9px;
-  font-weight: 800;
-  letter-spacing: 0.1em;
+  color: #717171;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.11em;
   text-transform: uppercase;
 }
 
 .quickMeta strong {
-  color: #d4d4d4;
-  font-size: 11px;
+  color: #d8d8d8;
+  font-size: 10px;
+  text-align: right;
 }
 
-/* Purchase panel */
+.available {
+  color: #54d992 !important;
+}
+
+.unavailable {
+  color: #ff6767 !important;
+}
+
+.similarArea {
+  border-top: 1px solid
+    rgba(211, 159, 25, 0.28);
+}
+
+/* =========================================================
+   PURCHASE PANEL
+========================================================= */
 
 :global(.krve-purchase-panel) {
   margin-top: 14px;
   border: 1px solid
-    rgba(214, 162, 28, 0.42);
+    rgba(214, 162, 28, 0.44);
   background:
     linear-gradient(
       145deg,
-      #0b0b0b,
-      #050505
+      #0d0d0d,
+      #070707
     );
-  padding: 27px;
+  padding: 28px;
 }
 
 :global(.krve-purchase-top) {
   display: flex;
   align-items: flex-start;
-  justify-content:
-    space-between;
+  justify-content: space-between;
   gap: 20px;
 }
 
 :global(.krve-purchase-label) {
   margin: 0;
-  color: #d8a31d;
-  font-size: 9px;
+  color: #d9a31b;
+  font-size: 8px;
   font-weight: 900;
   letter-spacing: 0.15em;
 }
 
 :global(.krve-purchase-top h2) {
   margin: 8px 0 0;
+  color: #ffffff;
   font-family:
     Georgia,
+    "Times New Roman",
     serif;
   font-size: 28px;
   font-weight: 400;
+  line-height: 1.1;
 }
 
 :global(.krve-wishlist-control) {
   width: 44px;
   height: 44px;
   display: grid;
+  flex-shrink: 0;
   place-items: center;
-  border: 1px solid #8f6a0a;
+  border: 1px solid #8e6808;
   border-radius: 50%;
   background: transparent;
-  color: #dca71d;
+  color: #dba51b;
   cursor: pointer;
 }
 
 :global(.krve-wishlist-control.active) {
-  background: #dca71d;
+  background: #dba51b;
   color: #050505;
 }
 
@@ -280,36 +395,36 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 13px;
-  margin-top: 25px;
+  margin-top: 24px;
 }
 
 :global(.krve-price-row strong) {
-  color: #f1be2d;
+  color: #f1bd2b;
   font-size: 31px;
 }
 
 :global(.krve-price-row del) {
-  color: #737373;
-  font-size: 17px;
+  color: #747474;
+  font-size: 16px;
 }
 
 :global(.krve-discount) {
-  color: #4de08f;
+  color: #4cda8e;
   font-size: 17px;
   font-weight: 900;
 }
 
 :global(.krve-saving) {
   margin: 8px 0 0;
-  color: #4edc91;
-  font-size: 11px;
+  color: #4cda8e;
+  font-size: 10px;
 }
 
 :global(.krve-tax-note) {
   margin: 7px 0 0;
-  color: #666;
-  font-size: 9px;
-  letter-spacing: 0.08em;
+  color: #686868;
+  font-size: 8px;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
 }
 
@@ -319,23 +434,24 @@
 
 :global(.krve-selection-heading) {
   display: flex;
-  justify-content:
-    space-between;
   align-items: center;
+  justify-content: space-between;
+  gap: 15px;
   margin-bottom: 12px;
 }
 
 :global(.krve-selection-heading strong) {
-  font-size: 11px;
-  text-transform: uppercase;
+  color: #eeeeee;
+  font-size: 10px;
   letter-spacing: 0.09em;
+  text-transform: uppercase;
 }
 
 :global(.krve-selection-heading button) {
   border: 0;
   background: transparent;
-  color: #e0aa1e;
-  font-size: 10px;
+  color: #dda71c;
+  font-size: 9px;
   cursor: pointer;
 }
 
@@ -349,27 +465,33 @@
 :global(.krve-size-list button),
 :global(.krve-colour-list button) {
   min-height: 43px;
-  border: 1px solid #373737;
+  border: 1px solid #383838;
   background: #0b0b0b;
-  color: #d5d5d5;
+  color: #d4d4d4;
   padding: 0 16px;
   cursor: pointer;
+  transition:
+    border-color 180ms ease,
+    color 180ms ease,
+    background 180ms ease;
 }
 
 :global(.krve-size-list button) {
-  min-width: 51px;
+  min-width: 52px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 4px;
 }
 
+:global(.krve-size-list button:hover),
+:global(.krve-colour-list button:hover),
 :global(.krve-size-list button.selected),
 :global(.krve-colour-list button.selected) {
-  border-color: #dfa91e;
+  border-color: #dfa91d;
   background:
-    rgba(223, 169, 30, 0.1);
-  color: #efbc2a;
+    rgba(223, 169, 29, 0.1);
+  color: #f0bd2b;
 }
 
 :global(.krve-colour-list button) {
@@ -381,18 +503,18 @@
 :global(.krve-colour-list button span) {
   width: 11px;
   height: 11px;
+  border: 1px solid #cb9815;
   border-radius: 50%;
-  border: 1px solid #cf9d18;
-  background: #343434;
+  background: #363636;
 }
 
 :global(.krve-stock-line) {
   display: flex;
   align-items: center;
   gap: 9px;
-  margin-top: 22px;
-  color: #aaa;
-  font-size: 11px;
+  margin-top: 21px;
+  color: #a8a8a8;
+  font-size: 10px;
 }
 
 :global(.krve-stock-line > div) {
@@ -402,11 +524,11 @@
 }
 
 :global(.krve-stock-line .available) {
-  background: #3ad780;
+  background: #3dd781;
 }
 
 :global(.krve-stock-line .unavailable) {
-  background: #f05b5b;
+  background: #ee6060;
 }
 
 :global(.krve-delivery-mini) {
@@ -415,24 +537,23 @@
   align-items: center;
   gap: 8px;
   margin-top: 18px;
-  border-top: 1px solid #222;
-  border-bottom: 1px solid #222;
-  color: #818181;
+  border-top: 1px solid #222222;
+  border-bottom: 1px solid #222222;
+  color: #828282;
   font-size: 10px;
 }
 
 :global(.krve-delivery-mini strong) {
-  color: #e3e3e3;
+  color: #e0e0e0;
 }
 
 :global(.krve-quantity-row) {
   display: flex;
   align-items: center;
-  justify-content:
-    space-between;
+  justify-content: space-between;
   margin-top: 19px;
-  color: #aaa;
-  font-size: 11px;
+  color: #aaaaaa;
+  font-size: 10px;
 }
 
 :global(.krve-quantity-row > div) {
@@ -440,7 +561,7 @@
   grid-template-columns:
     38px 42px 38px;
   min-height: 38px;
-  border: 1px solid #333;
+  border: 1px solid #343434;
 }
 
 :global(.krve-quantity-row button),
@@ -449,11 +570,16 @@
   place-items: center;
   border: 0;
   background: transparent;
-  color: #ddd;
+  color: #dddddd;
 }
 
 :global(.krve-quantity-row button) {
   cursor: pointer;
+}
+
+:global(.krve-quantity-row button:disabled) {
+  cursor: not-allowed;
+  opacity: 0.35;
 }
 
 :global(.krve-main-actions) {
@@ -467,31 +593,35 @@
 :global(.krve-add-cart),
 :global(.krve-buy-now),
 :global(.krve-ai-try-button) {
-  min-height: 55px;
+  min-height: 56px;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 9px;
-  border: 1px solid #dda71c;
+  border: 1px solid #dca61c;
   padding: 0 18px;
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 900;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
   cursor: pointer;
+  transition:
+    transform 180ms ease,
+    background 180ms ease,
+    color 180ms ease;
 }
 
 :global(.krve-add-cart) {
   background: transparent;
-  color: #efbb28;
+  color: #edb928;
 }
 
 :global(.krve-buy-now) {
   background:
     linear-gradient(
       115deg,
-      #f0c346,
-      #d79608
+      #f1c449,
+      #d59506
     );
   color: #050505;
 }
@@ -504,34 +634,50 @@
   text-decoration: none;
 }
 
-/* Delivery and details */
+:global(.krve-add-cart:hover),
+:global(.krve-buy-now:hover),
+:global(.krve-ai-try-button:hover) {
+  transform: translateY(-2px);
+}
+
+:global(.krve-add-cart:disabled),
+:global(.krve-buy-now:disabled) {
+  cursor: not-allowed;
+  opacity: 0.4;
+  transform: none;
+}
+
+/* =========================================================
+   DELIVERY, DETAILS AND REVIEWS
+========================================================= */
 
 :global(.krve-detail-sections) {
-  margin-top: 27px;
+  margin-top: 26px;
 }
 
 :global(.krve-delivery-section),
 :global(.krve-expand-section) {
+  padding: 22px 0;
   border-bottom: 1px solid
     rgba(211, 160, 28, 0.22);
-  padding: 23px 0;
 }
 
 :global(.krve-delivery-section h2) {
   margin: 0 0 15px;
+  color: #eeeeee;
   font-size: 17px;
 }
 
 :global(.krve-location-row) {
   width: 100%;
-  min-height: 47px;
+  min-height: 48px;
   display: flex;
   align-items: center;
   gap: 8px;
   border: 0;
   background:
-    rgba(40, 115, 180, 0.12);
-  color: #ddd;
+    rgba(40, 115, 180, 0.13);
+  color: #dddddd;
   padding: 0 13px;
   text-align: left;
   cursor: pointer;
@@ -539,8 +685,8 @@
 
 :global(.krve-location-row strong) {
   margin-left: auto;
-  color: #dba51c;
-  font-size: 10px;
+  color: #dda71c;
+  font-size: 9px;
 }
 
 :global(.krve-location-form) {
@@ -551,17 +697,20 @@
 
 :global(.krve-location-form input) {
   flex: 1;
-  min-height: 42px;
-  border: 1px solid #333;
+  min-width: 0;
+  min-height: 43px;
+  border: 1px solid #333333;
   background: #0b0b0b;
-  color: #fff;
+  color: #ffffff;
   padding: 0 12px;
+  outline: none;
 }
 
 :global(.krve-location-form button) {
   border: 1px solid #d6a01a;
   background: #d6a01a;
   padding: 0 20px;
+  color: #050505;
   font-weight: 800;
   cursor: pointer;
 }
@@ -576,23 +725,23 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  color: #ddd;
-  font-size: 12px;
+  color: #dddddd;
+  font-size: 11px;
 }
 
 :global(.krve-delivery-status p) {
   margin: 8px 0 0 28px;
-  color: #d88b44;
-  font-size: 10px;
+  color: #d48a43;
+  font-size: 9px;
 }
 
 :global(.krve-seller-row) {
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  padding: 14px;
+  border-top: 1px solid #1d1d1d;
   background: #0a0a0a;
-  border-top: 1px solid #1c1c1c;
+  padding: 14px;
 }
 
 :global(.krve-seller-row span),
@@ -602,27 +751,29 @@
 }
 
 :global(.krve-seller-row span) {
-  color: #777;
-  font-size: 10px;
+  color: #777777;
+  font-size: 9px;
 }
 
 :global(.krve-seller-row strong) {
   margin-top: 3px;
-  font-size: 12px;
+  color: #dddddd;
+  font-size: 11px;
 }
 
 :global(.krve-seller-row small) {
   margin-top: 4px;
-  color: #7f7f7f;
+  color: #7d7d7d;
+  font-size: 9px;
 }
 
 :global(.krve-service-grid) {
   display: grid;
   grid-template-columns:
-    repeat(4, 1fr);
+    repeat(4, minmax(0, 1fr));
   gap: 1px;
   margin-top: 13px;
-  background: #222;
+  background: #222222;
 }
 
 :global(.krve-service-grid > div) {
@@ -638,19 +789,18 @@
 }
 
 :global(.krve-service-grid strong) {
-  color: #aaa;
-  font-size: 9px;
+  color: #aaaaaa;
+  font-size: 8px;
 }
 
 :global(.krve-expand-heading) {
   width: 100%;
   display: flex;
   align-items: center;
-  justify-content:
-    space-between;
+  justify-content: space-between;
   border: 0;
   background: transparent;
-  color: #eee;
+  color: #eeeeee;
   padding: 0;
   text-align: left;
   cursor: pointer;
@@ -658,14 +808,15 @@
 
 :global(.krve-expand-heading span) {
   display: block;
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 800;
 }
 
 :global(.krve-expand-heading small) {
   display: block;
   margin-top: 5px;
-  color: #777;
+  color: #777777;
+  font-size: 9px;
 }
 
 :global(.krve-highlights-grid) {
@@ -673,12 +824,12 @@
   grid-template-columns:
     1fr 1fr;
   gap: 0 25px;
-  margin-top: 22px;
+  margin-top: 21px;
 }
 
 :global(.krve-highlights-grid > div) {
   min-height: 63px;
-  border-bottom: 1px solid #222;
+  border-bottom: 1px solid #222222;
   padding: 10px 0;
 }
 
@@ -688,57 +839,59 @@
 }
 
 :global(.krve-highlights-grid span) {
-  color: #777;
-  font-size: 10px;
+  color: #777777;
+  font-size: 9px;
 }
 
 :global(.krve-highlights-grid strong) {
   margin-top: 5px;
-  color: #ddd;
-  font-size: 12px;
+  color: #dddddd;
+  font-size: 11px;
   text-transform: capitalize;
 }
 
 :global(.krve-all-details) {
-  margin-top: 21px;
+  margin-top: 20px;
 }
 
 :global(.krve-all-details article) {
-  padding: 18px 0;
-  border-top: 1px solid #222;
+  padding: 17px 0;
+  border-top: 1px solid #222222;
 }
 
 :global(.krve-all-details h3) {
   margin: 0 0 10px;
   color: #d7a21a;
-  font-size: 11px;
+  font-size: 10px;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 :global(.krve-all-details p) {
   margin: 0;
-  color: #999;
-  font-size: 12px;
+  color: #999999;
+  font-size: 11px;
   line-height: 1.75;
+  white-space: pre-line;
 }
 
 :global(.krve-all-details dl div) {
   display: flex;
-  justify-content:
-    space-between;
+  justify-content: space-between;
   gap: 15px;
   padding: 9px 0;
 }
 
 :global(.krve-all-details dt) {
-  color: #777;
-  font-size: 10px;
+  color: #777777;
+  font-size: 9px;
 }
 
 :global(.krve-all-details dd) {
   margin: 0;
-  color: #ddd;
-  font-size: 10px;
+  color: #dddddd;
+  font-size: 9px;
+  text-align: right;
   text-transform: capitalize;
 }
 
@@ -746,8 +899,8 @@
   display: grid;
   grid-template-columns:
     150px 1fr;
-  gap: 25px;
-  margin-top: 22px;
+  gap: 24px;
+  margin-top: 21px;
 }
 
 :global(.krve-rating-summary > div) {
@@ -758,7 +911,7 @@
 }
 
 :global(.krve-rating-summary strong) {
-  font-size: 35px;
+  font-size: 34px;
 }
 
 :global(.krve-rating-summary span) {
@@ -768,12 +921,12 @@
     rgba(54, 186, 116, 0.12);
   padding: 5px 8px;
   color: #54dc90;
-  font-size: 10px;
+  font-size: 9px;
 }
 
 :global(.krve-rating-summary p) {
-  color: #777;
-  font-size: 10px;
+  color: #777777;
+  font-size: 9px;
   line-height: 1.5;
 }
 
@@ -784,14 +937,14 @@
   align-items: center;
   gap: 8px;
   margin-bottom: 8px;
-  color: #888;
-  font-size: 9px;
+  color: #888888;
+  font-size: 8px;
 }
 
 :global(.krve-rating-bars > div > div) {
   height: 5px;
   overflow: hidden;
-  background: #222;
+  background: #222222;
 }
 
 :global(.krve-rating-bars i) {
@@ -807,7 +960,7 @@
 }
 
 :global(.krve-review-cards article) {
-  border: 1px solid #222;
+  border: 1px solid #222222;
   padding: 15px;
 }
 
@@ -819,52 +972,56 @@
 :global(.krve-review-cards strong) {
   background: #138950;
   padding: 4px 7px;
-  font-size: 9px;
+  color: #ffffff;
+  font-size: 8px;
 }
 
 :global(.krve-review-cards span) {
   color: #6bdd9e;
-  font-size: 9px;
+  font-size: 8px;
 }
 
 :global(.krve-review-cards p) {
-  color: #aaa;
-  font-size: 11px;
+  color: #aaaaaa;
+  font-size: 10px;
   line-height: 1.6;
 }
 
 :global(.krve-review-cards small) {
-  color: #666;
+  color: #666666;
+  font-size: 8px;
 }
 
-/* Similar products */
+/* =========================================================
+   SIMILAR PRODUCTS
+========================================================= */
 
 :global(.krve-similar-section) {
-  padding: 48px 0 70px;
-  border-top: 1px solid
-    rgba(212, 160, 27, 0.26);
+  padding: 48px 0 72px;
 }
 
 :global(.krve-similar-heading) {
   display: flex;
-  justify-content:
-    space-between;
   align-items: flex-end;
+  justify-content: space-between;
+  gap: 25px;
   margin-bottom: 22px;
 }
 
 :global(.krve-similar-heading p) {
   margin: 0;
   color: #d7a21a;
-  font-size: 9px;
+  font-size: 8px;
   font-weight: 900;
   letter-spacing: 0.15em;
 }
 
 :global(.krve-similar-heading h2) {
   margin: 7px 0 0;
+  color: #ffffff;
   font-family:
     Georgia,
+    "Times New Roman",
     serif;
   font-size: 32px;
   font-weight: 400;
@@ -872,7 +1029,7 @@
 
 :global(.krve-similar-heading a) {
   color: #dca71c;
-  font-size: 10px;
+  font-size: 9px;
   text-decoration: none;
 }
 
@@ -884,10 +1041,13 @@
   overflow-x: auto;
   padding-bottom: 13px;
   scrollbar-width: thin;
+  scrollbar-color:
+    #9b720b #151515;
 }
 
 :global(.krve-similar-card) {
   display: block;
+  overflow: hidden;
   border: 1px solid
     rgba(210, 159, 25, 0.32);
   background: #080808;
@@ -899,11 +1059,16 @@
   position: relative;
   height: 315px;
   overflow: hidden;
-  background: #111;
+  background: #111111;
 }
 
 :global(.krve-similar-image img) {
   object-fit: cover;
+  transition: transform 350ms ease;
+}
+
+:global(.krve-similar-card:hover .krve-similar-image img) {
+  transform: scale(1.04);
 }
 
 :global(.krve-similar-image > span) {
@@ -913,7 +1078,7 @@
   background: #d9a31a;
   padding: 5px 8px;
   color: #050505;
-  font-size: 8px;
+  font-size: 7px;
   font-weight: 900;
 }
 
@@ -924,7 +1089,7 @@
   background: #f4f4f4;
   padding: 5px 7px;
   color: #262626;
-  font-size: 9px;
+  font-size: 8px;
   font-weight: 800;
 }
 
@@ -935,8 +1100,8 @@
 :global(.krve-similar-info h3) {
   min-height: 38px;
   margin: 0;
-  color: #ddd;
-  font-size: 12px;
+  color: #dddddd;
+  font-size: 11px;
   line-height: 1.5;
 }
 
@@ -944,19 +1109,20 @@
   display: block;
   margin-top: 8px;
   color: #49d58a;
-  font-size: 12px;
+  font-size: 11px;
 }
 
 :global(.krve-similar-price) {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
   margin-top: 6px;
 }
 
 :global(.krve-similar-price del) {
-  color: #666;
-  font-size: 10px;
+  color: #666666;
+  font-size: 9px;
 }
 
 :global(.krve-similar-price strong) {
@@ -966,49 +1132,111 @@
 
 :global(.krve-similar-info p) {
   margin: 8px 0 0;
-  color: #777;
-  font-size: 9px;
+  color: #777777;
+  font-size: 8px;
 }
 
-@media (
-  max-width: 1000px
-) {
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 1050px) {
   .productGrid {
     grid-template-columns:
-      minmax(0, 1fr);
+      minmax(0, 1fr)
+      minmax(350px, 0.8fr);
+    gap: 28px;
+  }
+
+  .mainImageCard {
+    min-height: 540px;
+    height: 620px;
+  }
+
+  :global(.krve-service-grid) {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .container {
+    width: min(
+      760px,
+      calc(100% - 28px)
+    );
+  }
+
+  .productGrid {
+    grid-template-columns: 1fr;
   }
 
   .rightColumn {
     position: static;
   }
+
+  .mainImageCard {
+    height: 650px;
+    max-height: none;
+  }
 }
 
-@media (
-  max-width: 700px
-) {
+@media (max-width: 650px) {
   .container {
-    width: calc(
-      100% - 24px
-    );
+    width: calc(100% - 22px);
   }
 
-  .imageGrid {
+  .breadcrumb {
+    min-height: 50px;
+    font-size: 7px;
+  }
+
+  .productArea {
+    padding-top: 20px;
+  }
+
+  .mainImageCard {
+    height: 500px;
+    min-height: 440px;
+  }
+
+  .mainImage {
+    padding: 7px;
+  }
+
+  .secondaryImageGrid {
     grid-template-columns: 1fr;
   }
 
-  .primaryImage,
-  .imageCard {
-    grid-column: auto;
-    min-height: 480px;
+  .secondaryImageCard {
+    min-height: 430px;
+  }
+
+  .productIdentity h1 {
+    font-size: 40px;
+  }
+
+  :global(.krve-purchase-panel) {
+    padding: 20px;
+  }
+
+  :global(.krve-purchase-top h2) {
+    font-size: 24px;
   }
 
   :global(.krve-main-actions) {
     grid-template-columns: 1fr;
   }
 
-  :global(.krve-service-grid) {
-    grid-template-columns:
-      1fr 1fr;
+  :global(.krve-location-row) {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    padding-block: 12px;
+  }
+
+  :global(.krve-location-row strong) {
+    width: 100%;
+    margin-left: 26px;
   }
 
   :global(.krve-highlights-grid) {
@@ -1017,5 +1245,17 @@
 
   :global(.krve-reviews-content) {
     grid-template-columns: 1fr;
+  }
+
+  :global(.krve-review-cards) {
+    grid-column: auto;
+  }
+
+  :global(.krve-similar-scroll) {
+    grid-auto-columns: 225px;
+  }
+
+  :global(.krve-similar-image) {
+    height: 280px;
   }
 }
