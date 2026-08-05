@@ -1,4 +1,7 @@
-import "server-only";
+/* =========================================================
+   KRVE CENTRAL API CLIENT
+   Used by the KRVE customer-facing website
+========================================================= */
 
 export type ProductCategory =
   | "menswear"
@@ -25,10 +28,12 @@ export type KrveProduct = {
 
   price: number;
   compareAtPrice: number | null;
+
   currency: string;
 
   imageUrl: string;
   image: string;
+
   gallery: string[];
 
   sizes: string[];
@@ -48,32 +53,32 @@ export type KrveProduct = {
   updatedAt: string;
 };
 
-export type ProductFilters = {
-  category?: ProductCategory;
-  featured?: boolean;
-  newArrival?: boolean;
-  search?: string;
-  limit?: number;
-  offset?: number;
-};
-
-export type ProductPagination = {
+export type ProductsPagination = {
   total: number;
   limit: number;
   offset: number;
 };
 
-export type ProductListData = {
+export type ProductsResult = {
   products: KrveProduct[];
-  pagination: ProductPagination;
+
+  pagination: ProductsPagination;
 };
 
-export type KrveApiHealth = {
-  application: string;
-  environment: string;
-  database: string;
-  products: number;
-  timestamp: string;
+export type ProductQuery = {
+  category?: ProductCategory;
+
+  status?: ProductStatus;
+
+  search?: string;
+
+  featured?: boolean;
+
+  newArrival?: boolean;
+
+  limit?: number;
+
+  offset?: number;
 };
 
 type ApiSuccess<T> = {
@@ -87,306 +92,139 @@ type ApiFailure = {
   code?: string;
 };
 
-type ApiResponse<T> =
+export type ApiResponse<T> =
   | ApiSuccess<T>
   | ApiFailure;
 
-type PublicRequestOptions = {
-  revalidate?: number | false;
-  tags?: string[];
-};
+/* =========================================================
+   API URL
+========================================================= */
 
-export class KrvePublicApiError extends Error {
-  status: number;
-  code?: string;
+function getApiUrl() {
+  const apiUrl =
+    process.env.KRVE_API_URL?.trim() ||
+    process.env.NEXT_PUBLIC_KRVE_API_URL?.trim();
 
-  constructor(
-    message: string,
-    status: number,
-    code?: string,
-  ) {
-    super(message);
-
-    this.name = "KrvePublicApiError";
-    this.status = status;
-    this.code = code;
-  }
-}
-
-function getApiBaseUrl() {
-  const value =
-    process.env.KRVE_API_URL?.trim();
-
-  if (!value) {
+  if (!apiUrl) {
     throw new Error(
-      "KRVE_API_URL environment variable is missing.",
+      "KRVE API URL is missing. Add KRVE_API_URL in the Vercel environment variables.",
     );
   }
 
-  return value.replace(/\/+$/, "");
+  return apiUrl.replace(
+    /\/+$/,
+    "",
+  );
 }
+
+/* =========================================================
+   HELPERS
+========================================================= */
 
 function createQueryString(
-  values: Record<
-    string,
-    string | number | boolean | undefined
-  >,
+  query: ProductQuery,
 ) {
-  const searchParams =
+  const parameters =
     new URLSearchParams();
 
-  Object.entries(values).forEach(
-    ([key, value]) => {
-      if (
-        value === undefined ||
-        value === ""
-      ) {
-        return;
-      }
-
-      searchParams.set(
-        key,
-        String(value),
-      );
-    },
-  );
-
-  const query =
-    searchParams.toString();
-
-  return query
-    ? `?${query}`
-    : "";
-}
-
-function safeStringArray(
-  value: unknown,
-) {
-  if (!Array.isArray(value)) {
-    return [];
+  if (query.category) {
+    parameters.set(
+      "category",
+      query.category,
+    );
   }
 
-  return value.filter(
-    (
-      item,
-    ): item is string =>
-      typeof item === "string" &&
-      item.trim().length > 0,
-  );
-}
+  if (query.status) {
+    parameters.set(
+      "status",
+      query.status,
+    );
+  }
 
-function normalizeCategory(
-  value: unknown,
-): ProductCategory {
+  if (query.search?.trim()) {
+    parameters.set(
+      "search",
+      query.search.trim(),
+    );
+  }
+
   if (
-    value === "womenswear" ||
-    value === "kidswear" ||
-    value === "accessories" ||
-    value === "footwear"
+    typeof query.featured ===
+    "boolean"
   ) {
-    return value;
+    parameters.set(
+      "featured",
+      query.featured
+        ? "true"
+        : "false",
+    );
   }
 
-  return "menswear";
-}
-
-function normalizeStatus(
-  value: unknown,
-): ProductStatus {
   if (
-    value === "draft" ||
-    value === "archived"
+    typeof query.newArrival ===
+    "boolean"
   ) {
-    return value;
+    parameters.set(
+      "newArrival",
+      query.newArrival
+        ? "true"
+        : "false",
+    );
   }
 
-  return "published";
-}
-
-function normalizeProduct(
-  input: Partial<KrveProduct>,
-): KrveProduct {
-  const id =
-    typeof input.id === "string" &&
-    input.id.trim()
-      ? input.id.trim()
-      : crypto.randomUUID();
-
-  const slug =
-    typeof input.slug === "string" &&
-    input.slug.trim()
-      ? input.slug.trim()
-      : id;
-
-  const image =
-    typeof input.image === "string" &&
-    input.image.trim()
-      ? input.image.trim()
-      : typeof input.imageUrl === "string" &&
-          input.imageUrl.trim()
-        ? input.imageUrl.trim()
-        : "/images/products/product-1.jpg";
-
-  const price =
-    Number.isFinite(
-      Number(input.price),
-    )
-      ? Math.max(
-          0,
-          Number(input.price),
-        )
-      : 0;
-
-  const compareAtPrice =
-    input.compareAtPrice === null ||
-    input.compareAtPrice === undefined
-      ? null
-      : Number.isFinite(
-            Number(
-              input.compareAtPrice,
-            ),
-          )
-        ? Math.max(
-            0,
-            Number(
-              input.compareAtPrice,
-            ),
-          )
-        : null;
-
-  const stockQuantity =
-    Number.isFinite(
-      Number(
-        input.stockQuantity,
+  if (
+    typeof query.limit ===
+      "number" &&
+    Number.isFinite(query.limit)
+  ) {
+    parameters.set(
+      "limit",
+      String(
+        Math.max(
+          1,
+          Math.floor(
+            query.limit,
+          ),
+        ),
       ),
-    )
-      ? Math.max(
+    );
+  }
+
+  if (
+    typeof query.offset ===
+      "number" &&
+    Number.isFinite(query.offset)
+  ) {
+    parameters.set(
+      "offset",
+      String(
+        Math.max(
           0,
           Math.floor(
-            Number(
-              input.stockQuantity,
-            ),
+            query.offset,
           ),
-        )
-      : 0;
-
-  return {
-    id,
-    slug,
-
-    name:
-      typeof input.name === "string" &&
-      input.name.trim()
-        ? input.name.trim()
-        : "KRVE Product",
-
-    shortDescription:
-      typeof input.shortDescription ===
-        "string"
-        ? input.shortDescription
-        : null,
-
-    description:
-      typeof input.description ===
-        "string"
-        ? input.description
-        : null,
-
-    category:
-      normalizeCategory(
-        input.category,
+        ),
       ),
+    );
+  }
 
-    price,
-    compareAtPrice,
-
-    currency:
-      typeof input.currency === "string" &&
-      input.currency.trim()
-        ? input.currency
-            .trim()
-            .toUpperCase()
-        : "INR",
-
-    imageUrl: image,
-    image,
-
-    gallery:
-      safeStringArray(
-        input.gallery,
-      ).length > 0
-        ? safeStringArray(
-            input.gallery,
-          )
-        : [image],
-
-    sizes:
-      safeStringArray(
-        input.sizes,
-      ),
-
-    colours:
-      safeStringArray(
-        input.colours,
-      ),
-
-    sku:
-      typeof input.sku === "string" &&
-      input.sku.trim()
-        ? input.sku.trim()
-        : null,
-
-    stockQuantity,
-
-    inStock:
-      typeof input.inStock ===
-        "boolean"
-        ? input.inStock
-        : stockQuantity > 0,
-
-    featured:
-      Boolean(
-        input.featured,
-      ),
-
-    newArrival:
-      Boolean(
-        input.newArrival,
-      ),
-
-    status:
-      normalizeStatus(
-        input.status,
-      ),
-
-    createdAt:
-      typeof input.createdAt === "string"
-        ? input.createdAt
-        : "",
-
-    updatedAt:
-      typeof input.updatedAt === "string"
-        ? input.updatedAt
-        : "",
-  };
+  return parameters.toString();
 }
 
-async function parseApiResponse<T>(
+async function readApiResponse<T>(
   response: Response,
 ): Promise<T> {
   let result:
     | ApiResponse<T>
-    | undefined;
+    | null = null;
 
   try {
     result =
       (await response.json()) as
         ApiResponse<T>;
   } catch {
-    throw new KrvePublicApiError(
-      "KRVE API returned an invalid response.",
-      response.status,
-      "INVALID_API_RESPONSE",
+    throw new Error(
+      "KRVE Central API returned an invalid response.",
     );
   }
 
@@ -395,36 +233,220 @@ async function parseApiResponse<T>(
     !result.success
   ) {
     const message =
-      result.success
-        ? "The request could not be completed."
-        : result.message;
+      result &&
+      !result.success
+        ? result.message
+        : `KRVE API request failed with status ${response.status}.`;
 
-    const code =
-      result.success
-        ? undefined
-        : result.code;
-
-    throw new KrvePublicApiError(
-      message,
-      response.status,
-      code,
-    );
+    throw new Error(message);
   }
 
   return result.data;
 }
 
-async function publicRequest<T>(
-  endpoint: string,
-  options: PublicRequestOptions = {},
-): Promise<T> {
-  const revalidate =
-    options.revalidate ??
-    30;
+function normaliseProduct(
+  product:
+    Partial<KrveProduct>,
+): KrveProduct {
+  const imageUrl =
+    product.imageUrl ||
+    product.image ||
+    product.gallery?.[0] ||
+    "";
+
+  const gallery =
+    Array.isArray(
+      product.gallery,
+    )
+      ? product.gallery.filter(
+          (
+            image,
+          ): image is string =>
+            typeof image ===
+              "string" &&
+            image.trim().length >
+              0,
+        )
+      : [];
+
+  if (
+    imageUrl &&
+    !gallery.includes(
+      imageUrl,
+    )
+  ) {
+    gallery.unshift(
+      imageUrl,
+    );
+  }
+
+  const stockQuantity =
+    Number.isFinite(
+      Number(
+        product.stockQuantity,
+      ),
+    )
+      ? Math.max(
+          0,
+          Math.floor(
+            Number(
+              product.stockQuantity,
+            ),
+          ),
+        )
+      : 0;
+
+  return {
+    id:
+      product.id || "",
+
+    slug:
+      product.slug ||
+      product.id ||
+      "",
+
+    name:
+      product.name ||
+      "KRVE Product",
+
+    shortDescription:
+      product.shortDescription ??
+      null,
+
+    description:
+      product.description ??
+      null,
+
+    category:
+      product.category ||
+      "menswear",
+
+    price:
+      Number.isFinite(
+        Number(
+          product.price,
+        ),
+      )
+        ? Number(
+            product.price,
+          )
+        : 0,
+
+    compareAtPrice:
+      product.compareAtPrice ===
+        null ||
+      product.compareAtPrice ===
+        undefined
+        ? null
+        : Number.isFinite(
+              Number(
+                product.compareAtPrice,
+              ),
+            )
+          ? Number(
+              product.compareAtPrice,
+            )
+          : null,
+
+    currency:
+      product.currency ||
+      "INR",
+
+    imageUrl,
+
+    image:
+      imageUrl,
+
+    gallery,
+
+    sizes:
+      Array.isArray(
+        product.sizes,
+      )
+        ? product.sizes.filter(
+            (
+              size,
+            ): size is string =>
+              typeof size ===
+                "string" &&
+              size.trim().length >
+                0,
+          )
+        : [],
+
+    colours:
+      Array.isArray(
+        product.colours,
+      )
+        ? product.colours.filter(
+            (
+              colour,
+            ): colour is string =>
+              typeof colour ===
+                "string" &&
+              colour.trim().length >
+                0,
+          )
+        : [],
+
+    sku:
+      product.sku ??
+      null,
+
+    stockQuantity,
+
+    inStock:
+      typeof product.inStock ===
+      "boolean"
+        ? product.inStock
+        : stockQuantity > 0,
+
+    featured:
+      Boolean(
+        product.featured,
+      ),
+
+    newArrival:
+      Boolean(
+        product.newArrival,
+      ),
+
+    status:
+      product.status ||
+      "draft",
+
+    createdAt:
+      product.createdAt ||
+      "",
+
+    updatedAt:
+      product.updatedAt ||
+      "",
+  };
+}
+
+/* =========================================================
+   PRODUCT LIST
+========================================================= */
+
+export async function getProducts(
+  query: ProductQuery = {},
+): Promise<ProductsResult> {
+  const queryString =
+    createQueryString(
+      query,
+    );
+
+  const endpoint =
+    `${getApiUrl()}/api/products${
+      queryString
+        ? `?${queryString}`
+        : ""
+    }`;
 
   const response =
     await fetch(
-      `${getApiBaseUrl()}${endpoint}`,
+      endpoint,
       {
         method: "GET",
 
@@ -433,93 +455,78 @@ async function publicRequest<T>(
             "application/json",
         },
 
-        cache:
-          revalidate === false
-            ? "no-store"
-            : "force-cache",
-
-        next:
-          revalidate === false
-            ? undefined
-            : {
-                revalidate,
-                tags:
-                  options.tags,
-              },
+        cache: "no-store",
       },
     );
 
-  return parseApiResponse<T>(
-    response,
-  );
-}
-
-/* =========================================================
-   API HEALTH
-========================================================= */
-
-export async function getKrveApiHealth() {
-  return publicRequest<KrveApiHealth>(
-    "/api/health",
-    {
-      revalidate: false,
-    },
-  );
-}
-
-/* =========================================================
-   PRODUCTS
-========================================================= */
-
-export async function getProducts(
-  filters: ProductFilters = {},
-) {
-  const query =
-    createQueryString({
-      category:
-        filters.category,
-
-      featured:
-        filters.featured,
-
-      newArrival:
-        filters.newArrival,
-
-      search:
-        filters.search?.trim(),
-
-      limit:
-        filters.limit ?? 100,
-
-      offset:
-        filters.offset ?? 0,
-    });
-
-  const result =
-    await publicRequest<ProductListData>(
-      `/api/products${query}`,
-      {
-        revalidate: 30,
-        tags: [
-          "krve-products",
-        ],
-      },
+  const data =
+    await readApiResponse<ProductsResult>(
+      response,
     );
 
   return {
     products:
-      result.products.map(
-        normalizeProduct,
-      ),
+      Array.isArray(
+        data.products,
+      )
+        ? data.products.map(
+            normaliseProduct,
+          )
+        : [],
 
-    pagination:
-      result.pagination,
+    pagination: {
+      total:
+        Number.isFinite(
+          Number(
+            data.pagination
+              ?.total,
+          ),
+        )
+          ? Number(
+              data.pagination
+                .total,
+            )
+          : 0,
+
+      limit:
+        Number.isFinite(
+          Number(
+            data.pagination
+              ?.limit,
+          ),
+        )
+          ? Number(
+              data.pagination
+                .limit,
+            )
+          : query.limit ||
+            100,
+
+      offset:
+        Number.isFinite(
+          Number(
+            data.pagination
+              ?.offset,
+          ),
+        )
+          ? Number(
+              data.pagination
+                .offset,
+            )
+          : query.offset ||
+            0,
+    },
   };
 }
+
+/* =========================================================
+   ALL PUBLISHED PRODUCTS
+========================================================= */
 
 export async function getAllProducts() {
   const result =
     await getProducts({
+      status: "published",
       limit: 100,
       offset: 0,
     });
@@ -527,31 +534,87 @@ export async function getAllProducts() {
   return result.products;
 }
 
+/* =========================================================
+   NEW ARRIVALS
+========================================================= */
+
+export async function getNewArrivalProducts(
+  limit = 4,
+) {
+  const safeLimit =
+    Math.max(
+      1,
+      Math.floor(
+        limit,
+      ),
+    );
+
+  const result =
+    await getProducts({
+      status: "published",
+      newArrival: true,
+      limit: safeLimit,
+      offset: 0,
+    });
+
+  /*
+    Safety filtering is added here too,
+    so only published New Arrival
+    products reach the homepage.
+  */
+
+  return result.products
+    .filter(
+      (product) =>
+        product.status ===
+          "published" &&
+        product.newArrival,
+    )
+    .slice(
+      0,
+      safeLimit,
+    );
+}
+
+/* =========================================================
+   FEATURED PRODUCTS
+========================================================= */
+
 export async function getFeaturedProducts(
   limit = 8,
 ) {
+  const safeLimit =
+    Math.max(
+      1,
+      Math.floor(
+        limit,
+      ),
+    );
+
   const result =
     await getProducts({
+      status: "published",
       featured: true,
-      limit,
+      limit: safeLimit,
       offset: 0,
     });
 
-  return result.products;
+  return result.products
+    .filter(
+      (product) =>
+        product.status ===
+          "published" &&
+        product.featured,
+    )
+    .slice(
+      0,
+      safeLimit,
+    );
 }
 
-export async function getNewArrivalProducts(
-  limit = 8,
-) {
-  const result =
-    await getProducts({
-      newArrival: true,
-      limit,
-      offset: 0,
-    });
-
-  return result.products;
-}
+/* =========================================================
+   CATEGORY PRODUCTS
+========================================================= */
 
 export async function getProductsByCategory(
   category: ProductCategory,
@@ -560,6 +623,7 @@ export async function getProductsByCategory(
   const result =
     await getProducts({
       category,
+      status: "published",
       limit,
       offset: 0,
     });
@@ -567,135 +631,89 @@ export async function getProductsByCategory(
   return result.products;
 }
 
+/* =========================================================
+   SEARCH PRODUCTS
+========================================================= */
+
 export async function searchProducts(
   search: string,
-  limit = 30,
+  limit = 20,
 ) {
-  const query =
+  const cleanedSearch =
     search.trim();
 
-  if (!query) {
+  if (!cleanedSearch) {
     return [];
   }
 
   const result =
     await getProducts({
-      search: query,
+      search:
+        cleanedSearch,
+
+      status:
+        "published",
+
       limit,
+
       offset: 0,
     });
 
   return result.products;
 }
 
+/* =========================================================
+   SINGLE PRODUCT BY SLUG
+========================================================= */
+
 export async function getProductBySlug(
-  idOrSlug: string,
+  slug: string,
 ) {
-  const value =
-    idOrSlug.trim();
+  const cleanedSlug =
+    slug.trim();
 
-  if (!value) {
-    return null;
-  }
-
-  try {
-    const result =
-      await publicRequest<KrveProduct>(
-        `/api/products/${encodeURIComponent(value)}`,
-        {
-          revalidate: 30,
-          tags: [
-            "krve-products",
-            `krve-product-${value}`,
-          ],
-        },
-      );
-
-    return normalizeProduct(
-      result,
+  if (!cleanedSlug) {
+    throw new Error(
+      "Product slug is required.",
     );
-  } catch (error) {
-    if (
-      error instanceof
-        KrvePublicApiError &&
-      error.status === 404
-    ) {
-      return null;
-    }
-
-    throw error;
   }
+
+  const response =
+    await fetch(
+      `${getApiUrl()}/api/products/${encodeURIComponent(
+        cleanedSlug,
+      )}`,
+      {
+        method: "GET",
+
+        headers: {
+          Accept:
+            "application/json",
+        },
+
+        cache: "no-store",
+      },
+    );
+
+  const product =
+    await readApiResponse<KrveProduct>(
+      response,
+    );
+
+  return normaliseProduct(
+    product,
+  );
 }
 
 /* =========================================================
-   PRODUCT HELPERS
+   SINGLE PRODUCT BY ID OR SLUG
+   Alias for compatibility with old pages
 ========================================================= */
 
-export function formatPrice(
-  price: number,
-  currency = "INR",
+export async function getProduct(
+  idOrSlug: string,
 ) {
-  return new Intl.NumberFormat(
-    "en-IN",
-    {
-      style: "currency",
-      currency,
-      maximumFractionDigits: 0,
-    },
-  ).format(price);
-}
-
-export function getCategoryLabel(
-  category: ProductCategory,
-) {
-  if (
-    category === "womenswear"
-  ) {
-    return "Womenswear";
-  }
-
-  if (
-    category === "kidswear"
-  ) {
-    return "Kidswear";
-  }
-
-  if (
-    category === "accessories"
-  ) {
-    return "Accessories";
-  }
-
-  if (
-    category === "footwear"
-  ) {
-    return "Footwear";
-  }
-
-  return "Menswear";
-}
-
-export function getStockLabel(
-  stockQuantity: number,
-) {
-  if (stockQuantity <= 0) {
-    return "Out of stock";
-  }
-
-  if (stockQuantity <= 5) {
-    return "Only a few left";
-  }
-
-  return "In stock";
-}
-
-export function getPrimaryImage(
-  product: KrveProduct,
-) {
-  return (
-    product.image ||
-    product.imageUrl ||
-    product.gallery[0] ||
-    "/images/products/product-1.jpg"
+  return getProductBySlug(
+    idOrSlug,
   );
 }
