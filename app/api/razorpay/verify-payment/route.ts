@@ -11,6 +11,7 @@ type VerifyPaymentRequest = {
   razorpay_payment_id?: string;
   razorpay_order_id?: string;
   razorpay_signature?: string;
+  order?: Record<string, unknown>;
 };
 
 function compareSignatures(
@@ -119,6 +120,26 @@ export async function POST(request: Request) {
       );
     }
 
+    let centralOrder: unknown = null;
+    if (body.order) {
+      const apiUrl = (process.env.KRVE_API_URL || process.env.NEXT_PUBLIC_KRVE_API_URL || "").replace(/\/+$/, "");
+      if (!apiUrl) throw new Error("KRVE_API_URL is missing.");
+      const centralResponse = await fetch(`${apiUrl}/api/orders`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(process.env.KRVE_WEBSITE_SECRET ? { "X-KRVE-Website-Key": process.env.KRVE_WEBSITE_SECRET } : {}),
+        },
+        body: JSON.stringify({ ...body.order, paymentId, providerOrderId: orderId }),
+        cache: "no-store",
+      });
+      const centralPayload = await centralResponse.json();
+      if (!centralResponse.ok || !centralPayload.success) {
+        throw new Error(centralPayload.message || "Payment succeeded, but the KRVE order could not be recorded.");
+      }
+      centralOrder = centralPayload.data;
+    }
+
     return NextResponse.json(
       {
         success: true,
@@ -128,6 +149,7 @@ export async function POST(request: Request) {
 
         paymentId,
         orderId,
+        centralOrder,
       },
       {
         status: 200,
