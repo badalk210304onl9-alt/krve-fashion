@@ -401,6 +401,39 @@ export default function CheckoutPage() {
 
                   razorpay_signature:
                     paymentResponse.razorpay_signature,
+
+                  order: {
+                    customer: {
+                      email: form.email,
+                      phone: form.phone.replace(/\D/g, ""),
+                      firstName: form.firstName,
+                      lastName: form.lastName,
+                    },
+                    shippingAddress: {
+                      address: form.address,
+                      apartment: form.apartment,
+                      city: form.city,
+                      state: form.state,
+                      postalCode: form.postalCode,
+                      country: "India",
+                    },
+                    items: cart.map((item) => ({
+                      productId: item.id,
+                      name: item.name,
+                      imageUrl: item.imageUrl || item.image,
+                      sku: item.sku,
+                      size: item.size,
+                      colour: item.colours?.[0],
+                      price: item.price,
+                      quantity: item.quantity,
+                    })),
+                    subtotal: cartSubtotal,
+                    discount: 0,
+                    shipping,
+                    tax: estimatedTax,
+                    total,
+                    currency: "INR",
+                  },
                 }),
               },
             );
