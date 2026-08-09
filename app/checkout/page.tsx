@@ -652,4 +652,745 @@ export default function CheckoutPage() {
       );
     }
   }
-  
+    if (!hydrated) {
+    return (
+      <main className={styles.page}>
+        <section className={styles.loadingState}>
+          <div className={styles.loadingMark}>
+            KRVE
+          </div>
+
+          <p>
+            Preparing your checkout...
+          </p>
+        </section>
+      </main>
+    );
+  }
+
+  return (
+    <main className={styles.page}>
+      <div className={styles.shell}>
+        <header className={styles.header}>
+          <Link
+            href="/"
+            className={styles.brand}
+          >
+            KRVE
+          </Link>
+
+          <div className={styles.headerRight}>
+            <div className={styles.secureBadge}>
+              <LockIcon />
+
+              <span>
+                Secure Checkout
+              </span>
+            </div>
+
+            <Link
+              href="/cart"
+              className={styles.backLink}
+            >
+              <ArrowLeftIcon />
+
+              <span>
+                Back to Bag
+              </span>
+            </Link>
+          </div>
+        </header>
+
+        <section className={styles.checkoutGrid}>
+          <div className={styles.checkoutMain}>
+            <div className={styles.checkoutIntro}>
+              <span className={styles.eyebrow}>
+                KRVE PRIVATE CHECKOUT
+              </span>
+
+              <h1>
+                Complete your order
+              </h1>
+
+              <p>
+                Enter your delivery details and
+                complete your payment securely.
+              </p>
+            </div>
+
+            {formError ? (
+              <div
+                className={styles.errorBox}
+                role="alert"
+              >
+                {formError}
+              </div>
+            ) : null}
+
+            <form
+              className={styles.form}
+              onSubmit={handleCheckout}
+            >
+              <section className={styles.section}>
+                <div className={styles.sectionHeading}>
+                  <span className={styles.sectionNumber}>
+                    01
+                  </span>
+
+                  <div>
+                    <h2>
+                      Contact
+                    </h2>
+
+                    <p>
+                      Your order confirmation will
+                      be sent here.
+                    </p>
+                  </div>
+                </div>
+
+                <div className={styles.fieldGrid}>
+                  <label className={styles.fieldFull}>
+                    <span>
+                      Email address
+                    </span>
+
+                    <input
+                      type="email"
+                      autoComplete="email"
+                      placeholder="you@example.com"
+                      value={form.email}
+                      onChange={(event) =>
+                        updateField(
+                          "email",
+                          event.target.value,
+                        )
+                      }
+                      required
+                    />
+                  </label>
+
+                  <label className={styles.fieldFull}>
+                    <span>
+                      Mobile number
+                    </span>
+
+                    <div className={styles.phoneInput}>
+                      <div
+                        className={
+                          styles.countryCode
+                        }
+                      >
+                        +91
+                      </div>
+
+                      <input
+                        type="tel"
+                        inputMode="numeric"
+                        autoComplete="tel"
+                        placeholder="10-digit mobile number"
+                        value={form.phone}
+                        maxLength={15}
+                        onChange={(event) =>
+                          updateField(
+                            "phone",
+                            event.target.value,
+                          )
+                        }
+                        required
+                      />
+                    </div>
+                  </label>
+                </div>
+              </section>
+
+              <section className={styles.section}>
+                <div className={styles.sectionHeading}>
+                  <span className={styles.sectionNumber}>
+                    02
+                  </span>
+
+                  <div>
+                    <h2>
+                      Delivery Details
+                    </h2>
+
+                    <p>
+                      Where should we deliver your
+                      KRVE selection?
+                    </p>
+                  </div>
+                </div>
+
+                <div className={styles.fieldGrid}>
+                  <label className={styles.field}>
+                    <span>
+                      First name
+                    </span>
+
+                    <input
+                      type="text"
+                      autoComplete="given-name"
+                      value={form.firstName}
+                      onChange={(event) =>
+                        updateField(
+                          "firstName",
+                          event.target.value,
+                        )
+                      }
+                      required
+                    />
+                  </label>
+
+                  <label className={styles.field}>
+                    <span>
+                      Last name
+                    </span>
+
+                    <input
+                      type="text"
+                      autoComplete="family-name"
+                      value={form.lastName}
+                      onChange={(event) =>
+                        updateField(
+                          "lastName",
+                          event.target.value,
+                        )
+                      }
+                      required
+                    />
+                  </label>
+
+                  <label className={styles.fieldFull}>
+                    <span>
+                      Address
+                    </span>
+
+                    <input
+                      type="text"
+                      autoComplete="address-line1"
+                      placeholder="House / Flat / Building / Street"
+                      value={form.address}
+                      onChange={(event) =>
+                        updateField(
+                          "address",
+                          event.target.value,
+                        )
+                      }
+                      required
+                    />
+                  </label>
+
+                  <label className={styles.fieldFull}>
+                    <span>
+                      Apartment, suite, etc.
+                    </span>
+
+                    <input
+                      type="text"
+                      autoComplete="address-line2"
+                      placeholder="Optional"
+                      value={form.apartment}
+                      onChange={(event) =>
+                        updateField(
+                          "apartment",
+                          event.target.value,
+                        )
+                      }
+                    />
+                  </label>
+
+                  <label className={styles.field}>
+                    <span>
+                      City
+                    </span>
+
+                    <input
+                      type="text"
+                      autoComplete="address-level2"
+                      value={form.city}
+                      onChange={(event) =>
+                        updateField(
+                          "city",
+                          event.target.value,
+                        )
+                      }
+                      required
+                    />
+                  </label>
+
+                  <label className={styles.field}>
+                    <span>
+                      State
+                    </span>
+
+                    <input
+                      type="text"
+                      autoComplete="address-level1"
+                      value={form.state}
+                      onChange={(event) =>
+                        updateField(
+                          "state",
+                          event.target.value,
+                        )
+                      }
+                      required
+                    />
+                  </label>
+
+                  <label className={styles.field}>
+                    <span>
+                      Postal code
+                    </span>
+
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      autoComplete="postal-code"
+                      maxLength={6}
+                      value={form.postalCode}
+                      onChange={(event) =>
+                        updateField(
+                          "postalCode",
+                          event.target.value.replace(
+                            /\D/g,
+                            "",
+                          ),
+                        )
+                      }
+                      required
+                    />
+                  </label>
+
+                  <label className={styles.field}>
+                    <span>
+                      Country
+                    </span>
+
+                    <input
+                      type="text"
+                      value="India"
+                      readOnly
+                    />
+                  </label>
+                </div>
+              </section>
+
+              <section className={styles.section}>
+                <div className={styles.sectionHeading}>
+                  <span className={styles.sectionNumber}>
+                    03
+                  </span>
+
+                  <div>
+                    <h2>
+                      Delivery Method
+                    </h2>
+
+                    <p>
+                      Choose how you would like your
+                      order delivered.
+                    </p>
+                  </div>
+                </div>
+
+                <div className={styles.deliveryList}>
+                  <button
+                    type="button"
+                    className={`${styles.deliveryOption} ${
+                      deliveryMethod === "standard"
+                        ? styles.deliveryOptionActive
+                        : ""
+                    }`}
+                    onClick={() =>
+                      setDeliveryMethod("standard")
+                    }
+                  >
+                    <div
+                      className={
+                        styles.deliveryRadio
+                      }
+                    >
+                      {deliveryMethod ===
+                      "standard" ? (
+                        <span />
+                      ) : null}
+                    </div>
+
+                    <div
+                      className={
+                        styles.deliveryContent
+                      }
+                    >
+                      <div
+                        className={
+                          styles.deliveryTitle
+                        }
+                      >
+                        Complimentary Delivery
+                      </div>
+
+                      <div
+                        className={
+                          styles.deliveryDescription
+                        }
+                      >
+                        Premium KRVE delivery at no
+                        additional charge.
+                      </div>
+                    </div>
+
+                    <div
+                      className={
+                        styles.deliveryPrice
+                      }
+                    >
+                      Complimentary
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    className={`${styles.deliveryOption} ${
+                      deliveryMethod === "express"
+                        ? styles.deliveryOptionActive
+                        : ""
+                    }`}
+                    onClick={() =>
+                      setDeliveryMethod("express")
+                    }
+                  >
+                    <div
+                      className={
+                        styles.deliveryRadio
+                      }
+                    >
+                      {deliveryMethod ===
+                      "express" ? (
+                        <span />
+                      ) : null}
+                    </div>
+
+                    <div
+                      className={
+                        styles.deliveryContent
+                      }
+                    >
+                      <div
+                        className={
+                          styles.deliveryTitle
+                        }
+                      >
+                        KRVE Express
+                      </div>
+
+                      <div
+                        className={
+                          styles.deliveryDescription
+                        }
+                      >
+                        Priority processing and
+                        expedited delivery.
+                      </div>
+                    </div>
+
+                    <div
+                      className={
+                        styles.deliveryPrice
+                      }
+                    >
+                      {money.format(499)}
+                    </div>
+                  </button>
+                </div>
+              </section>
+
+              <section className={styles.paymentSection}>
+                <label className={styles.termsRow}>
+                  <input
+                    type="checkbox"
+                    checked={acceptedTerms}
+                    onChange={(event) => {
+                      setAcceptedTerms(
+                        event.target.checked,
+                      );
+
+                      if (formError) {
+                        setFormError("");
+                      }
+                    }}
+                  />
+
+                  <span className={styles.customCheck}>
+                    {acceptedTerms ? (
+                      <CheckIcon />
+                    ) : null}
+                  </span>
+
+                  <span>
+                    I agree to the KRVE{" "}
+                    <Link href="/terms">
+                      Terms & Conditions
+                    </Link>{" "}
+                    and{" "}
+                    <Link href="/privacy">
+                      Privacy Policy
+                    </Link>
+                    .
+                  </span>
+                </label>
+
+                <button
+                  type="submit"
+                  className={styles.payButton}
+                  disabled={
+                    isPreparingPayment ||
+                    cart.length === 0
+                  }
+                >
+                  <LockIcon />
+
+                  <span>
+                    {isPreparingPayment
+                      ? "PREPARING SECURE PAYMENT..."
+                      : `PAY SECURELY ${money.format(
+                          total,
+                        )}`}
+                  </span>
+                </button>
+
+                <div className={styles.securityRow}>
+                  <ShieldIcon />
+
+                  <div>
+                    <strong>
+                      Secure payment
+                    </strong>
+
+                    <span>
+                      Your payment is processed
+                      securely through Razorpay.
+                    </span>
+                  </div>
+                </div>
+              </section>
+            </form>
+          </div>
+                    <aside className={styles.summary}>
+            <div className={styles.summaryHeader}>
+              <span className={styles.eyebrow}>
+                YOUR SELECTIONS
+              </span>
+
+              <h2>
+                Order Summary
+              </h2>
+            </div>
+
+            {cart.length === 0 ? (
+              <div className={styles.emptyCart}>
+                <p>
+                  Your shopping bag is empty.
+                </p>
+
+                <Link
+                  href="/collections"
+                  className={styles.emptyCartLink}
+                >
+                  Continue Shopping
+                </Link>
+              </div>
+            ) : (
+              <>
+                <div className={styles.summaryItems}>
+                  {cart.map((item) => (
+                    <div
+                      key={`${item.id}-${item.size}`}
+                      className={styles.summaryItem}
+                    >
+                      <div
+                        className={
+                          styles.summaryImageWrap
+                        }
+                      >
+                        {item.imageUrl ||
+                        item.image ? (
+                          <Image
+                            src={
+                              item.imageUrl ||
+                              item.image ||
+                              "/placeholder.png"
+                            }
+                            alt={item.name}
+                            fill
+                            sizes="96px"
+                            className={
+                              styles.summaryImage
+                            }
+                          />
+                        ) : (
+                          <div
+                            className={
+                              styles.summaryImagePlaceholder
+                            }
+                          >
+                            KRVE
+                          </div>
+                        )}
+
+                        {item.quantity > 1 ? (
+                          <span
+                            className={
+                              styles.quantityBadge
+                            }
+                          >
+                            {item.quantity}
+                          </span>
+                        ) : null}
+                      </div>
+
+                      <div
+                        className={
+                          styles.summaryItemContent
+                        }
+                      >
+                        <div
+                          className={
+                            styles.summaryItemTop
+                          }
+                        >
+                          <div>
+                            <h3>
+                              {item.name}
+                            </h3>
+
+                            {item.size ? (
+                              <span
+                                className={
+                                  styles.itemMeta
+                                }
+                              >
+                                Size: {item.size}
+                              </span>
+                            ) : null}
+                          </div>
+
+                          <strong>
+                            {money.format(
+                              item.price *
+                                item.quantity,
+                            )}
+                          </strong>
+                        </div>
+
+                        <span
+                          className={
+                            styles.itemQuantity
+                          }
+                        >
+                          Qty: {item.quantity}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className={styles.priceBreakdown}>
+                  <div className={styles.priceRow}>
+                    <span>
+                      Subtotal
+                    </span>
+
+                    <strong>
+                      {money.format(cartSubtotal)}
+                    </strong>
+                  </div>
+
+                  <div className={styles.priceRow}>
+                    <span>
+                      Delivery
+                    </span>
+
+                    <strong>
+                      {shipping === 0
+                        ? "Complimentary"
+                        : money.format(shipping)}
+                    </strong>
+                  </div>
+
+                  <div className={styles.priceRow}>
+                    <span>
+                      Estimated Tax
+                    </span>
+
+                    <strong>
+                      {money.format(
+                        estimatedTax,
+                      )}
+                    </strong>
+                  </div>
+
+                  <div
+                    className={
+                      styles.totalDivider
+                    }
+                  />
+
+                  <div
+                    className={`${styles.priceRow} ${styles.totalRow}`}
+                  >
+                    <span>
+                      TOTAL
+                    </span>
+
+                    <strong>
+                      {money.format(total)}
+                    </strong>
+                  </div>
+                </div>
+
+                <div className={styles.summaryFooter}>
+                  <div>
+                    <LockIcon />
+
+                    <span>
+                      Secure payment via Razorpay
+                    </span>
+                  </div>
+
+                  <div>
+                    <ShieldIcon />
+
+                    <span>
+                      KRVE protected checkout
+                    </span>
+                  </div>
+                </div>
+              </>
+            )}
+          </aside>
+        </section>
+
+        <footer className={styles.footer}>
+          <div>
+            <span>
+              KRVE
+            </span>
+
+            <span className={styles.footerDot}>
+              •
+            </span>
+
+            <span>
+              Move into style.
+            </span>
+          </div>
+
+          <div>
+            © {new Date().getFullYear()} KRVE. All rights reserved.
+          </div>
+        </footer>
+      </div>
+    </main>
+  );
+}
