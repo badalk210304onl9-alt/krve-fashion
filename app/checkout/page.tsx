@@ -57,6 +57,16 @@ type RazorpaySuccessResponse = {
   razorpay_signature: string;
 };
 
+type SaveOrderResponse = {
+  success?: boolean;
+  message?: string;
+
+  order?: {
+    id?: string;
+    orderNumber?: string;
+  } | null;
+};
+
 const initialForm: CheckoutForm = {
   email: "",
   phone: "",
@@ -219,7 +229,8 @@ export default function CheckoutPage() {
       return false;
     }
 
-    const cleanPhone = form.phone.replace(/\D/g, "");
+    const cleanPhone =
+      form.phone.replace(/\D/g, "");
 
     if (cleanPhone.length < 10) {
       setFormError(
@@ -229,7 +240,9 @@ export default function CheckoutPage() {
       return false;
     }
 
-    if (form.postalCode.replace(/\D/g, "").length !== 6) {
+    if (
+      form.postalCode.replace(/\D/g, "").length !== 6
+    ) {
       setFormError(
         "Please enter a valid 6-digit postal code.",
       );
@@ -245,7 +258,10 @@ export default function CheckoutPage() {
       return false;
     }
 
-    if (cart.length === 0 || total <= 0) {
+    if (
+      cart.length === 0 ||
+      total <= 0
+    ) {
       setFormError(
         "Your shopping bag is empty.",
       );
@@ -254,6 +270,209 @@ export default function CheckoutPage() {
     }
 
     return true;
+  }
+
+  async function saveOrderAfterPayment(
+    paymentResponse: RazorpaySuccessResponse,
+    verificationData: RazorpayVerificationResponse,
+  ) {
+    const response = await fetch(
+      "/api/orders/create",
+      {
+        method: "POST",
+
+        headers: {
+          "Content-Type":
+            "application/json",
+        },
+
+        body: JSON.stringify({
+          customer: {
+            firstName:
+              form.firstName,
+
+            lastName:
+              form.lastName,
+
+            email:
+              form.email,
+
+            phone:
+              form.phone.replace(
+                /\D/g,
+                "",
+              ),
+          },
+
+          customerEmail:
+            form.email,
+
+          customerPhone:
+            form.phone.replace(
+              /\D/g,
+              "",
+            ),
+
+          subtotal:
+            cartSubtotal,
+
+          discount:
+            0,
+
+          shipping,
+
+          tax:
+            estimatedTax,
+
+          total,
+
+          currency:
+            "INR",
+
+          couponCode:
+            null,
+
+          shippingAddress: {
+            recipientName:
+              `${form.firstName} ${form.lastName}`.trim(),
+
+            phone:
+              form.phone.replace(
+                /\D/g,
+                "",
+              ),
+
+            addressLine1:
+              form.address,
+
+            addressLine2:
+              form.apartment,
+
+            city:
+              form.city,
+
+            state:
+              form.state,
+
+            postalCode:
+              form.postalCode,
+
+            country:
+              "India",
+          },
+
+          billingAddress: {
+            recipientName:
+              `${form.firstName} ${form.lastName}`.trim(),
+
+            phone:
+              form.phone.replace(
+                /\D/g,
+                "",
+              ),
+
+            addressLine1:
+              form.address,
+
+            addressLine2:
+              form.apartment,
+
+            city:
+              form.city,
+
+            state:
+              form.state,
+
+            postalCode:
+              form.postalCode,
+
+            country:
+              "India",
+          },
+
+          notes:
+            deliveryMethod === "express"
+              ? "KRVE Express delivery"
+              : "Complimentary delivery",
+
+          items:
+            cart.map((item) => ({
+              productId:
+                item.id,
+
+              productName:
+                item.name,
+
+              productImageUrl:
+                item.imageUrl ||
+                item.image,
+
+              sku:
+                item.sku,
+
+              size:
+                item.size,
+
+              colour:
+                item.colours?.[0] ??
+                null,
+
+              unitPrice:
+                item.price,
+
+              quantity:
+                item.quantity,
+
+              lineTotal:
+                item.price *
+                item.quantity,
+            })),
+
+          payment: {
+            provider:
+              "razorpay",
+
+            providerOrderId:
+              verificationData.orderId ||
+              paymentResponse.razorpay_order_id,
+
+            providerPaymentId:
+              verificationData.paymentId ||
+              paymentResponse.razorpay_payment_id,
+
+            providerSignature:
+              paymentResponse.razorpay_signature,
+
+            amount:
+              total,
+
+            currency:
+              "INR",
+
+            status:
+              "paid",
+
+            rawResponse:
+              paymentResponse,
+          },
+        }),
+      },
+    );
+
+    const data =
+      (await response.json()) as SaveOrderResponse;
+
+    if (
+      !response.ok ||
+      !data.success
+    ) {
+      throw new Error(
+        data.message ||
+          "Payment succeeded, but order could not be saved.",
+      );
+    }
+
+    return data;
   }
 
   async function handleCheckout(
@@ -272,36 +491,47 @@ export default function CheckoutPage() {
       const razorpayLoaded =
         await loadRazorpayScript();
 
-      if (!razorpayLoaded || !window.Razorpay) {
+      if (
+        !razorpayLoaded ||
+        !window.Razorpay
+      ) {
         throw new Error(
           "Razorpay Checkout could not be loaded. Please check your internet connection and try again.",
         );
       }
 
-      const createOrderResponse = await fetch(
-        "/api/razorpay/create-order",
-        {
-          method: "POST",
+      const createOrderResponse =
+        await fetch(
+          "/api/razorpay/create-order",
+          {
+            method: "POST",
 
-          headers: {
-            "Content-Type": "application/json",
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
+
+            body: JSON.stringify({
+              amount:
+                total,
+
+              receipt:
+                `krve_${Date.now()}`,
+
+              customerName:
+                `${form.firstName} ${form.lastName}`.trim(),
+
+              customerEmail:
+                form.email,
+
+              customerPhone:
+                form.phone.replace(
+                  /\D/g,
+                  "",
+                ),
+            }),
           },
-
-          body: JSON.stringify({
-            amount: total,
-
-            receipt: `krve_${Date.now()}`,
-
-            customerName:
-              `${form.firstName} ${form.lastName}`.trim(),
-
-            customerEmail: form.email,
-
-            customerPhone:
-              form.phone.replace(/\D/g, ""),
-          }),
-        },
-      );
+        );
 
       const orderData =
         (await createOrderResponse.json()) as RazorpayOrderResponse;
@@ -318,318 +548,180 @@ export default function CheckoutPage() {
         );
       }
 
-      const razorpay = new window.Razorpay({
-        key: orderData.keyId,
+      const razorpay =
+        new window.Razorpay({
+          key:
+            orderData.keyId,
 
-        amount: orderData.order.amount,
+          amount:
+            orderData.order.amount,
 
-        currency: orderData.order.currency,
+          currency:
+            orderData.order.currency,
 
-        name: "KRVE",
-
-        description: "KRVE Fashion Order",
-
-        order_id: orderData.order.id,
-
-        prefill: {
           name:
-            `${form.firstName} ${form.lastName}`.trim(),
+            "KRVE",
 
-          email: form.email,
+          description:
+            "KRVE Fashion Order",
 
-          contact:
-            form.phone.replace(/\D/g, ""),
-        },
+          order_id:
+            orderData.order.id,
 
-        notes: {
-          address: [
-            form.address,
-            form.apartment,
-            form.city,
-            form.state,
-            form.postalCode,
-          ]
-            .filter(Boolean)
-            .join(", "),
+          prefill: {
+            name:
+              `${form.firstName} ${form.lastName}`.trim(),
 
-          delivery_method:
-            deliveryMethod,
+            email:
+              form.email,
 
-          items: String(cartCount),
-        },
-
-        theme: {
-          color: "#d6a72c",
-          backdrop_color: "#020202",
-        },
-
-        retry: {
-          enabled: true,
-          max_count: 3,
-        },
-
-        modal: {
-          escape: true,
-          confirm_close: true,
-
-          ondismiss: () => {
-            setIsPreparingPayment(false);
+            contact:
+              form.phone.replace(
+                /\D/g,
+                "",
+              ),
           },
-        },
 
-        handler: async (
-          paymentResponse: RazorpaySuccessResponse,
-        ) => {
-          try {
-            setIsPreparingPayment(true);
+          notes: {
+            address: [
+              form.address,
+              form.apartment,
+              form.city,
+              form.state,
+              form.postalCode,
+            ]
+              .filter(Boolean)
+              .join(", "),
 
-            const verificationResponse = await fetch(
-              "/api/razorpay/verify-payment",
-              {
-                method: "POST",
+            delivery_method:
+              deliveryMethod,
 
-                headers: {
-                  "Content-Type": "application/json",
-                },
+            items:
+              String(cartCount),
+          },
 
-                body: JSON.stringify({
-                  razorpay_payment_id:
+          theme: {
+            color:
+              "#d6a72c",
+
+            backdrop_color:
+              "#020202",
+          },
+
+          retry: {
+            enabled:
+              true,
+
+            max_count:
+              3,
+          },
+
+          modal: {
+            escape:
+              true,
+
+            confirm_close:
+              true,
+
+            ondismiss:
+              () => {
+                setIsPreparingPayment(
+                  false,
+                );
+              },
+          },
+
+          handler: async (
+            paymentResponse: RazorpaySuccessResponse,
+          ) => {
+            try {
+              setIsPreparingPayment(
+                true,
+              );
+
+              const verificationResponse =
+                await fetch(
+                  "/api/razorpay/verify-payment",
+                  {
+                    method:
+                      "POST",
+
+                    headers: {
+                      "Content-Type":
+                        "application/json",
+                    },
+
+                    body:
+                      JSON.stringify({
+                        razorpay_payment_id:
+                          paymentResponse.razorpay_payment_id,
+
+                        razorpay_order_id:
+                          paymentResponse.razorpay_order_id,
+
+                        razorpay_signature:
+                          paymentResponse.razorpay_signature,
+                      }),
+                  },
+                );
+
+              const verificationData =
+                (await verificationResponse.json()) as RazorpayVerificationResponse;
+
+              if (
+                !verificationResponse.ok ||
+                !verificationData.success
+              ) {
+                throw new Error(
+                  verificationData.message ||
+                    "Payment verification failed.",
+                );
+              }
+
+              const savedOrder =
+                await saveOrderAfterPayment(
+                  paymentResponse,
+                  verificationData,
+                );
+
+              clearCart();
+
+              const successParams =
+                new URLSearchParams({
+                  payment_id:
+                    verificationData.paymentId ||
                     paymentResponse.razorpay_payment_id,
 
-                  razorpay_order_id:
+                  order_id:
+                    savedOrder.order?.orderNumber ||
+                    verificationData.orderId ||
                     paymentResponse.razorpay_order_id,
+                });
 
-                  razorpay_signature:
-                    paymentResponse.razorpay_signature,
-                }),
-              },
-            );
-
-            const verificationData =
-              (await verificationResponse.json()) as RazorpayVerificationResponse;
-
-            if (
-              !verificationResponse.ok ||
-              !verificationData.success
+              window.location.href =
+                `/order-success?${successParams.toString()}`;
+            } catch (
+              verificationError
             ) {
-              throw new Error(
-                verificationData.message ||
-                  "Payment verification failed.",
+              setIsPreparingPayment(
+                false,
+              );
+
+              setFormError(
+                verificationError instanceof Error
+                  ? verificationError.message
+                  : "Payment verification failed. Please contact KRVE support.",
               );
             }
-
-            const saveOrderResponse = await fetch(
-              "/api/orders/create",
-              {
-                method: "POST",
-
-                headers: {
-                  "Content-Type": "application/json",
-                },
-
-                body: JSON.stringify({
-                  customer: {
-                    firstName: form.firstName,
-                    lastName: form.lastName,
-                    email: form.email,
-                    phone: form.phone.replace(/\D/g, ""),
-                  },
-
-                  customerEmail: form.email,
-
-                  customerPhone:
-                    form.phone.replace(/\D/g, ""),
-
-                  subtotal: cartSubtotal,
-
-                  discount: 0,
-
-                  shipping,
-
-                  tax: estimatedTax,
-
-                  total,
-
-                  currency: "INR",
-
-                  couponCode: null,
-
-                  shippingAddress: {
-                    recipientName:
-                      `${form.firstName} ${form.lastName}`.trim(),
-
-                    phone:
-                      form.phone.replace(/\D/g, ""),
-
-                    addressLine1:
-                      form.address,
-
-                    addressLine2:
-                      form.apartment,
-
-                    city:
-                      form.city,
-
-                    state:
-                      form.state,
-
-                    postalCode:
-                      form.postalCode,
-
-                    country:
-                      "India",
-                  },
-
-                  billingAddress: {
-                    recipientName:
-                      `${form.firstName} ${form.lastName}`.trim(),
-
-                    phone:
-                      form.phone.replace(/\D/g, ""),
-
-                    addressLine1:
-                      form.address,
-
-                    addressLine2:
-                      form.apartment,
-
-                    city:
-                      form.city,
-
-                    state:
-                      form.state,
-
-                    postalCode:
-                      form.postalCode,
-
-                    country:
-                      "India",
-                  },
-
-                  notes:
-                    deliveryMethod === "express"
-                      ? "KRVE Express delivery"
-                      : "Complimentary delivery",
-
-                  items: cart.map((item) => ({
-                    productId:
-                      item.id,
-
-                    productName:
-                      item.name,
-
-                    productImageUrl:
-                      item.imageUrl ||
-                      item.image ||
-                      null,
-
-                    sku:
-                      item.sku ||
-                      null,
-
-                    size:
-                      item.size ||
-                      null,
-
-                    colour:
-                      null,
-
-                    unitPrice:
-                      item.price,
-
-                    quantity:
-                      item.quantity,
-
-                    lineTotal:
-                      item.price *
-                      item.quantity,
-                  })),
-
-                  payment: {
-                    provider:
-                      "razorpay",
-
-                    providerOrderId:
-                      verificationData.orderId ||
-                      paymentResponse.razorpay_order_id,
-
-                    providerPaymentId:
-                      verificationData.paymentId ||
-                      paymentResponse.razorpay_payment_id,
-
-                    providerSignature:
-                      paymentResponse.razorpay_signature,
-
-                    amount:
-                      total,
-
-                    currency:
-                      "INR",
-
-                    status:
-                      "paid",
-
-                    rawResponse:
-                      paymentResponse,
-                  },
-                }),
-              },
-            );
-
-            const saveOrderData =
-              (await saveOrderResponse.json()) as {
-                success?: boolean;
-
-                message?: string;
-
-                order?: {
-                  id?: string;
-
-                  orderNumber?: string;
-                } | null;
-              };
-
-            if (
-              !saveOrderResponse.ok ||
-              !saveOrderData.success
-            ) {
-              throw new Error(
-                saveOrderData.message ||
-                  "Payment succeeded, but the order could not be saved. Please contact KRVE support.",
-              );
-            }
-
-            clearCart();
-
-            const successParams = new URLSearchParams({
-              payment_id:
-                verificationData.paymentId ||
-                paymentResponse.razorpay_payment_id,
-
-              order_id:
-                saveOrderData.order?.orderNumber ||
-                verificationData.orderId ||
-                paymentResponse.razorpay_order_id,
-            });
-
-            window.location.href =
-              `/order-success?${successParams.toString()}`;
-          } catch (verificationError) {
-            setIsPreparingPayment(false);
-
-            setFormError(
-              verificationError instanceof Error
-                ? verificationError.message
-                : "Payment verification failed. Please contact KRVE support.",
-            );
-          }
-        },
-      });
+          },
+        });
 
       razorpay.on(
         "payment.failed",
         (response) => {
-          setIsPreparingPayment(false);
+          setIsPreparingPayment(
+            false,
+          );
 
           const description =
             response.error?.description;
@@ -652,744 +744,533 @@ export default function CheckoutPage() {
       );
     }
   }
-    if (!hydrated) {
-    return (
-      <main className={styles.page}>
-        <section className={styles.loadingState}>
-          <div className={styles.loadingMark}>
-            KRVE
-          </div>
 
-          <p>
-            Preparing your checkout...
-          </p>
-        </section>
+  if (!hydrated) {
+    return (
+      <main className={styles.loadingPage}>
+        <div>
+          Preparing secure checkout...
+        </div>
+      </main>
+    );
+  }
+
+  if (cart.length === 0) {
+    return (
+      <main className={styles.emptyPage}>
+        <div className={styles.emptyCard}>
+          <span>K</span>
+
+          <p>YOUR BAG IS EMPTY</p>
+
+          <h1>
+            Add something exceptional first.
+          </h1>
+
+          <Link href="/collections">
+            EXPLORE COLLECTIONS →
+          </Link>
+        </div>
       </main>
     );
   }
 
   return (
-    <main className={styles.page}>
-      <div className={styles.shell}>
-        <header className={styles.header}>
-          <Link
-            href="/"
-            className={styles.brand}
-          >
-            KRVE
-          </Link>
-
-          <div className={styles.headerRight}>
-            <div className={styles.secureBadge}>
-              <LockIcon />
-
-              <span>
-                Secure Checkout
-              </span>
-            </div>
-
+    <main className={styles.checkoutPage}>
+      <div className={styles.checkoutShell}>
+        <section className={styles.formSection}>
+          <div className={styles.pageHeader}>
             <Link
               href="/cart"
               className={styles.backLink}
             >
               <ArrowLeftIcon />
-
-              <span>
-                Back to Bag
-              </span>
+              BACK TO BAG
             </Link>
+
+            <p>SECURE CHECKOUT</p>
+
+            <h1>
+              Complete your order.
+            </h1>
+
+            <span>
+              Enter your delivery details and proceed
+              to secure Razorpay payment.
+            </span>
           </div>
-        </header>
 
-        <section className={styles.checkoutGrid}>
-          <div className={styles.checkoutMain}>
-            <div className={styles.checkoutIntro}>
-              <span className={styles.eyebrow}>
-                KRVE PRIVATE CHECKOUT
-              </span>
+          <form onSubmit={handleCheckout}>
+            <section className={styles.formBlock}>
+              <div className={styles.blockHeading}>
+                <span>01</span>
 
-              <h1>
-                Complete your order
-              </h1>
+                <div>
+                  <h2>
+                    Contact Information
+                  </h2>
 
-              <p>
-                Enter your delivery details and
-                complete your payment securely.
-              </p>
-            </div>
-
-            {formError ? (
-              <div
-                className={styles.errorBox}
-                role="alert"
-              >
-                {formError}
+                  <p>
+                    Your order confirmation will be sent here.
+                  </p>
+                </div>
               </div>
-            ) : null}
 
-            <form
-              className={styles.form}
-              onSubmit={handleCheckout}
-            >
-              <section className={styles.section}>
-                <div className={styles.sectionHeading}>
-                  <span className={styles.sectionNumber}>
-                    01
-                  </span>
-
-                  <div>
-                    <h2>
-                      Contact
-                    </h2>
-
-                    <p>
-                      Your order confirmation will
-                      be sent here.
-                    </p>
-                  </div>
-                </div>
-
-                <div className={styles.fieldGrid}>
-                  <label className={styles.fieldFull}>
-                    <span>
-                      Email address
-                    </span>
-
-                    <input
-                      type="email"
-                      autoComplete="email"
-                      placeholder="you@example.com"
-                      value={form.email}
-                      onChange={(event) =>
-                        updateField(
-                          "email",
-                          event.target.value,
-                        )
-                      }
-                      required
-                    />
-                  </label>
-
-                  <label className={styles.fieldFull}>
-                    <span>
-                      Mobile number
-                    </span>
-
-                    <div className={styles.phoneInput}>
-                      <div
-                        className={
-                          styles.countryCode
-                        }
-                      >
-                        +91
-                      </div>
-
-                      <input
-                        type="tel"
-                        inputMode="numeric"
-                        autoComplete="tel"
-                        placeholder="10-digit mobile number"
-                        value={form.phone}
-                        maxLength={15}
-                        onChange={(event) =>
-                          updateField(
-                            "phone",
-                            event.target.value,
-                          )
-                        }
-                        required
-                      />
-                    </div>
-                  </label>
-                </div>
-              </section>
-
-              <section className={styles.section}>
-                <div className={styles.sectionHeading}>
-                  <span className={styles.sectionNumber}>
-                    02
-                  </span>
-
-                  <div>
-                    <h2>
-                      Delivery Details
-                    </h2>
-
-                    <p>
-                      Where should we deliver your
-                      KRVE selection?
-                    </p>
-                  </div>
-                </div>
-
-                <div className={styles.fieldGrid}>
-                  <label className={styles.field}>
-                    <span>
-                      First name
-                    </span>
-
-                    <input
-                      type="text"
-                      autoComplete="given-name"
-                      value={form.firstName}
-                      onChange={(event) =>
-                        updateField(
-                          "firstName",
-                          event.target.value,
-                        )
-                      }
-                      required
-                    />
-                  </label>
-
-                  <label className={styles.field}>
-                    <span>
-                      Last name
-                    </span>
-
-                    <input
-                      type="text"
-                      autoComplete="family-name"
-                      value={form.lastName}
-                      onChange={(event) =>
-                        updateField(
-                          "lastName",
-                          event.target.value,
-                        )
-                      }
-                      required
-                    />
-                  </label>
-
-                  <label className={styles.fieldFull}>
-                    <span>
-                      Address
-                    </span>
-
-                    <input
-                      type="text"
-                      autoComplete="address-line1"
-                      placeholder="House / Flat / Building / Street"
-                      value={form.address}
-                      onChange={(event) =>
-                        updateField(
-                          "address",
-                          event.target.value,
-                        )
-                      }
-                      required
-                    />
-                  </label>
-
-                  <label className={styles.fieldFull}>
-                    <span>
-                      Apartment, suite, etc.
-                    </span>
-
-                    <input
-                      type="text"
-                      autoComplete="address-line2"
-                      placeholder="Optional"
-                      value={form.apartment}
-                      onChange={(event) =>
-                        updateField(
-                          "apartment",
-                          event.target.value,
-                        )
-                      }
-                    />
-                  </label>
-
-                  <label className={styles.field}>
-                    <span>
-                      City
-                    </span>
-
-                    <input
-                      type="text"
-                      autoComplete="address-level2"
-                      value={form.city}
-                      onChange={(event) =>
-                        updateField(
-                          "city",
-                          event.target.value,
-                        )
-                      }
-                      required
-                    />
-                  </label>
-
-                  <label className={styles.field}>
-                    <span>
-                      State
-                    </span>
-
-                    <input
-                      type="text"
-                      autoComplete="address-level1"
-                      value={form.state}
-                      onChange={(event) =>
-                        updateField(
-                          "state",
-                          event.target.value,
-                        )
-                      }
-                      required
-                    />
-                  </label>
-
-                  <label className={styles.field}>
-                    <span>
-                      Postal code
-                    </span>
-
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      autoComplete="postal-code"
-                      maxLength={6}
-                      value={form.postalCode}
-                      onChange={(event) =>
-                        updateField(
-                          "postalCode",
-                          event.target.value.replace(
-                            /\D/g,
-                            "",
-                          ),
-                        )
-                      }
-                      required
-                    />
-                  </label>
-
-                  <label className={styles.field}>
-                    <span>
-                      Country
-                    </span>
-
-                    <input
-                      type="text"
-                      value="India"
-                      readOnly
-                    />
-                  </label>
-                </div>
-              </section>
-
-              <section className={styles.section}>
-                <div className={styles.sectionHeading}>
-                  <span className={styles.sectionNumber}>
-                    03
-                  </span>
-
-                  <div>
-                    <h2>
-                      Delivery Method
-                    </h2>
-
-                    <p>
-                      Choose how you would like your
-                      order delivered.
-                    </p>
-                  </div>
-                </div>
-
-                <div className={styles.deliveryList}>
-                  <button
-                    type="button"
-                    className={`${styles.deliveryOption} ${
-                      deliveryMethod === "standard"
-                        ? styles.deliveryOptionActive
-                        : ""
-                    }`}
-                    onClick={() =>
-                      setDeliveryMethod("standard")
-                    }
-                  >
-                    <div
-                      className={
-                        styles.deliveryRadio
-                      }
-                    >
-                      {deliveryMethod ===
-                      "standard" ? (
-                        <span />
-                      ) : null}
-                    </div>
-
-                    <div
-                      className={
-                        styles.deliveryContent
-                      }
-                    >
-                      <div
-                        className={
-                          styles.deliveryTitle
-                        }
-                      >
-                        Complimentary Delivery
-                      </div>
-
-                      <div
-                        className={
-                          styles.deliveryDescription
-                        }
-                      >
-                        Premium KRVE delivery at no
-                        additional charge.
-                      </div>
-                    </div>
-
-                    <div
-                      className={
-                        styles.deliveryPrice
-                      }
-                    >
-                      Complimentary
-                    </div>
-                  </button>
-
-                  <button
-                    type="button"
-                    className={`${styles.deliveryOption} ${
-                      deliveryMethod === "express"
-                        ? styles.deliveryOptionActive
-                        : ""
-                    }`}
-                    onClick={() =>
-                      setDeliveryMethod("express")
-                    }
-                  >
-                    <div
-                      className={
-                        styles.deliveryRadio
-                      }
-                    >
-                      {deliveryMethod ===
-                      "express" ? (
-                        <span />
-                      ) : null}
-                    </div>
-
-                    <div
-                      className={
-                        styles.deliveryContent
-                      }
-                    >
-                      <div
-                        className={
-                          styles.deliveryTitle
-                        }
-                      >
-                        KRVE Express
-                      </div>
-
-                      <div
-                        className={
-                          styles.deliveryDescription
-                        }
-                      >
-                        Priority processing and
-                        expedited delivery.
-                      </div>
-                    </div>
-
-                    <div
-                      className={
-                        styles.deliveryPrice
-                      }
-                    >
-                      {money.format(499)}
-                    </div>
-                  </button>
-                </div>
-              </section>
-
-              <section className={styles.paymentSection}>
-                <label className={styles.termsRow}>
-                  <input
-                    type="checkbox"
-                    checked={acceptedTerms}
-                    onChange={(event) => {
-                      setAcceptedTerms(
-                        event.target.checked,
-                      );
-
-                      if (formError) {
-                        setFormError("");
-                      }
-                    }}
-                  />
-
-                  <span className={styles.customCheck}>
-                    {acceptedTerms ? (
-                      <CheckIcon />
-                    ) : null}
-                  </span>
-
+              <div className={styles.fieldGrid}>
+                <label className={styles.fullField}>
                   <span>
-                    I agree to the KRVE{" "}
-                    <Link href="/terms">
-                      Terms & Conditions
-                    </Link>{" "}
-                    and{" "}
-                    <Link href="/privacy">
-                      Privacy Policy
-                    </Link>
-                    .
+                    EMAIL ADDRESS *
                   </span>
+
+                  <input
+                    type="email"
+                    value={form.email}
+                    onChange={(event) =>
+                      updateField(
+                        "email",
+                        event.target.value,
+                      )
+                    }
+                    placeholder="you@example.com"
+                    autoComplete="email"
+                  />
                 </label>
 
-                <button
-                  type="submit"
-                  className={styles.payButton}
-                  disabled={
-                    isPreparingPayment ||
-                    cart.length === 0
+                <label className={styles.fullField}>
+                  <span>
+                    MOBILE NUMBER *
+                  </span>
+
+                  <div className={styles.phoneField}>
+                    <strong>+91</strong>
+
+                    <input
+                      type="tel"
+                      value={form.phone}
+                      onChange={(event) =>
+                        updateField(
+                          "phone",
+                          event.target.value,
+                        )
+                      }
+                      placeholder="98765 43210"
+                      autoComplete="tel"
+                    />
+                  </div>
+                </label>
+              </div>
+            </section>
+
+            <section className={styles.formBlock}>
+              <div className={styles.blockHeading}>
+                <span>02</span>
+
+                <div>
+                  <h2>
+                    Delivery Address
+                  </h2>
+
+                  <p>
+                    Where should we deliver your KRVE order?
+                  </p>
+                </div>
+              </div>
+
+              <div className={styles.fieldGrid}>
+                <label>
+                  <span>
+                    FIRST NAME *
+                  </span>
+
+                  <input
+                    type="text"
+                    value={form.firstName}
+                    onChange={(event) =>
+                      updateField(
+                        "firstName",
+                        event.target.value,
+                      )
+                    }
+                    placeholder="First name"
+                    autoComplete="given-name"
+                  />
+                </label>
+
+                <label>
+                  <span>
+                    LAST NAME *
+                  </span>
+
+                  <input
+                    type="text"
+                    value={form.lastName}
+                    onChange={(event) =>
+                      updateField(
+                        "lastName",
+                        event.target.value,
+                      )
+                    }
+                    placeholder="Last name"
+                    autoComplete="family-name"
+                  />
+                </label>
+
+                <label className={styles.fullField}>
+                  <span>
+                    ADDRESS *
+                  </span>
+
+                  <input
+                    type="text"
+                    value={form.address}
+                    onChange={(event) =>
+                      updateField(
+                        "address",
+                        event.target.value,
+                      )
+                    }
+                    placeholder="House number and street"
+                    autoComplete="street-address"
+                  />
+                </label>
+
+                <label className={styles.fullField}>
+                  <span>
+                    APARTMENT, SUITE OR LANDMARK
+                  </span>
+
+                  <input
+                    type="text"
+                    value={form.apartment}
+                    onChange={(event) =>
+                      updateField(
+                        "apartment",
+                        event.target.value,
+                      )
+                    }
+                    placeholder="Optional"
+                  />
+                </label>
+
+                <label>
+                  <span>CITY *</span>
+
+                  <input
+                    type="text"
+                    value={form.city}
+                    onChange={(event) =>
+                      updateField(
+                        "city",
+                        event.target.value,
+                      )
+                    }
+                    placeholder="City"
+                    autoComplete="address-level2"
+                  />
+                </label>
+
+                <label>
+                  <span>STATE *</span>
+
+                  <input
+                    type="text"
+                    value={form.state}
+                    onChange={(event) =>
+                      updateField(
+                        "state",
+                        event.target.value,
+                      )
+                    }
+                    placeholder="State"
+                    autoComplete="address-level1"
+                  />
+                </label>
+
+                <label>
+                  <span>
+                    POSTAL CODE *
+                  </span>
+
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={form.postalCode}
+                    onChange={(event) =>
+                      updateField(
+                        "postalCode",
+                        event.target.value,
+                      )
+                    }
+                    placeholder="221005"
+                    autoComplete="postal-code"
+                  />
+                </label>
+
+                <label>
+                  <span>COUNTRY</span>
+
+                  <input
+                    type="text"
+                    value="India"
+                    disabled
+                  />
+                </label>
+              </div>
+            </section>
+
+            <section className={styles.formBlock}>
+              <div className={styles.blockHeading}>
+                <span>03</span>
+
+                <div>
+                  <h2>
+                    Delivery Method
+                  </h2>
+
+                  <p>
+                    Choose your preferred delivery experience.
+                  </p>
+                </div>
+              </div>
+
+              <div className={styles.deliveryOptions}>
+                <label
+                  className={
+                    deliveryMethod === "standard"
+                      ? styles.activeDelivery
+                      : ""
                   }
                 >
-                  <LockIcon />
-
-                  <span>
-                    {isPreparingPayment
-                      ? "PREPARING SECURE PAYMENT..."
-                      : `PAY SECURELY ${money.format(
-                          total,
-                        )}`}
-                  </span>
-                </button>
-
-                <div className={styles.securityRow}>
-                  <ShieldIcon />
+                  <input
+                    type="radio"
+                    name="delivery"
+                    checked={
+                      deliveryMethod === "standard"
+                    }
+                    onChange={() =>
+                      setDeliveryMethod("standard")
+                    }
+                  />
 
                   <div>
                     <strong>
-                      Secure payment
+                      Complimentary Delivery
                     </strong>
 
                     <span>
-                      Your payment is processed
-                      securely through Razorpay.
+                      Estimated 4–7 business days
                     </span>
                   </div>
-                </div>
-              </section>
-            </form>
-          </div>
-                    <aside className={styles.summary}>
-            <div className={styles.summaryHeader}>
-              <span className={styles.eyebrow}>
-                YOUR SELECTIONS
+
+                  <b>FREE</b>
+                </label>
+
+                <label
+                  className={
+                    deliveryMethod === "express"
+                      ? styles.activeDelivery
+                      : ""
+                  }
+                >
+                  <input
+                    type="radio"
+                    name="delivery"
+                    checked={
+                      deliveryMethod === "express"
+                    }
+                    onChange={() =>
+                      setDeliveryMethod("express")
+                    }
+                  />
+
+                  <div>
+                    <strong>
+                      KRVE Express
+                    </strong>
+
+                    <span>
+                      Estimated 1–3 business days
+                    </span>
+                  </div>
+
+                  <b>
+                    {money.format(499)}
+                  </b>
+                </label>
+              </div>
+            </section>
+
+            <label className={styles.terms}>
+              <input
+                type="checkbox"
+                checked={acceptedTerms}
+                onChange={(event) =>
+                  setAcceptedTerms(
+                    event.target.checked,
+                  )
+                }
+              />
+
+              <span className={styles.customCheckbox}>
+                {acceptedTerms && <CheckIcon />}
               </span>
 
-              <h2>
-                Order Summary
-              </h2>
+              <p>
+                I agree to the KRVE Terms of Service,
+                Privacy Policy and Return Policy.
+              </p>
+            </label>
+
+            {formError && (
+              <p className={styles.formError}>
+                {formError}
+              </p>
+            )}
+
+            <button
+              type="submit"
+              className={styles.payButton}
+              disabled={isPreparingPayment}
+            >
+              <LockIcon />
+
+              <span>
+                {isPreparingPayment
+                  ? "PROCESSING..."
+                  : `PAY SECURELY ${money.format(total)}`}
+              </span>
+
+              <b>→</b>
+            </button>
+
+            <div className={styles.paymentNotice}>
+              <ShieldIcon />
+
+              <div>
+                <strong>
+                  SECURE RAZORPAY PAYMENT
+                </strong>
+
+                <p>
+                  UPI, cards, net banking and supported payment methods.
+                </p>
+              </div>
+            </div>
+          </form>
+        </section>
+
+        <aside className={styles.summarySection}>
+          <div className={styles.summaryCard}>
+            <div className={styles.summaryHeader}>
+              <div>
+                <p>ORDER SUMMARY</p>
+                <h2>Your selections</h2>
+              </div>
+
+              <span>
+                {cartCount}{" "}
+                {cartCount === 1
+                  ? "ITEM"
+                  : "ITEMS"}
+              </span>
             </div>
 
-            {cart.length === 0 ? (
-              <div className={styles.emptyCart}>
-                <p>
-                  Your shopping bag is empty.
-                </p>
-
-                <Link
-                  href="/collections"
-                  className={styles.emptyCartLink}
+            <div className={styles.summaryItems}>
+              {cart.map((item) => (
+                <article
+                  key={item.id}
+                  className={styles.summaryItem}
                 >
-                  Continue Shopping
-                </Link>
-              </div>
-            ) : (
-              <>
-                <div className={styles.summaryItems}>
-                  {cart.map((item) => (
-                    <div
-                      key={`${item.id}-${item.size}`}
-                      className={styles.summaryItem}
-                    >
-                      <div
-                        className={
-                          styles.summaryImageWrap
-                        }
-                      >
-                        {item.imageUrl ||
-                        item.image ? (
-                          <Image
-                            src={
-                              item.imageUrl ||
-                              item.image ||
-                              "/placeholder.png"
-                            }
-                            alt={item.name}
-                            fill
-                            sizes="96px"
-                            className={
-                              styles.summaryImage
-                            }
-                          />
-                        ) : (
-                          <div
-                            className={
-                              styles.summaryImagePlaceholder
-                            }
-                          >
-                            KRVE
-                          </div>
-                        )}
+                  <div className={styles.summaryImage}>
+                    <Image
+                      src={item.image}
+                      alt={item.name}
+                      fill
+                      sizes="90px"
+                    />
 
-                        {item.quantity > 1 ? (
-                          <span
-                            className={
-                              styles.quantityBadge
-                            }
-                          >
-                            {item.quantity}
-                          </span>
-                        ) : null}
-                      </div>
-
-                      <div
-                        className={
-                          styles.summaryItemContent
-                        }
-                      >
-                        <div
-                          className={
-                            styles.summaryItemTop
-                          }
-                        >
-                          <div>
-                            <h3>
-                              {item.name}
-                            </h3>
-
-                            {item.size ? (
-                              <span
-                                className={
-                                  styles.itemMeta
-                                }
-                              >
-                                Size: {item.size}
-                              </span>
-                            ) : null}
-                          </div>
-
-                          <strong>
-                            {money.format(
-                              item.price *
-                                item.quantity,
-                            )}
-                          </strong>
-                        </div>
-
-                        <span
-                          className={
-                            styles.itemQuantity
-                          }
-                        >
-                          Qty: {item.quantity}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className={styles.priceBreakdown}>
-                  <div className={styles.priceRow}>
                     <span>
-                      Subtotal
+                      {item.quantity}
                     </span>
-
-                    <strong>
-                      {money.format(cartSubtotal)}
-                    </strong>
                   </div>
 
-                  <div className={styles.priceRow}>
-                    <span>
-                      Delivery
-                    </span>
+                  <div className={styles.summaryDetails}>
+                    <h3>{item.name}</h3>
 
-                    <strong>
-                      {shipping === 0
-                        ? "Complimentary"
-                        : money.format(shipping)}
-                    </strong>
-                  </div>
-
-                  <div className={styles.priceRow}>
-                    <span>
-                      Estimated Tax
-                    </span>
+                    <p>
+                      Size: {item.size}
+                    </p>
 
                     <strong>
                       {money.format(
-                        estimatedTax,
+                        item.price *
+                          item.quantity,
                       )}
                     </strong>
                   </div>
+                </article>
+              ))}
+            </div>
 
-                  <div
-                    className={
-                      styles.totalDivider
-                    }
-                  />
+            <div className={styles.priceSummary}>
+              <div>
+                <span>Subtotal</span>
 
-                  <div
-                    className={`${styles.priceRow} ${styles.totalRow}`}
-                  >
-                    <span>
-                      TOTAL
-                    </span>
+                <strong>
+                  {money.format(
+                    cartSubtotal,
+                  )}
+                </strong>
+              </div>
 
-                    <strong>
-                      {money.format(total)}
-                    </strong>
-                  </div>
-                </div>
+              <div>
+                <span>Delivery</span>
 
-                <div className={styles.summaryFooter}>
-                  <div>
-                    <LockIcon />
+                <strong
+                  className={
+                    shipping === 0
+                      ? styles.goldText
+                      : ""
+                  }
+                >
+                  {shipping === 0
+                    ? "Complimentary"
+                    : money.format(
+                        shipping,
+                      )}
+                </strong>
+              </div>
 
-                    <span>
-                      Secure payment via Razorpay
-                    </span>
-                  </div>
+              <div>
+                <span>
+                  Estimated Tax
+                </span>
 
-                  <div>
-                    <ShieldIcon />
+                <strong>
+                  {money.format(
+                    estimatedTax,
+                  )}
+                </strong>
+              </div>
+            </div>
 
-                    <span>
-                      KRVE protected checkout
-                    </span>
-                  </div>
-                </div>
-              </>
-            )}
-          </aside>
-        </section>
+            <div className={styles.grandTotal}>
+              <span>TOTAL</span>
 
-        <footer className={styles.footer}>
-          <div>
-            <span>
-              KRVE
-            </span>
+              <strong>
+                {money.format(total)}
+              </strong>
+            </div>
 
-            <span className={styles.footerDot}>
-              •
-            </span>
+            <div className={styles.summarySecurity}>
+              <LockIcon />
 
-            <span>
-              Move into style.
-            </span>
+              <p>
+                Your payment and personal information are protected.
+              </p>
+            </div>
           </div>
-
-          <div>
-            © {new Date().getFullYear()} KRVE. All rights reserved.
-          </div>
-        </footer>
+        </aside>
       </div>
     </main>
   );
