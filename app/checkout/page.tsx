@@ -401,39 +401,6 @@ export default function CheckoutPage() {
 
                   razorpay_signature:
                     paymentResponse.razorpay_signature,
-
-                  order: {
-                    customer: {
-                      email: form.email,
-                      phone: form.phone.replace(/\D/g, ""),
-                      firstName: form.firstName,
-                      lastName: form.lastName,
-                    },
-                    shippingAddress: {
-                      address: form.address,
-                      apartment: form.apartment,
-                      city: form.city,
-                      state: form.state,
-                      postalCode: form.postalCode,
-                      country: "India",
-                    },
-                    items: cart.map((item) => ({
-                      productId: item.id,
-                      name: item.name,
-                      imageUrl: item.imageUrl || item.image,
-                      sku: item.sku,
-                      size: item.size,
-                      colour: item.colours?.[0],
-                      price: item.price,
-                      quantity: item.quantity,
-                    })),
-                    subtotal: cartSubtotal,
-                    discount: 0,
-                    shipping,
-                    tax: estimatedTax,
-                    total,
-                    currency: "INR",
-                  },
                 }),
               },
             );
@@ -451,6 +418,187 @@ export default function CheckoutPage() {
               );
             }
 
+            const saveOrderResponse = await fetch(
+              "/api/orders/create",
+              {
+                method: "POST",
+
+                headers: {
+                  "Content-Type": "application/json",
+                },
+
+                body: JSON.stringify({
+                  customer: {
+                    firstName: form.firstName,
+                    lastName: form.lastName,
+                    email: form.email,
+                    phone: form.phone.replace(/\D/g, ""),
+                  },
+
+                  customerEmail: form.email,
+
+                  customerPhone:
+                    form.phone.replace(/\D/g, ""),
+
+                  subtotal: cartSubtotal,
+
+                  discount: 0,
+
+                  shipping,
+
+                  tax: estimatedTax,
+
+                  total,
+
+                  currency: "INR",
+
+                  couponCode: null,
+
+                  shippingAddress: {
+                    recipientName:
+                      `${form.firstName} ${form.lastName}`.trim(),
+
+                    phone:
+                      form.phone.replace(/\D/g, ""),
+
+                    addressLine1:
+                      form.address,
+
+                    addressLine2:
+                      form.apartment,
+
+                    city:
+                      form.city,
+
+                    state:
+                      form.state,
+
+                    postalCode:
+                      form.postalCode,
+
+                    country:
+                      "India",
+                  },
+
+                  billingAddress: {
+                    recipientName:
+                      `${form.firstName} ${form.lastName}`.trim(),
+
+                    phone:
+                      form.phone.replace(/\D/g, ""),
+
+                    addressLine1:
+                      form.address,
+
+                    addressLine2:
+                      form.apartment,
+
+                    city:
+                      form.city,
+
+                    state:
+                      form.state,
+
+                    postalCode:
+                      form.postalCode,
+
+                    country:
+                      "India",
+                  },
+
+                  notes:
+                    deliveryMethod === "express"
+                      ? "KRVE Express delivery"
+                      : "Complimentary delivery",
+
+                  items: cart.map((item) => ({
+                    productId:
+                      item.id,
+
+                    productName:
+                      item.name,
+
+                    productImageUrl:
+                      item.imageUrl ||
+                      item.image ||
+                      null,
+
+                    sku:
+                      item.sku ||
+                      null,
+
+                    size:
+                      item.size ||
+                      null,
+
+                    colour:
+                      null,
+
+                    unitPrice:
+                      item.price,
+
+                    quantity:
+                      item.quantity,
+
+                    lineTotal:
+                      item.price *
+                      item.quantity,
+                  })),
+
+                  payment: {
+                    provider:
+                      "razorpay",
+
+                    providerOrderId:
+                      verificationData.orderId ||
+                      paymentResponse.razorpay_order_id,
+
+                    providerPaymentId:
+                      verificationData.paymentId ||
+                      paymentResponse.razorpay_payment_id,
+
+                    providerSignature:
+                      paymentResponse.razorpay_signature,
+
+                    amount:
+                      total,
+
+                    currency:
+                      "INR",
+
+                    status:
+                      "paid",
+
+                    rawResponse:
+                      paymentResponse,
+                  },
+                }),
+              },
+            );
+
+            const saveOrderData =
+              (await saveOrderResponse.json()) as {
+                success?: boolean;
+
+                message?: string;
+
+                order?: {
+                  id?: string;
+
+                  orderNumber?: string;
+                } | null;
+              };
+
+            if (
+              !saveOrderResponse.ok ||
+              !saveOrderData.success
+            ) {
+              throw new Error(
+                saveOrderData.message ||
+                  "Payment succeeded, but the order could not be saved. Please contact KRVE support.",
+              );
+            }
+
             clearCart();
 
             const successParams = new URLSearchParams({
@@ -459,6 +607,7 @@ export default function CheckoutPage() {
                 paymentResponse.razorpay_payment_id,
 
               order_id:
+                saveOrderData.order?.orderNumber ||
                 verificationData.orderId ||
                 paymentResponse.razorpay_order_id,
             });
@@ -503,527 +652,4 @@ export default function CheckoutPage() {
       );
     }
   }
-
-  if (!hydrated) {
-    return (
-      <main className={styles.loadingPage}>
-        <div>
-          Preparing secure checkout...
-        </div>
-      </main>
-    );
-  }
-
-  if (cart.length === 0) {
-    return (
-      <main className={styles.emptyPage}>
-        <div className={styles.emptyCard}>
-          <span>K</span>
-
-          <p>YOUR BAG IS EMPTY</p>
-
-          <h1>
-            Add something exceptional first.
-          </h1>
-
-          <Link href="/collections">
-            EXPLORE COLLECTIONS →
-          </Link>
-        </div>
-      </main>
-    );
-  }
-
-  return (
-    <main className={styles.checkoutPage}>
-      <div className={styles.checkoutShell}>
-        <section className={styles.formSection}>
-          <div className={styles.pageHeader}>
-            <Link
-              href="/cart"
-              className={styles.backLink}
-            >
-              <ArrowLeftIcon />
-              BACK TO BAG
-            </Link>
-
-            <p>SECURE CHECKOUT</p>
-
-            <h1>
-              Complete your order.
-            </h1>
-
-            <span>
-              Enter your delivery details and proceed
-              to secure Razorpay payment.
-            </span>
-          </div>
-
-          <form onSubmit={handleCheckout}>
-            <section className={styles.formBlock}>
-              <div className={styles.blockHeading}>
-                <span>01</span>
-
-                <div>
-                  <h2>
-                    Contact Information
-                  </h2>
-
-                  <p>
-                    Your order confirmation will be sent here.
-                  </p>
-                </div>
-              </div>
-
-              <div className={styles.fieldGrid}>
-                <label className={styles.fullField}>
-                  <span>
-                    EMAIL ADDRESS *
-                  </span>
-
-                  <input
-                    type="email"
-                    value={form.email}
-                    onChange={(event) =>
-                      updateField(
-                        "email",
-                        event.target.value,
-                      )
-                    }
-                    placeholder="you@example.com"
-                    autoComplete="email"
-                  />
-                </label>
-
-                <label className={styles.fullField}>
-                  <span>
-                    MOBILE NUMBER *
-                  </span>
-
-                  <div className={styles.phoneField}>
-                    <strong>+91</strong>
-
-                    <input
-                      type="tel"
-                      value={form.phone}
-                      onChange={(event) =>
-                        updateField(
-                          "phone",
-                          event.target.value,
-                        )
-                      }
-                      placeholder="98765 43210"
-                      autoComplete="tel"
-                    />
-                  </div>
-                </label>
-              </div>
-            </section>
-
-            <section className={styles.formBlock}>
-              <div className={styles.blockHeading}>
-                <span>02</span>
-
-                <div>
-                  <h2>
-                    Delivery Address
-                  </h2>
-
-                  <p>
-                    Where should we deliver your KRVE order?
-                  </p>
-                </div>
-              </div>
-
-              <div className={styles.fieldGrid}>
-                <label>
-                  <span>
-                    FIRST NAME *
-                  </span>
-
-                  <input
-                    type="text"
-                    value={form.firstName}
-                    onChange={(event) =>
-                      updateField(
-                        "firstName",
-                        event.target.value,
-                      )
-                    }
-                    placeholder="First name"
-                    autoComplete="given-name"
-                  />
-                </label>
-
-                <label>
-                  <span>
-                    LAST NAME *
-                  </span>
-
-                  <input
-                    type="text"
-                    value={form.lastName}
-                    onChange={(event) =>
-                      updateField(
-                        "lastName",
-                        event.target.value,
-                      )
-                    }
-                    placeholder="Last name"
-                    autoComplete="family-name"
-                  />
-                </label>
-
-                <label className={styles.fullField}>
-                  <span>
-                    ADDRESS *
-                  </span>
-
-                  <input
-                    type="text"
-                    value={form.address}
-                    onChange={(event) =>
-                      updateField(
-                        "address",
-                        event.target.value,
-                      )
-                    }
-                    placeholder="House number and street"
-                    autoComplete="street-address"
-                  />
-                </label>
-
-                <label className={styles.fullField}>
-                  <span>
-                    APARTMENT, SUITE OR LANDMARK
-                  </span>
-
-                  <input
-                    type="text"
-                    value={form.apartment}
-                    onChange={(event) =>
-                      updateField(
-                        "apartment",
-                        event.target.value,
-                      )
-                    }
-                    placeholder="Optional"
-                  />
-                </label>
-
-                <label>
-                  <span>CITY *</span>
-
-                  <input
-                    type="text"
-                    value={form.city}
-                    onChange={(event) =>
-                      updateField(
-                        "city",
-                        event.target.value,
-                      )
-                    }
-                    placeholder="City"
-                    autoComplete="address-level2"
-                  />
-                </label>
-
-                <label>
-                  <span>STATE *</span>
-
-                  <input
-                    type="text"
-                    value={form.state}
-                    onChange={(event) =>
-                      updateField(
-                        "state",
-                        event.target.value,
-                      )
-                    }
-                    placeholder="State"
-                    autoComplete="address-level1"
-                  />
-                </label>
-
-                <label>
-                  <span>
-                    POSTAL CODE *
-                  </span>
-
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    value={form.postalCode}
-                    onChange={(event) =>
-                      updateField(
-                        "postalCode",
-                        event.target.value,
-                      )
-                    }
-                    placeholder="221005"
-                    autoComplete="postal-code"
-                  />
-                </label>
-
-                <label>
-                  <span>COUNTRY</span>
-
-                  <input
-                    type="text"
-                    value="India"
-                    disabled
-                  />
-                </label>
-              </div>
-            </section>
-
-            <section className={styles.formBlock}>
-              <div className={styles.blockHeading}>
-                <span>03</span>
-
-                <div>
-                  <h2>
-                    Delivery Method
-                  </h2>
-
-                  <p>
-                    Choose your preferred delivery experience.
-                  </p>
-                </div>
-              </div>
-
-              <div className={styles.deliveryOptions}>
-                <label
-                  className={
-                    deliveryMethod === "standard"
-                      ? styles.activeDelivery
-                      : ""
-                  }
-                >
-                  <input
-                    type="radio"
-                    name="delivery"
-                    checked={
-                      deliveryMethod === "standard"
-                    }
-                    onChange={() =>
-                      setDeliveryMethod("standard")
-                    }
-                  />
-
-                  <div>
-                    <strong>
-                      Complimentary Delivery
-                    </strong>
-
-                    <span>
-                      Estimated 4–7 business days
-                    </span>
-                  </div>
-
-                  <b>FREE</b>
-                </label>
-
-                <label
-                  className={
-                    deliveryMethod === "express"
-                      ? styles.activeDelivery
-                      : ""
-                  }
-                >
-                  <input
-                    type="radio"
-                    name="delivery"
-                    checked={
-                      deliveryMethod === "express"
-                    }
-                    onChange={() =>
-                      setDeliveryMethod("express")
-                    }
-                  />
-
-                  <div>
-                    <strong>
-                      KRVE Express
-                    </strong>
-
-                    <span>
-                      Estimated 1–3 business days
-                    </span>
-                  </div>
-
-                  <b>
-                    {money.format(499)}
-                  </b>
-                </label>
-              </div>
-            </section>
-
-            <label className={styles.terms}>
-              <input
-                type="checkbox"
-                checked={acceptedTerms}
-                onChange={(event) =>
-                  setAcceptedTerms(
-                    event.target.checked,
-                  )
-                }
-              />
-
-              <span className={styles.customCheckbox}>
-                {acceptedTerms && <CheckIcon />}
-              </span>
-
-              <p>
-                I agree to the KRVE Terms of Service,
-                Privacy Policy and Return Policy.
-              </p>
-            </label>
-
-            {formError && (
-              <p className={styles.formError}>
-                {formError}
-              </p>
-            )}
-
-            <button
-              type="submit"
-              className={styles.payButton}
-              disabled={isPreparingPayment}
-            >
-              <LockIcon />
-
-              <span>
-                {isPreparingPayment
-                  ? "OPENING RAZORPAY..."
-                  : `PAY SECURELY ${money.format(total)}`}
-              </span>
-
-              <b>→</b>
-            </button>
-
-            <div className={styles.paymentNotice}>
-              <ShieldIcon />
-
-              <div>
-                <strong>
-                  SECURE RAZORPAY PAYMENT
-                </strong>
-
-                <p>
-                  UPI, cards, net banking and supported payment methods.
-                </p>
-              </div>
-            </div>
-          </form>
-        </section>
-
-        <aside className={styles.summarySection}>
-          <div className={styles.summaryCard}>
-            <div className={styles.summaryHeader}>
-              <div>
-                <p>ORDER SUMMARY</p>
-                <h2>Your selections</h2>
-              </div>
-
-              <span>
-                {cartCount}{" "}
-                {cartCount === 1
-                  ? "ITEM"
-                  : "ITEMS"}
-              </span>
-            </div>
-
-            <div className={styles.summaryItems}>
-              {cart.map((item) => (
-                <article
-                  key={item.id}
-                  className={styles.summaryItem}
-                >
-                  <div className={styles.summaryImage}>
-                    <Image
-                      src={item.image}
-                      alt={item.name}
-                      fill
-                      sizes="90px"
-                    />
-
-                    <span>
-                      {item.quantity}
-                    </span>
-                  </div>
-
-                  <div className={styles.summaryDetails}>
-                    <h3>{item.name}</h3>
-
-                    <p>
-                      Size: {item.size}
-                    </p>
-
-                    <strong>
-                      {money.format(
-                        item.price * item.quantity,
-                      )}
-                    </strong>
-                  </div>
-                </article>
-              ))}
-            </div>
-
-            <div className={styles.priceSummary}>
-              <div>
-                <span>Subtotal</span>
-
-                <strong>
-                  {money.format(cartSubtotal)}
-                </strong>
-              </div>
-
-              <div>
-                <span>Delivery</span>
-
-                <strong
-                  className={
-                    shipping === 0
-                      ? styles.goldText
-                      : ""
-                  }
-                >
-                  {shipping === 0
-                    ? "Complimentary"
-                    : money.format(shipping)}
-                </strong>
-              </div>
-
-              <div>
-                <span>
-                  Estimated Tax
-                </span>
-
-                <strong>
-                  {money.format(estimatedTax)}
-                </strong>
-              </div>
-            </div>
-
-            <div className={styles.grandTotal}>
-              <span>TOTAL</span>
-
-              <strong>
-                {money.format(total)}
-              </strong>
-            </div>
-
-            <div className={styles.summarySecurity}>
-              <LockIcon />
-
-              <p>
-                Your payment and personal information are protected.
-              </p>
-            </div>
-          </div>
-        </aside>
-      </div>
-    </main>
-  );
-}
+  
