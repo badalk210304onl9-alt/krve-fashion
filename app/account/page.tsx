@@ -16,14 +16,28 @@ import {
 
 import {
   ArrowRight,
+  Bell,
   Check,
+  ChevronRight,
+  Crown,
   Eye,
   EyeOff,
+  Gift,
+  Heart,
+  History,
   LockKeyhole,
   LogOut,
   Mail,
+  MapPin,
+  PackageCheck,
+  Settings,
   ShieldCheck,
+  ShoppingBag,
+  Sparkles,
+  Star,
+  TicketPercent,
   UserRound,
+  WalletCards,
 } from "lucide-react";
 
 import type {
@@ -64,8 +78,7 @@ function AccountContent() {
 
   const supabase =
     useMemo(
-      () =>
-        createClient(),
+      () => createClient(),
       [],
     );
 
@@ -118,18 +131,8 @@ function AccountContent() {
     useState("");
 
   useEffect(() => {
-    const error =
-      searchParams.get(
-        "error",
-      );
-
-    if (error) {
-      setMessage(
-        decodeURIComponent(
-          error,
-        ),
-      );
-    }
+    let mounted =
+      true;
 
     async function loadCurrentUser() {
       try {
@@ -138,14 +141,74 @@ function AccountContent() {
         } =
           await supabase.auth.getUser();
 
-        setUser(
+        if (!mounted) {
+          return;
+        }
+
+        const activeUser =
           data.user ??
-            null,
+          null;
+
+        setUser(
+          activeUser,
         );
+
+        /*
+          Only show URL auth errors when
+          there is no valid signed-in user.
+          This prevents old/expired email-link
+          errors from appearing on the member
+          dashboard after a valid session exists.
+        */
+
+        if (!activeUser) {
+          const description =
+            searchParams.get(
+              "error_description",
+            );
+
+          const error =
+            searchParams.get(
+              "error",
+            );
+
+          if (description) {
+            setMessage(
+              description.replace(
+                /\+/g,
+                " ",
+              ),
+            );
+          } else if (
+            error &&
+            error !==
+              "missing_auth_code"
+          ) {
+            setMessage(
+              error.replace(
+                /_/g,
+                " ",
+              ),
+            );
+          }
+        }
+      } catch (error) {
+        if (
+          mounted
+        ) {
+          console.error(
+            "KRVE_ACCOUNT_LOAD_ERROR",
+            error,
+          );
+        }
       } finally {
-        setAuthLoaded(
-          true,
-        );
+        if (
+          mounted
+        ) {
+          setAuthLoaded(
+            true,
+          );
+        }
       }
     }
 
@@ -161,6 +224,10 @@ function AccountContent() {
           _event,
           session,
         ) => {
+          if (!mounted) {
+            return;
+          }
+
           setUser(
             session?.user ??
               null,
@@ -173,6 +240,9 @@ function AccountContent() {
       );
 
     return () => {
+      mounted =
+        false;
+
       subscription.unsubscribe();
     };
   }, [
@@ -200,11 +270,11 @@ function AccountContent() {
   }
 
   function switchMode(
-    newMode:
+    nextMode:
       AccountMode,
   ) {
     setMode(
-      newMode,
+      nextMode,
     );
 
     setMessage("");
@@ -268,27 +338,30 @@ function AccountContent() {
       const {
         error,
       } =
-        await supabase.auth.signInWithPassword(
-          {
-            email,
+        await supabase.auth
+          .signInWithPassword(
+            {
+              email,
 
-            password:
-              form.password,
-          },
-        );
+              password:
+                form.password,
+            },
+          );
 
       if (error) {
         throw error;
       }
 
       setMessage(
-        "Welcome back to KRVE.",
+        "",
+      );
+
+      router.replace(
+        "/account",
       );
 
       router.refresh();
-    } catch (
-      error
-    ) {
+    } catch (error) {
       setMessage(
         error instanceof
         Error
@@ -411,8 +484,8 @@ function AccountContent() {
       if (
         data.session
       ) {
-        setMessage(
-          "Your KRVE account has been created successfully.",
+        router.replace(
+          "/account",
         );
 
         router.refresh();
@@ -421,11 +494,9 @@ function AccountContent() {
       }
 
       setMessage(
-        "Account created. Please check your email and confirm your KRVE account, then sign in.",
+        "Your KRVE account has been created. Please check your email and confirm your account before signing in.",
       );
-    } catch (
-      error
-    ) {
+    } catch (error) {
       setMessage(
         error instanceof
         Error
@@ -476,12 +547,13 @@ function AccountContent() {
       const {
         error,
       } =
-        await supabase.auth.resetPasswordForEmail(
-          email,
-          {
-            redirectTo,
-          },
-        );
+        await supabase.auth
+          .resetPasswordForEmail(
+            email,
+            {
+              redirectTo,
+            },
+          );
 
       if (error) {
         throw error;
@@ -490,9 +562,7 @@ function AccountContent() {
       setMessage(
         "Password reset email sent. Open the link in your email to create a new password.",
       );
-    } catch (
-      error
-    ) {
+    } catch (error) {
       setMessage(
         error instanceof
         Error
@@ -535,9 +605,7 @@ function AccountContent() {
       if (error) {
         throw error;
       }
-    } catch (
-      error
-    ) {
+    } catch (error) {
       setMessage(
         error instanceof
         Error
@@ -567,6 +635,10 @@ function AccountContent() {
         "login",
       );
 
+      router.replace(
+        "/account",
+      );
+
       router.refresh();
     } finally {
       setBusy(
@@ -580,58 +652,87 @@ function AccountContent() {
   ) {
     return (
       <main
-        className="krve-account-loading"
+        className="krve-loading-page"
       >
-        <div>
-          <strong>
-            K
-            <small>
-              rv
-            </small>
-            E
-          </strong>
-
-          <span>
-            LOADING PRIVATE
-            CLIENT ACCOUNT...
-          </span>
+        <div
+          className="krve-loading-logo"
+        >
+          K
+          <small>
+            rv
+          </small>
+          E
         </div>
 
+        <div
+          className="krve-loading-line"
+        />
+
+        <span>
+          PREPARING YOUR
+          PRIVATE CLIENT
+          EXPERIENCE
+        </span>
+
         <style jsx>{`
-          .krve-account-loading {
+          .krve-loading-page {
             min-height: 100vh;
-            display: grid;
-            place-items: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 18px;
             background: #020202;
             color: #d8a529;
           }
 
-          .krve-account-loading div {
-            display: grid;
-            gap: 18px;
-            text-align: center;
-          }
-
-          .krve-account-loading strong {
+          .krve-loading-logo {
             font-family: Georgia, serif;
-            font-size: 52px;
-            font-weight: 400;
+            font-size: 56px;
+            letter-spacing: .04em;
           }
 
-          .krve-account-loading small {
-            font-size: 31px;
+          .krve-loading-logo small {
+            font-size: 33px;
           }
 
-          .krve-account-loading span {
-            font-family: Arial, sans-serif;
-            font-size: 9px;
+          .krve-loading-line {
+            width: 120px;
+            height: 1px;
+            background:
+              linear-gradient(
+                90deg,
+                transparent,
+                #d8a529,
+                transparent
+              );
+          }
+
+          .krve-loading-page > span {
+            color:
+              rgba(
+                216,
+                165,
+                41,
+                .7
+              );
+            font-family:
+              Arial,
+              sans-serif;
+            font-size: 8px;
             font-weight: 700;
-            letter-spacing: 0.2em;
+            letter-spacing: .22em;
           }
         `}</style>
       </main>
     );
   }
+
+  /*
+    ========================================================
+    LOGGED-IN MEMBER DASHBOARD
+    ========================================================
+  */
 
   if (user) {
     const fullName =
@@ -650,13 +751,28 @@ function AccountContent() {
           | undefined
       )?.trim();
 
+    const lastName =
+      (
+        user.user_metadata
+          ?.last_name as
+          | string
+          | undefined
+      )?.trim();
+
     const customerName =
       fullName ||
-      firstName ||
+      `${firstName ?? ""} ${lastName ?? ""}`.trim() ||
       user.email?.split(
         "@",
       )[0] ||
       "KRVE Client";
+
+    const customerFirstName =
+      firstName ||
+      customerName.split(
+        " ",
+      )[0] ||
+      "Client";
 
     const initial =
       customerName
@@ -666,350 +782,2051 @@ function AccountContent() {
         )
         .toUpperCase();
 
+    const accountItems = [
+      {
+        href:
+          "/account/orders",
+
+        icon:
+          PackageCheck,
+
+        eyebrow:
+          "Purchases",
+
+        title:
+          "My Orders",
+
+        description:
+          "Track orders, delivery and purchase history.",
+      },
+
+      {
+        href:
+          "/wishlist",
+
+        icon:
+          Heart,
+
+        eyebrow:
+          "Saved Style",
+
+        title:
+          "Wishlist",
+
+        description:
+          "Return to the KRVE pieces you have saved.",
+      },
+
+      {
+        href:
+          "/account/profile",
+
+        icon:
+          UserRound,
+
+        eyebrow:
+          "Identity",
+
+        title:
+          "Profile",
+
+        description:
+          "Manage your name, email and personal details.",
+      },
+
+      {
+        href:
+          "/account/addresses",
+
+        icon:
+          MapPin,
+
+        eyebrow:
+          "Delivery",
+
+        title:
+          "Addresses",
+
+        description:
+          "Manage delivery and billing destinations.",
+      },
+
+      {
+        href:
+          "/account/notifications",
+
+        icon:
+          Bell,
+
+        eyebrow:
+          "Communication",
+
+        title:
+          "Notifications",
+
+        description:
+          "Control order updates, launches and alerts.",
+      },
+
+      {
+        href:
+          "/account/settings",
+
+        icon:
+          Settings,
+
+        eyebrow:
+          "Security",
+
+        title:
+          "Account Settings",
+
+        description:
+          "Password, privacy and account preferences.",
+      },
+    ];
+
     return (
       <main
-        className="krve-member-page"
+        className="member-page"
       >
         <div
-          className="member-glow member-glow-one"
+          className="page-glow page-glow-one"
         />
 
         <div
-          className="member-glow member-glow-two"
+          className="page-glow page-glow-two"
         />
 
         <section
-          className="member-card"
+          className="member-shell"
         >
-          <Link
-            href="/"
-            className="member-logo"
+          {/* TOP BRAND BAR */}
+
+          <header
+            className="member-topbar"
           >
-            K
-            <small>
-              rv
-            </small>
-            E
-
-            <strong>
-              THE FASHION STUDIO
-            </strong>
-          </Link>
-
-          <div
-            className="member-avatar"
-          >
-            {initial}
-          </div>
-
-          <span
-            className="member-eyebrow"
-          >
-            KRVE PRIVATE CLIENT
-          </span>
-
-          <h1>
-            Welcome,
-            <br />
-            {customerName}.
-          </h1>
-
-          <p
-            className="member-email"
-          >
-            {user.email}
-          </p>
-
-          <div
-            className="member-grid"
-          >
-            <Link href="/account/orders">
+            <Link
+              href="/"
+              className="member-brand"
+            >
               <span>
-                My Orders
+                K
+                <small>
+                  rv
+                </small>
+                E
               </span>
 
-              <ArrowRight
-                size={16}
-              />
+              <strong>
+                THE FASHION STUDIO
+              </strong>
             </Link>
 
-            <Link href="/wishlist">
-              <span>
-                Wishlist
-              </span>
+            <div
+              className="member-topbar-right"
+            >
+              <div
+                className="member-status"
+              >
+                <span
+                  className="status-dot"
+                />
 
-              <ArrowRight
-                size={16}
-              />
-            </Link>
+                PRIVATE CLIENT
+              </div>
 
-            <Link href="/account/profile">
-              <span>
-                Profile
-              </span>
+              <Link
+                href="/"
+                className="store-link"
+              >
+                RETURN TO STORE
 
-              <ArrowRight
-                size={16}
-              />
-            </Link>
+                <ArrowRight
+                  size={13}
+                />
+              </Link>
+            </div>
+          </header>
 
-            <Link href="/account/addresses">
-              <span>
-                Addresses
-              </span>
+          {/* HERO */}
 
-              <ArrowRight
-                size={16}
-              />
-            </Link>
-
-            <Link href="/account/notifications">
-              <span>
-                Notifications
-              </span>
-
-              <ArrowRight
-                size={16}
-              />
-            </Link>
-
-            <Link href="/account/settings">
-              <span>
-                Account Settings
-              </span>
-
-              <ArrowRight
-                size={16}
-              />
-            </Link>
-          </div>
-
-          <button
-            type="button"
-            className="signout-button"
-            onClick={
-              handleSignOut
-            }
-            disabled={
-              busy
-            }
+          <section
+            className="member-hero"
           >
-            <LogOut
-              size={16}
-            />
+            <div
+              className="hero-copy"
+            >
+              <div
+                className="hero-eyebrow"
+              >
+                <span />
 
-            {busy
-              ? "SIGNING OUT..."
-              : "SIGN OUT"}
-          </button>
+                <Crown
+                  size={13}
+                />
 
-          <Link
-            href="/"
-            className="return-store"
+                KRVE PRIVATE CLIENT
+
+                <span />
+              </div>
+
+              <h1>
+                Welcome back,
+                <em>
+                  {customerFirstName}.
+                </em>
+              </h1>
+
+              <p>
+                Your private KRVE
+                space for orders,
+                saved pieces,
+                personalised style
+                and client
+                privileges.
+              </p>
+
+              <div
+                className="hero-identity"
+              >
+                <div
+                  className="identity-avatar"
+                >
+                  {initial}
+                </div>
+
+                <div>
+                  <span>
+                    MEMBER PROFILE
+                  </span>
+
+                  <strong>
+                    {customerName}
+                  </strong>
+
+                  <small>
+                    {user.email}
+                  </small>
+                </div>
+
+                <ShieldCheck
+                  size={22}
+                />
+              </div>
+            </div>
+
+            <aside
+              className="hero-monogram"
+            >
+              <div
+                className="hero-ring hero-ring-large"
+              />
+
+              <div
+                className="hero-ring hero-ring-medium"
+              />
+
+              <div
+                className="hero-k"
+              >
+                K
+              </div>
+
+              <span>
+                PRIVATE CLIENT
+              </span>
+
+              <strong>
+                KRVE
+              </strong>
+            </aside>
+          </section>
+
+          {/* QUICK STATUS */}
+
+          <section
+            className="status-grid"
           >
-            RETURN TO STORE
-          </Link>
+            <article>
+              <div>
+                <ShoppingBag
+                  size={18}
+                />
+              </div>
+
+              <span>
+                ORDERS
+              </span>
+
+              <strong>
+                My Purchases
+              </strong>
+
+              <Link href="/account/orders">
+                View history
+                <ChevronRight
+                  size={14}
+                />
+              </Link>
+            </article>
+
+            <article>
+              <div>
+                <Heart
+                  size={18}
+                />
+              </div>
+
+              <span>
+                WISHLIST
+              </span>
+
+              <strong>
+                Saved Pieces
+              </strong>
+
+              <Link href="/wishlist">
+                View wishlist
+                <ChevronRight
+                  size={14}
+                />
+              </Link>
+            </article>
+
+            <article>
+              <div>
+                <Sparkles
+                  size={18}
+                />
+              </div>
+
+              <span>
+                KRVE AI
+              </span>
+
+              <strong>
+                Personal Styling
+              </strong>
+
+              <Link href="/ai-stylist">
+                Meet stylist
+                <ChevronRight
+                  size={14}
+                />
+              </Link>
+            </article>
+
+            <article>
+              <div>
+                <Gift
+                  size={18}
+                />
+              </div>
+
+              <span>
+                PRIVILEGES
+              </span>
+
+              <strong>
+                Private Benefits
+              </strong>
+
+              <Link href="/account/offers">
+                View offers
+                <ChevronRight
+                  size={14}
+                />
+              </Link>
+            </article>
+          </section>
+
+          {/* ACCOUNT CENTRE */}
+
+          <section
+            className="account-centre"
+          >
+            <div
+              className="section-heading"
+            >
+              <div>
+                <span>
+                  YOUR PRIVATE SPACE
+                </span>
+
+                <h2>
+                  Account Centre
+                </h2>
+              </div>
+
+              <p>
+                Everything connected
+                to your KRVE
+                experience, in one
+                place.
+              </p>
+            </div>
+
+            <div
+              className="account-grid"
+            >
+              {accountItems.map(
+                (
+                  item,
+                ) => {
+                  const Icon =
+                    item.icon;
+
+                  return (
+                    <Link
+                      href={
+                        item.href
+                      }
+                      key={
+                        item.href
+                      }
+                      className="account-card"
+                    >
+                      <div
+                        className="card-icon"
+                      >
+                        <Icon
+                          size={21}
+                          strokeWidth={
+                            1.25
+                          }
+                        />
+                      </div>
+
+                      <div
+                        className="card-copy"
+                      >
+                        <span>
+                          {
+                            item.eyebrow
+                          }
+                        </span>
+
+                        <h3>
+                          {
+                            item.title
+                          }
+                        </h3>
+
+                        <p>
+                          {
+                            item.description
+                          }
+                        </p>
+                      </div>
+
+                      <div
+                        className="card-arrow"
+                      >
+                        <ArrowRight
+                          size={16}
+                        />
+                      </div>
+                    </Link>
+                  );
+                },
+              )}
+            </div>
+          </section>
+
+          {/* PRIVATE CLIENT EXPERIENCE */}
+
+          <section
+            className="private-experience"
+          >
+            <div
+              className="experience-copy"
+            >
+              <div
+                className="experience-eyebrow"
+              >
+                <Sparkles
+                  size={13}
+                />
+
+                KRVE PRIVATE
+                EXPERIENCE
+              </div>
+
+              <h2>
+                Fashion,
+                <em>
+                  curated around you.
+                </em>
+              </h2>
+
+              <p>
+                Your account connects
+                shopping, saved
+                pieces, AI styling
+                and future KRVE
+                experiences into one
+                private profile.
+              </p>
+
+              <Link
+                href="/ai-stylist"
+                className="experience-button"
+              >
+                EXPLORE AI STYLIST
+
+                <ArrowRight
+                  size={14}
+                />
+              </Link>
+            </div>
+
+            <div
+              className="benefit-list"
+            >
+              <article>
+                <Star
+                  size={17}
+                />
+
+                <div>
+                  <strong>
+                    Personalised
+                    Recommendations
+                  </strong>
+
+                  <span>
+                    Style suggestions
+                    shaped around your
+                    KRVE profile.
+                  </span>
+                </div>
+              </article>
+
+              <article>
+                <TicketPercent
+                  size={17}
+                />
+
+                <div>
+                  <strong>
+                    Private Client
+                    Offers
+                  </strong>
+
+                  <span>
+                    Access selected
+                    offers, launches
+                    and privileges.
+                  </span>
+                </div>
+              </article>
+
+              <article>
+                <History
+                  size={17}
+                />
+
+                <div>
+                  <strong>
+                    Connected Shopping
+                    History
+                  </strong>
+
+                  <span>
+                    Keep purchases and
+                    preferences
+                    connected to your
+                    account.
+                  </span>
+                </div>
+              </article>
+
+              <article>
+                <WalletCards
+                  size={17}
+                />
+
+                <div>
+                  <strong>
+                    Faster Checkout
+                  </strong>
+
+                  <span>
+                    Reuse saved
+                    account details
+                    for a smoother
+                    purchase journey.
+                  </span>
+                </div>
+              </article>
+            </div>
+          </section>
+
+          {/* SECURITY / LOGOUT */}
+
+          <section
+            className="member-footer-card"
+          >
+            <div
+              className="security-copy"
+            >
+              <div
+                className="security-icon"
+              >
+                <ShieldCheck
+                  size={20}
+                />
+              </div>
+
+              <div>
+                <span>
+                  SECURE ACCOUNT
+                </span>
+
+                <strong>
+                  Your KRVE session
+                  is protected.
+                </strong>
+
+                <p>
+                  Authentication is
+                  securely managed
+                  through Supabase.
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={
+                handleSignOut
+              }
+              disabled={
+                busy
+              }
+              className="signout-button"
+            >
+              <LogOut
+                size={15}
+              />
+
+              {busy
+                ? "SIGNING OUT..."
+                : "SIGN OUT"}
+            </button>
+          </section>
         </section>
 
         <style jsx>{`
-          .krve-member-page {
+          .member-page {
             position: relative;
             min-height: 100vh;
             overflow: hidden;
-            display: grid;
-            place-items: center;
-            padding: 60px 20px;
             background:
               radial-gradient(
-                circle at 78% 10%,
-                rgba(216,165,41,.1),
-                transparent 30%
+                circle at 87% 8%,
+                rgba(216,165,41,.09),
+                transparent 25%
               ),
               radial-gradient(
-                circle at 5% 90%,
-                rgba(125,81,8,.08),
+                circle at 7% 72%,
+                rgba(103,67,6,.08),
                 transparent 28%
               ),
               #020202;
             color: #ffffff;
-            font-family: Arial, Helvetica, sans-serif;
+            font-family:
+              Arial,
+              Helvetica,
+              sans-serif;
           }
 
-          .member-glow {
+          .member-page::before {
+            position: absolute;
+            inset: 0;
+            background-image:
+              linear-gradient(
+                rgba(216,165,41,.017)
+                1px,
+                transparent
+                1px
+              ),
+              linear-gradient(
+                90deg,
+                rgba(216,165,41,.017)
+                1px,
+                transparent
+                1px
+              );
+            background-size:
+              58px 58px;
+            content: "";
+            pointer-events: none;
+            mask-image:
+              linear-gradient(
+                to bottom,
+                rgba(0,0,0,.6),
+                transparent 80%
+              );
+          }
+
+          .page-glow {
             position: absolute;
             border-radius: 50%;
-            filter: blur(120px);
+            filter:
+              blur(130px);
             pointer-events: none;
           }
 
-          .member-glow-one {
-            top: -220px;
-            right: 4%;
-            width: 500px;
-            height: 500px;
-            background: rgba(216,165,41,.07);
+          .page-glow-one {
+            top: -260px;
+            right: -100px;
+            width: 580px;
+            height: 580px;
+            background:
+              rgba(216,165,41,.07);
           }
 
-          .member-glow-two {
-            bottom: -260px;
-            left: -100px;
-            width: 520px;
-            height: 520px;
-            background: rgba(127,82,5,.08);
+          .page-glow-two {
+            bottom: -300px;
+            left: -180px;
+            width: 600px;
+            height: 600px;
+            background:
+              rgba(114,71,5,.07);
           }
 
-          .member-card {
+          .member-shell {
             position: relative;
             z-index: 2;
-            width: min(100%, 760px);
-            border: 1px solid rgba(216,165,41,.4);
-            background:
-              linear-gradient(
-                145deg,
-                rgba(216,165,41,.025),
-                transparent 40%
-              ),
-              #060606;
-            padding: 54px;
-            text-align: center;
-            box-shadow:
-              0 40px 100px rgba(0,0,0,.55);
+            width:
+              min(
+                92%,
+                1280px
+              );
+            margin: 0 auto;
+            padding-bottom: 80px;
           }
 
-          .member-logo {
-            display: inline-flex;
-            flex-direction: column;
+          .member-topbar {
+            min-height: 104px;
+            display: flex;
+            align-items: center;
+            justify-content:
+              space-between;
+            gap: 24px;
+            border-bottom:
+              1px solid
+              rgba(
+                216,
+                165,
+                41,
+                .28
+              );
+          }
+
+          .member-brand {
+            display: flex;
+            flex-direction:
+              column;
+            width: max-content;
             color: #d8a529;
             text-decoration: none;
-            font-family: Georgia, serif;
-            font-size: 39px;
-            line-height: .78;
           }
 
-          .member-logo small {
+          .member-brand > span {
+            font-family:
+              Georgia,
+              serif;
+            font-size: 41px;
+            line-height: .78;
+            letter-spacing: .05em;
+          }
+
+          .member-brand small {
+            font-size: 25px;
+          }
+
+          .member-brand strong {
+            margin-top: 12px;
+            font-size: 7px;
+            letter-spacing:
+              .19em;
+          }
+
+          .member-topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+          }
+
+          .member-status {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            color:
+              rgba(
+                255,
+                255,
+                255,
+                .48
+              );
+            font-size: 8px;
+            font-weight: 700;
+            letter-spacing:
+              .14em;
+          }
+
+          .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background:
+              #d8a529;
+            box-shadow:
+              0 0 15px
+              rgba(
+                216,
+                165,
+                41,
+                .8
+              );
+          }
+
+          .store-link {
+            min-height: 39px;
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            border:
+              1px solid
+              rgba(
+                216,
+                165,
+                41,
+                .28
+              );
+            padding:
+              0 14px;
+            color:
+              rgba(
+                255,
+                255,
+                255,
+                .62
+              );
+            font-size: 8px;
+            font-weight: 700;
+            letter-spacing:
+              .1em;
+            text-decoration:
+              none;
+          }
+
+          .store-link:hover {
+            border-color:
+              #d8a529;
+            color:
+              #d8a529;
+          }
+
+          .member-hero {
+            min-height: 480px;
+            display: grid;
+            grid-template-columns:
+              minmax(0,1.1fr)
+              minmax(320px,.7fr);
+            align-items: center;
+            gap: 50px;
+            border-bottom:
+              1px solid
+              rgba(
+                216,
+                165,
+                41,
+                .18
+              );
+          }
+
+          .hero-copy {
+            padding: 66px 0;
+          }
+
+          .hero-eyebrow {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            color: #d8a529;
+            font-size: 8px;
+            font-weight: 800;
+            letter-spacing:
+              .19em;
+          }
+
+          .hero-eyebrow > span {
+            width: 35px;
+            height: 1px;
+            background:
+              rgba(
+                216,
+                165,
+                41,
+                .55
+              );
+          }
+
+          .hero-copy h1 {
+            max-width: 760px;
+            margin:
+              24px 0 17px;
+            font-family:
+              Georgia,
+              "Times New Roman",
+              serif;
+            font-size:
+              clamp(
+                56px,
+                7vw,
+                92px
+              );
+            font-weight: 400;
+            line-height: .96;
+            letter-spacing:
+              -.035em;
+          }
+
+          .hero-copy h1 em {
+            display: block;
+            margin-top: 9px;
+            color: #d8a529;
+            font-weight: 400;
+          }
+
+          .hero-copy > p {
+            max-width: 570px;
+            color:
+              rgba(
+                255,
+                255,
+                255,
+                .42
+              );
+            font-size: 13px;
+            line-height: 1.85;
+          }
+
+          .hero-identity {
+            width:
+              min(
+                100%,
+                550px
+              );
+            display: grid;
+            grid-template-columns:
+              54px
+              minmax(0,1fr)
+              auto;
+            align-items: center;
+            gap: 15px;
+            margin-top: 35px;
+            border:
+              1px solid
+              rgba(
+                216,
+                165,
+                41,
+                .21
+              );
+            background:
+              rgba(
+                255,
+                255,
+                255,
+                .012
+              );
+            padding: 14px 17px;
+          }
+
+          .identity-avatar {
+            width: 54px;
+            height: 54px;
+            display: grid;
+            place-items:
+              center;
+            border:
+              1px solid
+              #d8a529;
+            border-radius: 50%;
+            color: #e8b632;
+            font-family:
+              Georgia,
+              serif;
             font-size: 23px;
           }
 
-          .member-logo strong {
-            margin-top: 12px;
-            font-family: Arial, sans-serif;
+          .hero-identity > div:nth-child(2) {
+            min-width: 0;
+            display: flex;
+            flex-direction:
+              column;
+          }
+
+          .hero-identity span {
+            color: #80661f;
             font-size: 7px;
-            letter-spacing: .18em;
-          }
-
-          .member-avatar {
-            width: 82px;
-            height: 82px;
-            display: grid;
-            place-items: center;
-            margin: 38px auto 22px;
-            border: 1px solid #d8a529;
-            border-radius: 50%;
-            color: #e8b632;
-            font-family: Georgia, serif;
-            font-size: 37px;
-          }
-
-          .member-eyebrow {
-            color: #d8a529;
-            font-size: 9px;
             font-weight: 800;
-            letter-spacing: .2em;
+            letter-spacing:
+              .14em;
           }
 
-          .member-card h1 {
-            margin: 14px 0 9px;
-            font-family: Georgia, serif;
-            font-size:
-              clamp(36px,5vw,52px);
+          .hero-identity strong {
+            margin-top: 5px;
+            color:
+              rgba(
+                255,
+                255,
+                255,
+                .9
+              );
+            font-family:
+              Georgia,
+              serif;
+            font-size: 17px;
             font-weight: 400;
-            line-height: 1.08;
           }
 
-          .member-email {
-            margin: 0;
-            color: rgba(255,255,255,.42);
+          .hero-identity small {
+            margin-top: 4px;
+            overflow: hidden;
+            color:
+              rgba(
+                255,
+                255,
+                255,
+                .34
+              );
+            font-size: 9px;
+            text-overflow:
+              ellipsis;
+            white-space: nowrap;
+          }
+
+          .hero-identity > svg {
+            color: #d8a529;
+          }
+
+          .hero-monogram {
+            position: relative;
+            min-height: 390px;
+            display: flex;
+            flex-direction:
+              column;
+            align-items: center;
+            justify-content:
+              center;
+            overflow: hidden;
+          }
+
+          .hero-ring {
+            position: absolute;
+            border:
+              1px solid
+              rgba(
+                216,
+                165,
+                41,
+                .16
+              );
+            border-radius: 50%;
+          }
+
+          .hero-ring-large {
+            width: 340px;
+            height: 340px;
+          }
+
+          .hero-ring-medium {
+            width: 250px;
+            height: 250px;
+            border-color:
+              rgba(
+                216,
+                165,
+                41,
+                .27
+              );
+          }
+
+          .hero-k {
+            position: relative;
+            z-index: 2;
+            color:
+              rgba(
+                216,
+                165,
+                41,
+                .92
+              );
+            font-family:
+              Georgia,
+              serif;
+            font-size: 150px;
+            line-height: .9;
+            text-shadow:
+              0 0 70px
+              rgba(
+                216,
+                165,
+                41,
+                .15
+              );
+          }
+
+          .hero-monogram > span {
+            position: relative;
+            z-index: 2;
+            margin-top: 25px;
+            color:
+              rgba(
+                216,
+                165,
+                41,
+                .55
+              );
+            font-size: 7px;
+            font-weight: 800;
+            letter-spacing:
+              .24em;
+          }
+
+          .hero-monogram > strong {
+            position: relative;
+            z-index: 2;
+            margin-top: 6px;
+            color:
+              rgba(
+                255,
+                255,
+                255,
+                .65
+              );
+            font-family:
+              Georgia,
+              serif;
             font-size: 12px;
+            font-weight: 400;
+            letter-spacing:
+              .2em;
           }
 
-          .member-grid {
+          .status-grid {
             display: grid;
             grid-template-columns:
               repeat(
-                2,
+                4,
                 minmax(0,1fr)
               );
-            gap: 10px;
-            margin-top: 36px;
+            border-left:
+              1px solid
+              rgba(
+                216,
+                165,
+                41,
+                .18
+              );
+            border-bottom:
+              1px solid
+              rgba(
+                216,
+                165,
+                41,
+                .18
+              );
           }
 
-          .member-grid :global(a) {
-            min-height: 57px;
+          .status-grid article {
+            min-height: 190px;
+            display: flex;
+            flex-direction:
+              column;
+            align-items:
+              flex-start;
+            border-top:
+              1px solid
+              rgba(
+                216,
+                165,
+                41,
+                .18
+              );
+            border-right:
+              1px solid
+              rgba(
+                216,
+                165,
+                41,
+                .18
+              );
+            padding: 27px;
+            transition:
+              background .25s ease;
+          }
+
+          .status-grid article:hover {
+            background:
+              rgba(
+                216,
+                165,
+                41,
+                .025
+              );
+          }
+
+          .status-grid article > div {
+            width: 39px;
+            height: 39px;
+            display: grid;
+            place-items:
+              center;
+            border:
+              1px solid
+              rgba(
+                216,
+                165,
+                41,
+                .32
+              );
+            color: #d8a529;
+          }
+
+          .status-grid article > span {
+            margin-top: 24px;
+            color: #79601e;
+            font-size: 7px;
+            font-weight: 800;
+            letter-spacing:
+              .16em;
+          }
+
+          .status-grid article > strong {
+            margin-top: 7px;
+            color:
+              rgba(
+                255,
+                255,
+                255,
+                .86
+              );
+            font-family:
+              Georgia,
+              serif;
+            font-size: 17px;
+            font-weight: 400;
+          }
+
+          .status-grid :global(a) {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            border: 1px solid rgba(216,165,41,.24);
-            padding: 0 18px;
-            color: rgba(255,255,255,.8);
-            text-decoration: none;
-            font-size: 9px;
-            font-weight: 700;
-            letter-spacing: .1em;
-            text-transform: uppercase;
-            transition:
-              border-color .2s ease,
-              color .2s ease,
-              background .2s ease;
+            gap: 4px;
+            margin-top: auto;
+            color:
+              rgba(
+                255,
+                255,
+                255,
+                .35
+              );
+            font-size: 8px;
+            text-decoration:
+              none;
           }
 
-          .member-grid :global(a:hover) {
-            border-color: #d8a529;
-            background: rgba(216,165,41,.035);
-            color: #e8b632;
+          .status-grid :global(a:hover) {
+            color: #d8a529;
+          }
+
+          .account-centre {
+            padding:
+              78px 0 30px;
+          }
+
+          .section-heading {
+            display: flex;
+            align-items:
+              flex-end;
+            justify-content:
+              space-between;
+            gap: 40px;
+            margin-bottom: 33px;
+          }
+
+          .section-heading span {
+            color: #d8a529;
+            font-size: 8px;
+            font-weight: 800;
+            letter-spacing:
+              .2em;
+          }
+
+          .section-heading h2 {
+            margin:
+              10px 0 0;
+            font-family:
+              Georgia,
+              serif;
+            font-size:
+              clamp(
+                38px,
+                4vw,
+                55px
+              );
+            font-weight: 400;
+          }
+
+          .section-heading p {
+            max-width: 390px;
+            margin: 0;
+            color:
+              rgba(
+                255,
+                255,
+                255,
+                .34
+              );
+            font-size: 11px;
+            line-height: 1.7;
+            text-align: right;
+          }
+
+          .account-grid {
+            display: grid;
+            grid-template-columns:
+              repeat(
+                3,
+                minmax(0,1fr)
+              );
+            gap: 12px;
+          }
+
+          .account-card {
+            position: relative;
+            min-height: 210px;
+            display: grid;
+            grid-template-columns:
+              auto
+              minmax(0,1fr)
+              auto;
+            align-items:
+              flex-start;
+            gap: 17px;
+            border:
+              1px solid
+              rgba(
+                216,
+                165,
+                41,
+                .23
+              );
+            background:
+              linear-gradient(
+                135deg,
+                rgba(
+                  216,
+                  165,
+                  41,
+                  .022
+                ),
+                transparent
+                45%
+              ),
+              #050505;
+            padding: 24px;
+            color: inherit;
+            text-decoration:
+              none;
+            transition:
+              transform .25s ease,
+              border-color .25s ease,
+              background .25s ease;
+          }
+
+          .account-card:hover {
+            transform:
+              translateY(-3px);
+            border-color:
+              rgba(
+                216,
+                165,
+                41,
+                .7
+              );
+            background:
+              linear-gradient(
+                135deg,
+                rgba(
+                  216,
+                  165,
+                  41,
+                  .05
+                ),
+                transparent
+                50%
+              ),
+              #060606;
+          }
+
+          .card-icon {
+            width: 43px;
+            height: 43px;
+            display: grid;
+            place-items:
+              center;
+            border:
+              1px solid
+              rgba(
+                216,
+                165,
+                41,
+                .32
+              );
+            color: #d8a529;
+          }
+
+          .card-copy {
+            min-width: 0;
+          }
+
+          .card-copy span {
+            color: #7b621f;
+            font-size: 7px;
+            font-weight: 800;
+            letter-spacing:
+              .16em;
+            text-transform:
+              uppercase;
+          }
+
+          .card-copy h3 {
+            margin:
+              9px 0 9px;
+            color: #ffffff;
+            font-family:
+              Georgia,
+              serif;
+            font-size: 21px;
+            font-weight: 400;
+          }
+
+          .card-copy p {
+            margin: 0;
+            color:
+              rgba(
+                255,
+                255,
+                255,
+                .34
+              );
+            font-size: 10px;
+            line-height: 1.7;
+          }
+
+          .card-arrow {
+            width: 32px;
+            height: 32px;
+            display: grid;
+            place-items:
+              center;
+            border:
+              1px solid
+              rgba(
+                255,
+                255,
+                255,
+                .08
+              );
+            color:
+              rgba(
+                255,
+                255,
+                255,
+                .35
+              );
+            transition:
+              color .2s ease,
+              border-color .2s ease;
+          }
+
+          .account-card:hover
+          .card-arrow {
+            border-color:
+              rgba(
+                216,
+                165,
+                41,
+                .45
+              );
+            color: #d8a529;
+          }
+
+          .private-experience {
+            display: grid;
+            grid-template-columns:
+              minmax(0,1.1fr)
+              minmax(350px,.9fr);
+            gap: 0;
+            margin-top: 58px;
+            border:
+              1px solid
+              rgba(
+                216,
+                165,
+                41,
+                .26
+              );
+            background:
+              linear-gradient(
+                120deg,
+                rgba(
+                  216,
+                  165,
+                  41,
+                  .05
+                ),
+                transparent
+                50%
+              ),
+              #050505;
+          }
+
+          .experience-copy {
+            min-height: 390px;
+            display: flex;
+            flex-direction:
+              column;
+            justify-content:
+              center;
+            padding:
+              50px 54px;
+            border-right:
+              1px solid
+              rgba(
+                216,
+                165,
+                41,
+                .2
+              );
+          }
+
+          .experience-eyebrow {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #d8a529;
+            font-size: 8px;
+            font-weight: 800;
+            letter-spacing:
+              .17em;
+          }
+
+          .experience-copy h2 {
+            max-width: 620px;
+            margin:
+              19px 0 17px;
+            font-family:
+              Georgia,
+              serif;
+            font-size:
+              clamp(
+                39px,
+                5vw,
+                62px
+              );
+            font-weight: 400;
+            line-height: 1;
+          }
+
+          .experience-copy h2 em {
+            display: block;
+            margin-top: 7px;
+            color: #d8a529;
+            font-weight: 400;
+          }
+
+          .experience-copy p {
+            max-width: 520px;
+            color:
+              rgba(
+                255,
+                255,
+                255,
+                .38
+              );
+            font-size: 11px;
+            line-height: 1.8;
+          }
+
+          .experience-button {
+            width: max-content;
+            min-height: 45px;
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            margin-top: 19px;
+            border:
+              1px solid
+              #d8a529;
+            padding:
+              0 18px;
+            color: #d8a529;
+            font-size: 8px;
+            font-weight: 800;
+            letter-spacing:
+              .12em;
+            text-decoration:
+              none;
+          }
+
+          .experience-button:hover {
+            background:
+              #d8a529;
+            color: #050505;
+          }
+
+          .benefit-list {
+            display: grid;
+            grid-template-columns:
+              1fr 1fr;
+          }
+
+          .benefit-list article {
+            min-height: 195px;
+            display: flex;
+            align-items:
+              flex-start;
+            gap: 15px;
+            border-right:
+              1px solid
+              rgba(
+                216,
+                165,
+                41,
+                .15
+              );
+            border-bottom:
+              1px solid
+              rgba(
+                216,
+                165,
+                41,
+                .15
+              );
+            padding: 28px;
+            color: #d8a529;
+          }
+
+          .benefit-list article:nth-child(2n) {
+            border-right: 0;
+          }
+
+          .benefit-list article:nth-last-child(-n+2) {
+            border-bottom: 0;
+          }
+
+          .benefit-list article > div {
+            display: flex;
+            flex-direction:
+              column;
+          }
+
+          .benefit-list strong {
+            color:
+              rgba(
+                255,
+                255,
+                255,
+                .82
+              );
+            font-family:
+              Georgia,
+              serif;
+            font-size: 15px;
+            font-weight: 400;
+          }
+
+          .benefit-list span {
+            margin-top: 8px;
+            color:
+              rgba(
+                255,
+                255,
+                255,
+                .3
+              );
+            font-size: 9px;
+            line-height: 1.7;
+          }
+
+          .member-footer-card {
+            min-height: 95px;
+            display: flex;
+            align-items: center;
+            justify-content:
+              space-between;
+            gap: 30px;
+            margin-top: 25px;
+            border-top:
+              1px solid
+              rgba(
+                216,
+                165,
+                41,
+                .22
+              );
+            border-bottom:
+              1px solid
+              rgba(
+                216,
+                165,
+                41,
+                .22
+              );
+            padding:
+              20px 0;
+          }
+
+          .security-copy {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+          }
+
+          .security-icon {
+            width: 45px;
+            height: 45px;
+            display: grid;
+            place-items:
+              center;
+            border:
+              1px solid
+              rgba(
+                216,
+                165,
+                41,
+                .3
+              );
+            color: #d8a529;
+          }
+
+          .security-copy > div:last-child {
+            display: flex;
+            flex-direction:
+              column;
+          }
+
+          .security-copy span {
+            color: #77601f;
+            font-size: 7px;
+            font-weight: 800;
+            letter-spacing:
+              .14em;
+          }
+
+          .security-copy strong {
+            margin-top: 5px;
+            color:
+              rgba(
+                255,
+                255,
+                255,
+                .78
+              );
+            font-family:
+              Georgia,
+              serif;
+            font-size: 14px;
+            font-weight: 400;
+          }
+
+          .security-copy p {
+            margin:
+              4px 0 0;
+            color:
+              rgba(
+                255,
+                255,
+                255,
+                .28
+              );
+            font-size: 8px;
           }
 
           .signout-button {
-            width: 100%;
-            min-height: 52px;
+            min-width: 160px;
+            min-height: 46px;
             display: flex;
             align-items: center;
-            justify-content: center;
+            justify-content:
+              center;
             gap: 9px;
-            margin-top: 25px;
-            border: 1px solid rgba(216,165,41,.55);
-            background: transparent;
+            border:
+              1px solid
+              rgba(
+                216,
+                165,
+                41,
+                .45
+              );
+            background:
+              transparent;
             color: #d8a529;
-            font-size: 9px;
+            font-size: 8px;
             font-weight: 800;
-            letter-spacing: .14em;
+            letter-spacing:
+              .13em;
             cursor: pointer;
           }
 
-          .signout-button:disabled {
-            opacity: .6;
+          .signout-button:hover {
+            background:
+              rgba(
+                216,
+                165,
+                41,
+                .06
+              );
           }
 
-          .return-store {
-            display: inline-block;
-            margin-top: 24px;
-            color: rgba(255,255,255,.32);
-            font-size: 8px;
-            font-weight: 700;
-            letter-spacing: .14em;
-            text-decoration: none;
+          .signout-button:disabled {
+            opacity: .55;
+            cursor:
+              not-allowed;
           }
 
           @media (
-            max-width: 600px
+            max-width: 1050px
           ) {
-            .member-card {
-              padding: 40px 22px;
-            }
-
-            .member-grid {
+            .member-hero {
               grid-template-columns:
                 1fr;
+            }
+
+            .hero-monogram {
+              display: none;
+            }
+
+            .status-grid {
+              grid-template-columns:
+                repeat(
+                  2,
+                  1fr
+                );
+            }
+
+            .account-grid {
+              grid-template-columns:
+                repeat(
+                  2,
+                  minmax(
+                    0,
+                    1fr
+                  )
+                );
+            }
+
+            .private-experience {
+              grid-template-columns:
+                1fr;
+            }
+
+            .experience-copy {
+              border-right: 0;
+              border-bottom:
+                1px solid
+                rgba(
+                  216,
+                  165,
+                  41,
+                  .2
+                );
+            }
+          }
+
+          @media (
+            max-width: 720px
+          ) {
+            .member-topbar {
+              min-height: 88px;
+            }
+
+            .member-status {
+              display: none;
+            }
+
+            .store-link {
+              padding:
+                0 10px;
+              font-size: 7px;
+            }
+
+            .member-brand > span {
+              font-size: 34px;
+            }
+
+            .member-brand small {
+              font-size: 21px;
+            }
+
+            .hero-copy {
+              padding:
+                50px 0;
+            }
+
+            .hero-copy h1 {
+              font-size:
+                clamp(
+                  47px,
+                  14vw,
+                  70px
+                );
+            }
+
+            .hero-identity {
+              grid-template-columns:
+                48px
+                minmax(0,1fr);
+            }
+
+            .hero-identity > svg {
+              display: none;
+            }
+
+            .identity-avatar {
+              width: 48px;
+              height: 48px;
+            }
+
+            .status-grid {
+              grid-template-columns:
+                1fr 1fr;
+            }
+
+            .status-grid article {
+              min-height: 175px;
+              padding: 20px;
+            }
+
+            .section-heading {
+              align-items:
+                flex-start;
+              flex-direction:
+                column;
+              gap: 12px;
+            }
+
+            .section-heading p {
+              text-align: left;
+            }
+
+            .account-grid {
+              grid-template-columns:
+                1fr;
+            }
+
+            .account-card {
+              min-height: 180px;
+            }
+
+            .experience-copy {
+              min-height: auto;
+              padding:
+                40px 25px;
+            }
+
+            .benefit-list {
+              grid-template-columns:
+                1fr;
+            }
+
+            .benefit-list article {
+              min-height: 145px;
+              border-right: 0;
+              border-bottom:
+                1px solid
+                rgba(
+                  216,
+                  165,
+                  41,
+                  .15
+                ) !important;
+            }
+
+            .benefit-list article:last-child {
+              border-bottom:
+                0 !important;
+            }
+
+            .member-footer-card {
+              align-items:
+                stretch;
+              flex-direction:
+                column;
+            }
+
+            .signout-button {
+              width: 100%;
+            }
+          }
+
+          @media (
+            max-width: 480px
+          ) {
+            .member-shell {
+              width:
+                calc(
+                  100% - 30px
+                );
+            }
+
+            .member-topbar-right {
+              gap: 8px;
+            }
+
+            .store-link {
+              border: 0;
+              padding: 0;
+            }
+
+            .hero-eyebrow > span {
+              width: 17px;
+            }
+
+            .hero-identity {
+              padding:
+                12px;
+            }
+
+            .status-grid {
+              grid-template-columns:
+                1fr;
+            }
+
+            .status-grid article {
+              min-height: 155px;
+            }
+
+            .account-centre {
+              padding-top: 55px;
+            }
+
+            .account-card {
+              grid-template-columns:
+                auto
+                minmax(0,1fr);
+            }
+
+            .card-arrow {
+              display: none;
             }
           }
         `}</style>
@@ -1017,25 +2834,33 @@ function AccountContent() {
     );
   }
 
+  /*
+    ========================================================
+    LOGIN / SIGN UP / FORGOT PASSWORD
+    ========================================================
+  */
+
   return (
     <main
-      className="krve-auth-page"
+      className="auth-page"
     >
       <section
-        className="krve-auth-shell"
+        className="auth-shell"
       >
         <aside
-          className="krve-auth-story"
+          className="auth-story"
         >
           <Link
             href="/"
-            className="krve-story-logo"
+            className="auth-logo"
           >
-            K
-            <small>
-              rv
-            </small>
-            E
+            <span>
+              K
+              <small>
+                rv
+              </small>
+              E
+            </span>
 
             <strong>
               THE FASHION STUDIO
@@ -1043,7 +2868,13 @@ function AccountContent() {
           </Link>
 
           <div
-            className="krve-story-copy"
+            className="story-monogram"
+          >
+            K
+          </div>
+
+          <div
+            className="story-copy"
           >
             <span>
               KRVE PRIVATE ACCESS
@@ -1067,24 +2898,21 @@ function AccountContent() {
           </div>
 
           <div
-            className="krve-story-security"
+            className="story-security"
           >
             <ShieldCheck
-              size={17}
+              size={16}
             />
 
-            <span>
-              Secure customer
-              account
-            </span>
+            Secure customer account
           </div>
         </aside>
 
         <section
-          className="krve-auth-card"
+          className="auth-card"
         >
           <div
-            className="krve-card-heading"
+            className="auth-heading"
           >
             <span>
               {mode ===
@@ -1112,7 +2940,7 @@ function AccountContent() {
                 ? "Join KRVE and keep your fashion experience connected."
                 : mode ===
                     "forgot"
-                  ? "We will send a secure reset link to your email."
+                  ? "We will send a secure password reset link to your email."
                   : "Welcome back. Please sign in to continue."}
             </p>
           </div>
@@ -1139,7 +2967,7 @@ function AccountContent() {
               </button>
 
               <div
-                className="krve-divider"
+                className="divider"
               >
                 <i />
 
@@ -1166,7 +2994,7 @@ function AccountContent() {
             {mode ===
               "register" && (
               <div
-                className="two-columns"
+                className="form-two"
               >
                 <label>
                   <span>
@@ -1318,7 +3146,7 @@ function AccountContent() {
 
                   <button
                     type="button"
-                    className="password-eye"
+                    className="eye-button"
                     onClick={() =>
                       setShowPassword(
                         (
@@ -1326,6 +3154,11 @@ function AccountContent() {
                         ) =>
                           !current,
                       )
+                    }
+                    aria-label={
+                      showPassword
+                        ? "Hide password"
+                        : "Show password"
                     }
                   >
                     {showPassword ? (
@@ -1397,13 +3230,13 @@ function AccountContent() {
               </button>
             )}
 
-            {message && (
+            {message ? (
               <div
                 className="auth-message"
               >
                 {message}
               </div>
-            )}
+            ) : null}
 
             <button
               type="submit"
@@ -1476,28 +3309,27 @@ function AccountContent() {
           </div>
 
           <div
-            className="auth-security"
+            className="auth-secure"
           >
             <Check
               size={14}
             />
 
-            Supabase secure
-            authentication
+            SECURE KRVE ACCOUNT
           </div>
         </section>
       </section>
 
       <style jsx>{`
-        .krve-auth-page {
+        .auth-page {
           min-height: 100vh;
           display: grid;
           place-items: center;
-          padding: 44px 20px;
+          padding: 48px 20px;
           background:
             radial-gradient(
-              circle at 85% 10%,
-              rgba(216,165,41,.07),
+              circle at 84% 8%,
+              rgba(216,165,41,.08),
               transparent 28%
             ),
             #020202;
@@ -1508,17 +3340,16 @@ function AccountContent() {
             sans-serif;
         }
 
-        .krve-auth-shell {
+        .auth-shell {
           width:
             min(
-              1140px,
+              1120px,
               100%
             );
           min-height: 650px;
           display: grid;
           grid-template-columns:
-            .9fr
-            1.2fr;
+            .9fr 1.15fr;
           border:
             1px solid
             rgba(
@@ -1527,19 +3358,26 @@ function AccountContent() {
               41,
               .42
             );
-          background:
-            #060606;
+          background: #050505;
           box-shadow:
-            0 40px 100px
-            rgba(0,0,0,.48);
+            0 35px 100px
+            rgba(
+              0,
+              0,
+              0,
+              .55
+            );
         }
 
-        .krve-auth-story {
+        .auth-story {
+          position: relative;
+          overflow: hidden;
           display: flex;
-          flex-direction: column;
+          flex-direction:
+            column;
           justify-content:
             space-between;
-          padding: 43px;
+          padding: 42px;
           background:
             linear-gradient(
               135deg,
@@ -1547,7 +3385,7 @@ function AccountContent() {
                 216,
                 165,
                 41,
-                .085
+                .09
               ),
               transparent
               44%
@@ -1558,22 +3396,27 @@ function AccountContent() {
                 255,
                 255,
                 255,
-                .018
+                .016
               )
-              0 16px,
+              0 15px,
               transparent
-              16px 34px
+              15px 33px
             ),
             #030303;
         }
 
-        .krve-story-logo {
+        .auth-logo {
+          position: relative;
+          z-index: 2;
           width: max-content;
           display: flex;
           flex-direction:
             column;
           color: #d8a529;
           text-decoration: none;
+        }
+
+        .auth-logo > span {
           font-family:
             Georgia,
             serif;
@@ -1581,31 +3424,55 @@ function AccountContent() {
           line-height: .78;
         }
 
-        .krve-story-logo small {
+        .auth-logo small {
           font-size: 25px;
         }
 
-        .krve-story-logo strong {
-          margin-top: 13px;
-          font-family:
-            Arial,
-            sans-serif;
+        .auth-logo strong {
+          margin-top: 12px;
           font-size: 7px;
           letter-spacing:
             .18em;
         }
 
-        .krve-story-copy > span {
-          color: #d8a529;
-          font-size: 9px;
-          font-weight: 800;
-          letter-spacing:
-            .14em;
+        .story-monogram {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          color:
+            rgba(
+              216,
+              165,
+              41,
+              .08
+            );
+          font-family:
+            Georgia,
+            serif;
+          font-size: 210px;
+          transform:
+            translate(
+              -50%,
+              -50%
+            );
         }
 
-        .krve-story-copy h2 {
+        .story-copy {
+          position: relative;
+          z-index: 2;
+        }
+
+        .story-copy > span {
+          color: #d8a529;
+          font-size: 8px;
+          font-weight: 800;
+          letter-spacing:
+            .17em;
+        }
+
+        .story-copy h2 {
           margin:
-            18px 0 15px;
+            17px 0 15px;
           font-family:
             Georgia,
             serif;
@@ -1613,111 +3480,114 @@ function AccountContent() {
             clamp(
               38px,
               4vw,
-              48px
+              49px
             );
           font-weight: 400;
-          line-height: 1.03;
+          line-height: 1.02;
         }
 
-        .krve-story-copy h2 em {
+        .story-copy h2 em {
           display: block;
-          margin-top: 4px;
-          color: #e8b632;
+          margin-top: 5px;
+          color: #d8a529;
           font-weight: 400;
         }
 
-        .krve-story-copy p {
-          max-width: 390px;
+        .story-copy p {
+          max-width: 370px;
           margin: 0;
           color:
             rgba(
               255,
               255,
               255,
-              .42
+              .4
             );
-          font-size: 12px;
+          font-size: 11px;
           line-height: 1.8;
         }
 
-        .krve-story-security {
+        .story-security {
+          position: relative;
+          z-index: 2;
           display: flex;
           align-items: center;
           gap: 9px;
-          color: #846b2b;
-          font-size: 9px;
+          color: #725c20;
+          font-size: 8px;
         }
 
-        .krve-auth-card {
+        .auth-card {
           align-self: center;
           padding:
-            55px 60px;
+            48px 56px;
         }
 
-        .krve-card-heading > span {
+        .auth-heading > span {
           color: #d8a529;
-          font-size: 9px;
+          font-size: 8px;
           font-weight: 800;
           letter-spacing:
             .16em;
         }
 
-        .krve-card-heading h1 {
+        .auth-heading h1 {
           margin:
-            14px 0 7px;
+            15px 0 8px;
           font-family:
             Georgia,
             serif;
           font-size:
             clamp(
-              31px,
+              32px,
               4vw,
-              39px
+              41px
             );
           font-weight: 400;
-          line-height: 1.08;
+          line-height: 1.1;
         }
 
-        .krve-card-heading p {
+        .auth-heading p {
           margin: 0;
           color:
             rgba(
               255,
               255,
               255,
-              .38
+              .36
             );
-          font-size: 11px;
+          font-size: 10px;
+          line-height: 1.6;
         }
 
         .google-button {
           width: 100%;
-          min-height: 51px;
-          margin-top: 30px;
+          min-height: 50px;
+          margin-top: 27px;
           border:
             1px solid
             rgba(
               216,
               165,
               41,
-              .25
+              .24
             );
-          background: #080808;
+          background:
+            #080808;
           color: #ffffff;
-          font-size: 9px;
+          font-size: 8px;
           font-weight: 800;
           letter-spacing:
-            .08em;
+            .1em;
           cursor: pointer;
         }
 
         .google-button > span {
-          display:
-            inline-grid;
           width: 22px;
           height: 22px;
-          place-items:
-            center;
+          display:
+            inline-grid;
+          place-items: center;
           margin-right: 10px;
           border-radius: 50%;
           background: #ffffff;
@@ -1726,57 +3596,63 @@ function AccountContent() {
           font-weight: 900;
         }
 
-        .krve-divider {
+        .google-button:disabled {
+          opacity: .55;
+          cursor:
+            not-allowed;
+        }
+
+        .divider {
           display: grid;
           grid-template-columns:
             1fr auto 1fr;
           align-items: center;
-          gap: 12px;
-          margin: 23px 0;
+          gap: 11px;
+          margin: 22px 0;
         }
 
-        .krve-divider i {
+        .divider i {
           height: 1px;
           background:
             rgba(
               216,
               165,
               41,
-              .24
+              .22
             );
         }
 
-        .krve-divider small {
+        .divider small {
           color:
             rgba(
               255,
               255,
               255,
-              .35
+              .3
             );
           font-size: 7px;
         }
 
         form {
           display: grid;
-          gap: 17px;
+          gap: 16px;
         }
 
-        .two-columns {
+        .form-two {
           display: grid;
           grid-template-columns:
             1fr 1fr;
-          gap: 12px;
+          gap: 11px;
         }
 
         label > span {
           display: block;
           margin-bottom: 7px;
-          color: #b99a4e;
-          font-size: 8px;
+          color: #b29242;
+          font-size: 7px;
           font-weight: 700;
           letter-spacing:
-            .11em;
+            .12em;
         }
 
         .auth-field {
@@ -1790,10 +3666,12 @@ function AccountContent() {
               216,
               165,
               41,
-              .25
+              .24
             );
-          background: #0a0a0a;
-          padding: 0 13px;
+          background:
+            #090909;
+          padding:
+            0 13px;
           color: #d8a529;
         }
 
@@ -1810,7 +3688,7 @@ function AccountContent() {
           background:
             transparent;
           color: #ffffff;
-          font-size: 12px;
+          font-size: 11px;
         }
 
         .auth-field input::placeholder {
@@ -1819,11 +3697,11 @@ function AccountContent() {
               255,
               255,
               255,
-              .26
+              .24
             );
         }
 
-        .password-eye {
+        .eye-button {
           width: 30px;
           height: 30px;
           display: grid;
@@ -1837,7 +3715,7 @@ function AccountContent() {
               255,
               255,
               255,
-              .4
+              .38
             );
           cursor: pointer;
         }
@@ -1849,7 +3727,7 @@ function AccountContent() {
             transparent;
           padding: 0;
           color: #d8a529;
-          font-size: 9px;
+          font-size: 8px;
           cursor: pointer;
         }
 
@@ -1872,12 +3750,12 @@ function AccountContent() {
           padding:
             11px 12px;
           color: #e7c76f;
-          font-size: 11px;
+          font-size: 10px;
           line-height: 1.55;
         }
 
         .submit-button {
-          min-height: 53px;
+          min-height: 52px;
           display: flex;
           align-items: center;
           justify-content:
@@ -1887,28 +3765,27 @@ function AccountContent() {
           background:
             linear-gradient(
               90deg,
-              #bd810f,
+              #b97d0e,
               #efbd42,
               #c98a14
             );
           color: #050505;
-          font-size: 9px;
+          font-size: 8px;
           font-weight: 900;
           letter-spacing:
-            .12em;
+            .13em;
           cursor: pointer;
         }
 
-        .submit-button:disabled,
-        .google-button:disabled {
-          opacity: .6;
+        .submit-button:disabled {
+          opacity: .55;
           cursor:
             not-allowed;
         }
 
         .auth-switch {
-          margin-top: 22px;
-          padding-top: 19px;
+          margin-top: 21px;
+          padding-top: 18px;
           border-top:
             1px solid
             rgba(
@@ -1923,24 +3800,24 @@ function AccountContent() {
               255,
               255,
               255,
-              .35
+              .32
             );
-          font-size: 9px;
+          font-size: 8px;
         }
 
         .auth-switch button {
-          margin-left: 7px;
+          margin-left: 6px;
           border: 0;
           background:
             transparent;
           color: #d8a529;
-          font-size: 9px;
+          font-size: 8px;
           font-weight: 800;
           cursor: pointer;
         }
 
-        .auth-security {
-          margin-top: 22px;
+        .auth-secure {
+          margin-top: 21px;
           display: flex;
           align-items: center;
           justify-content:
@@ -1951,54 +3828,60 @@ function AccountContent() {
               255,
               255,
               255,
-              .3
+              .25
             );
-          font-size: 9px;
+          font-size: 7px;
+          letter-spacing:
+            .1em;
         }
 
         @media (
           max-width: 850px
         ) {
-          .krve-auth-shell {
+          .auth-shell {
             grid-template-columns:
               1fr;
           }
 
-          .krve-auth-story {
-            min-height: 310px;
+          .auth-story {
+            min-height: 300px;
           }
 
-          .krve-auth-card {
+          .auth-card {
             padding:
-              43px 29px;
+              42px 28px;
           }
         }
 
         @media (
           max-width: 520px
         ) {
-          .krve-auth-page {
+          .auth-page {
             padding: 0;
           }
 
-          .krve-auth-shell {
+          .auth-shell {
             border: 0;
           }
 
-          .krve-auth-story {
-            min-height: 290px;
+          .auth-story {
+            min-height: 280px;
             padding:
               30px 21px;
           }
 
-          .krve-auth-card {
+          .auth-card {
             padding:
-              37px 21px;
+              36px 21px;
           }
 
-          .two-columns {
+          .form-two {
             grid-template-columns:
               1fr;
+          }
+
+          .story-monogram {
+            font-size: 160px;
           }
         }
       `}</style>
@@ -2015,17 +3898,23 @@ export default function AccountPage() {
             minHeight:
               "100vh",
 
+            display:
+              "grid",
+
+            placeItems:
+              "center",
+
             background:
               "#020202",
 
             color:
               "#d8a529",
 
-            display:
-              "grid",
+            fontFamily:
+              "Georgia, serif",
 
-            placeItems:
-              "center",
+            fontSize:
+              "42px",
           }}
         >
           KRVE
