@@ -1,48 +1,141 @@
 import { NextResponse } from "next/server";
-import Razorpay from "razorpay";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 type CreateOrderRequest = {
-  amount?: number;
-  receipt?: string;
-  customerName?: string;
+  customer?: {
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    phone?: string;
+  };
+
   customerEmail?: string;
   customerPhone?: string;
+
+  subtotal?: number;
+  discount?: number;
+  shipping?: number;
+  tax?: number;
+  total?: number;
+
+  currency?: string;
+
+  couponCode?: string | null;
+
+  shippingAddress?: {
+    recipientName?: string;
+    phone?: string;
+
+    addressLine1?: string;
+    addressLine2?: string;
+
+    city?: string;
+    state?: string;
+    postalCode?: string;
+    country?: string;
+  };
+
+  billingAddress?: {
+    recipientName?: string;
+    phone?: string;
+
+    addressLine1?: string;
+    addressLine2?: string;
+
+    city?: string;
+    state?: string;
+    postalCode?: string;
+    country?: string;
+  };
+
+  notes?: string | null;
+
+  items?: Array<{
+    productId?: string | null;
+
+    productName?: string;
+
+    productImageUrl?: string | null;
+
+    sku?: string | null;
+
+    size?: string | null;
+
+    colour?: string | null;
+
+    unitPrice?: number;
+
+    quantity?: number;
+
+    lineTotal?: number;
+  }>;
+
+  payment?: {
+    provider?: string;
+
+    providerOrderId?: string | null;
+
+    providerPaymentId?: string | null;
+
+    providerSignature?: string | null;
+
+    amount?: number;
+
+    currency?: string;
+
+    status?: string;
+
+    rawResponse?: unknown;
+  };
 };
 
-function getRazorpayCredentials() {
-  const keyId =
-    process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID ??
-    process.env.RAZORPAY_KEY_ID;
+function getCentralApiUrl() {
+  const url =
+    process.env.KRVE_API_URL?.trim() ||
+    process.env.NEXT_PUBLIC_KRVE_API_URL?.trim();
 
-  const keySecret =
-    process.env.RAZORPAY_KEY_SECRET;
-
-  if (!keyId || !keySecret) {
+  if (!url) {
     throw new Error(
-      "Razorpay environment variables are missing.",
+      "KRVE_API_URL is missing in Vercel Environment Variables.",
     );
   }
 
-  return {
-    keyId,
-    keySecret,
-  };
+  return url.replace(/\/+$/, "");
 }
 
-export async function POST(request: Request) {
+function getWebsiteSecret() {
+  const secret =
+    process.env.KRVE_WEBSITE_SECRET?.trim();
+
+  if (!secret) {
+    throw new Error(
+      "KRVE_WEBSITE_SECRET is missing in Vercel Environment Variables.",
+    );
+  }
+
+  return secret;
+}
+
+export async function POST(
+  request: Request,
+) {
   try {
     const body =
       (await request.json()) as CreateOrderRequest;
 
-    const amount = Number(body.amount);
-
-    if (!Number.isFinite(amount) || amount <= 0) {
+    if (
+      !body.items ||
+      !Array.isArray(body.items) ||
+      body.items.length === 0
+    ) {
       return NextResponse.json(
         {
           success: false,
-          message: "Invalid payment amount.",
+
+          message:
+            "Order items are required.",
         },
         {
           status: 400,
@@ -50,20 +143,19 @@ export async function POST(request: Request) {
       );
     }
 
-    /*
-      Frontend sends amount in rupees.
-      Razorpay needs amount in paise.
+    const total =
+      Number(body.total ?? 0);
 
-      ₹1 = 100 paise
-    */
-
-    const amountInPaise = Math.round(amount * 100);
-
-    if (amountInPaise < 100) {
+    if (
+      !Number.isFinite(total) ||
+      total <= 0
+    ) {
       return NextResponse.json(
         {
           success: false,
-          message: "Minimum payment amount is ₹1.",
+
+          message:
+            "Invalid order total.",
         },
         {
           status: 400,
@@ -71,59 +163,162 @@ export async function POST(request: Request) {
       );
     }
 
-    const { keyId, keySecret } =
-      getRazorpayCredentials();
+    const paymentId =
+      body.payment
+        ?.providerPaymentId
+        ?.trim();
 
-    const razorpay = new Razorpay({
-      key_id: keyId,
-      key_secret: keySecret,
-    });
+    const razorpayOrderId =
+      body.payment
+        ?.providerOrderId
+        ?.trim();
 
-    const generatedReceipt =
-      body.receipt?.trim() ||
-      `krve_${Date.now()}`;
+    if (
+      !paymentId ||
+      !razorpayOrderId
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
 
-    const order = await razorpay.orders.create({
-      amount: amountInPaise,
-      currency: "INR",
+          message:
+            "Verified Razorpay payment information is required.",
+        },
+        {
+          status: 400,
+        },
+      );
+    }
 
-      receipt: generatedReceipt.slice(0, 40),
+    const apiUrl =
+      getCentralApiUrl();
 
-      notes: {
-        brand: "KRVE",
+    const websiteSecret =
+      getWebsiteSecret();
 
-        customer_name:
-          body.customerName?.slice(0, 100) ?? "",
+    const centralApiResponse =
+      await fetch(
+        `${apiUrl}/orders`,
+        {
+          method: "POST",
 
-        customer_email:
-          body.customerEmail?.slice(0, 100) ?? "",
+          headers: {
+            "Content-Type":
+              "application/json",
 
-        customer_phone:
-          body.customerPhone?.slice(0, 30) ?? "",
-      },
-    });
+            "X-KRVE-Website-Key":
+              websiteSecret,
+          },
+
+          body:
+            JSON.stringify(body),
+
+          cache: "no-store",
+        },
+      );
+
+    let centralApiData:
+      | {
+          success?: boolean;
+
+          message?: string;
+
+          data?: {
+            order?: {
+              id?: string;
+
+              orderNumber?: string;
+
+              status?: string;
+
+              paymentStatus?: string;
+
+              total?: number;
+
+              currency?: string;
+
+              createdAt?: string;
+            };
+
+            payment?: {
+              id?: string;
+
+              provider?: string;
+
+              providerOrderId?: string | null;
+
+              providerPaymentId?: string | null;
+
+              status?: string;
+            };
+          };
+        }
+      | null = null;
+
+    try {
+      centralApiData =
+        await centralApiResponse.json();
+    } catch {
+      centralApiData = null;
+    }
+
+    if (
+      !centralApiResponse.ok ||
+      !centralApiData?.success
+    ) {
+      console.error(
+        "KRVE_CENTRAL_API_ORDER_ERROR",
+        {
+          status:
+            centralApiResponse.status,
+
+          response:
+            centralApiData,
+        },
+      );
+
+      return NextResponse.json(
+        {
+          success: false,
+
+          message:
+            centralApiData?.message ||
+            "Payment succeeded, but KRVE could not save the order. Please contact KRVE support.",
+        },
+        {
+          status:
+            centralApiResponse.status >=
+              400 &&
+            centralApiResponse.status <
+              600
+              ? centralApiResponse.status
+              : 500,
+        },
+      );
+    }
 
     return NextResponse.json(
       {
         success: true,
 
-        keyId,
+        message:
+          "Order created successfully.",
 
-        order: {
-          id: order.id,
-          amount: order.amount,
-          currency: order.currency,
-          receipt: order.receipt,
-          status: order.status,
-        },
+        order:
+          centralApiData.data
+            ?.order ?? null,
+
+        payment:
+          centralApiData.data
+            ?.payment ?? null,
       },
       {
-        status: 200,
+        status: 201,
       },
     );
   } catch (error) {
     console.error(
-      "KRVE_RAZORPAY_CREATE_ORDER_ERROR",
+      "KRVE_CREATE_ORDER_ROUTE_ERROR",
       error,
     );
 
@@ -134,7 +329,7 @@ export async function POST(request: Request) {
         message:
           error instanceof Error
             ? error.message
-            : "Unable to create Razorpay order.",
+            : "Unable to save KRVE order.",
       },
       {
         status: 500,
