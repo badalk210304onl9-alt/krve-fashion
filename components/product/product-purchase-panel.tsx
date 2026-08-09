@@ -6,6 +6,10 @@ import {
 } from "react";
 
 import {
+  useRouter,
+} from "next/navigation";
+
+import {
   Check,
   ChevronDown,
   Heart,
@@ -16,24 +20,20 @@ import {
   Zap,
 } from "lucide-react";
 
+import {
+  useCart,
+} from "@/components/cart-provider";
+
+import type {
+  Product,
+} from "@/lib/catalog";
+
 import type {
   KrveProduct,
 } from "@/lib/api";
 
 type ProductPurchasePanelProps = {
   product: KrveProduct;
-};
-
-type StoredCartItem = {
-  id: string;
-  slug: string;
-  name: string;
-  image: string;
-  price: number;
-  currency: string;
-  size: string;
-  colour: string;
-  quantity: number;
 };
 
 function formatPrice(
@@ -64,8 +64,13 @@ function getDiscountPercentage(
   }
 
   return Math.round(
-    ((compareAtPrice - price) /
-      compareAtPrice) *
+    (
+      (
+        compareAtPrice -
+        price
+      ) /
+      compareAtPrice
+    ) *
       100,
   );
 }
@@ -84,39 +89,45 @@ function getProductImage(
 export default function ProductPurchasePanel({
   product,
 }: ProductPurchasePanelProps) {
+  const router =
+    useRouter();
+
+  const {
+    addToCart,
+    toggleWishlist,
+    wishlist,
+  } = useCart();
+
   const [
     selectedSize,
     setSelectedSize,
-  ] =
-    useState(
-      product.sizes[0] || "",
-    );
+  ] = useState(
+    product.sizes[0] ||
+      "",
+  );
 
   const [
     selectedColour,
     setSelectedColour,
-  ] =
-    useState(
-      product.colours[0] || "",
-    );
+  ] = useState(
+    product.colours[0] ||
+      "",
+  );
 
   const [
     quantity,
     setQuantity,
-  ] =
-    useState(1);
+  ] = useState(1);
 
   const [
     addedToCart,
     setAddedToCart,
-  ] =
-    useState(false);
+  ] = useState(false);
 
-  const [
-    wishlistAdded,
-    setWishlistAdded,
-  ] =
-    useState(false);
+  const wishlistAdded =
+    wishlist.includes(
+      product.id,
+    );
 
   const discount =
     getDiscountPercentage(
@@ -142,10 +153,18 @@ export default function ProductPurchasePanel({
     );
 
   const selectionReady =
-    (!product.sizes.length ||
-      selectedSize) &&
-    (!product.colours.length ||
-      selectedColour);
+    (
+      !product.sizes.length ||
+      Boolean(
+        selectedSize,
+      )
+    ) &&
+    (
+      !product.colours.length ||
+      Boolean(
+        selectedColour,
+      )
+    );
 
   const deliveryDate =
     useMemo(() => {
@@ -153,181 +172,217 @@ export default function ProductPurchasePanel({
         new Date();
 
       date.setDate(
-        date.getDate() + 4,
+        date.getDate() +
+          4,
       );
 
       return new Intl.DateTimeFormat(
         "en-IN",
         {
-          weekday: "short",
-          day: "numeric",
-          month: "short",
+          weekday:
+            "short",
+
+          day:
+            "numeric",
+
+          month:
+            "short",
         },
       ).format(date);
     }, []);
 
-  function saveToCart() {
+  function getCartProduct(): Product {
+    const productImage =
+      getProductImage(
+        product,
+      );
+
+    return {
+      id:
+        product.id,
+
+      slug:
+        product.slug,
+
+      name:
+        product.name,
+
+      price:
+        Number(
+          product.price,
+        ),
+
+      compareAtPrice:
+        product.compareAtPrice,
+
+      currency:
+        product.currency ||
+        "INR",
+
+      image:
+        productImage,
+
+      imageUrl:
+        productImage,
+
+      gallery:
+        product.gallery ??
+        [],
+
+      category:
+        product.category,
+
+      description:
+        product.description ??
+        "",
+
+      shortDescription:
+        product.shortDescription ??
+        "",
+
+      sizes:
+        product.sizes ??
+        [],
+
+      /*
+        Selected colour ko first position
+        me rakh rahe hain, taaki checkout
+        wahi selected colour receive kare.
+      */
+      colours:
+        selectedColour
+          ? [
+              selectedColour,
+
+              ...(
+                product.colours ??
+                []
+              ).filter(
+                (
+                  colour,
+                ) =>
+                  colour !==
+                  selectedColour,
+              ),
+            ]
+          : product.colours ??
+            [],
+
+      sku:
+        product.sku,
+
+      stockQuantity:
+        product.stockQuantity,
+
+      inStock:
+        product.inStock,
+
+      featured:
+        product.featured,
+
+      newArrival:
+        product.newArrival,
+
+      status:
+        product.status,
+
+      createdAt:
+        product.createdAt,
+
+      updatedAt:
+        product.updatedAt,
+    };
+  }
+
+  function addSelectedProductToCart() {
     if (
       !product.inStock ||
       !selectionReady
     ) {
+      return false;
+    }
+
+    const cartProduct =
+      getCartProduct();
+
+    const sizeForCart =
+      selectedSize ||
+      product.sizes[0] ||
+      "ONE SIZE";
+
+    /*
+      CartProvider currently ek call
+      par quantity +1 karta hai.
+
+      Isliye selected quantity ke
+      according call kar rahe hain.
+    */
+
+    for (
+      let index = 0;
+      index < quantity;
+      index += 1
+    ) {
+      addToCart(
+        cartProduct,
+        sizeForCart,
+      );
+    }
+
+    return true;
+  }
+
+  function handleAddToCart() {
+    const added =
+      addSelectedProductToCart();
+
+    if (!added) {
       return;
     }
 
-    const cartItem:
-      StoredCartItem = {
-      id: product.id,
-      slug: product.slug,
-      name: product.name,
-      image:
-        getProductImage(
-          product,
-        ),
-      price: product.price,
-      currency:
-        product.currency,
-      size: selectedSize,
-      colour:
-        selectedColour,
-      quantity,
-    };
+    setAddedToCart(
+      true,
+    );
 
-    try {
-      const currentCart =
-        JSON.parse(
-          window.localStorage.getItem(
-            "krve-cart",
-          ) || "[]",
-        ) as StoredCartItem[];
-
-      const existingIndex =
-        currentCart.findIndex(
-          (item) =>
-            item.id ===
-              cartItem.id &&
-            item.size ===
-              cartItem.size &&
-            item.colour ===
-              cartItem.colour,
+    window.setTimeout(
+      () => {
+        setAddedToCart(
+          false,
         );
-
-      if (
-        existingIndex >= 0
-      ) {
-        currentCart[
-          existingIndex
-        ] = {
-          ...currentCart[
-            existingIndex
-          ],
-
-          quantity:
-            currentCart[
-              existingIndex
-            ].quantity +
-            cartItem.quantity,
-        };
-      } else {
-        currentCart.push(
-          cartItem,
-        );
-      }
-
-      window.localStorage.setItem(
-        "krve-cart",
-        JSON.stringify(
-          currentCart,
-        ),
-      );
-
-      window.dispatchEvent(
-        new CustomEvent(
-          "krve-cart-updated",
-          {
-            detail:
-              currentCart,
-          },
-        ),
-      );
-
-      setAddedToCart(
-        true,
-      );
-
-      window.setTimeout(
-        () => {
-          setAddedToCart(
-            false,
-          );
-        },
-        2500,
-      );
-    } catch (error) {
-      console.error(
-        "KRVE_CART_SAVE_ERROR",
-        error,
-      );
-    }
+      },
+      2500,
+    );
   }
 
   function buyNow() {
-    saveToCart();
+    const added =
+      addSelectedProductToCart();
 
-    window.location.href =
-      "/checkout";
+    if (!added) {
+      return;
+    }
+
+    /*
+      IMPORTANT:
+
+      window.location.href use nahi
+      kar rahe.
+
+      router.push se CartProvider
+      mounted rehta hai aur checkout
+      ko updated cart immediately
+      milta hai.
+    */
+
+    router.push(
+      "/checkout",
+    );
   }
 
-  function toggleWishlist() {
-    try {
-      const currentWishlist =
-        JSON.parse(
-          window.localStorage.getItem(
-            "krve-wishlist",
-          ) || "[]",
-        ) as string[];
-
-      const nextWishlist =
-        currentWishlist.includes(
-          product.id,
-        )
-          ? currentWishlist.filter(
-              (id) =>
-                id !==
-                product.id,
-            )
-          : [
-              ...currentWishlist,
-              product.id,
-            ];
-
-      window.localStorage.setItem(
-        "krve-wishlist",
-        JSON.stringify(
-          nextWishlist,
-        ),
-      );
-
-      setWishlistAdded(
-        nextWishlist.includes(
-          product.id,
-        ),
-      );
-
-      window.dispatchEvent(
-        new CustomEvent(
-          "krve-wishlist-updated",
-          {
-            detail:
-              nextWishlist,
-          },
-        ),
-      );
-    } catch (error) {
-      console.error(
-        "KRVE_WISHLIST_ERROR",
-        error,
-      );
-    }
+  function handleWishlist() {
+    toggleWishlist(
+      product.id,
+    );
   }
 
   return (
@@ -352,9 +407,13 @@ export default function ProductPurchasePanel({
               : ""
           }`}
           onClick={
-            toggleWishlist
+            handleWishlist
           }
-          aria-label="Add to wishlist"
+          aria-label={
+            wishlistAdded
+              ? "Remove from wishlist"
+              : "Add to wishlist"
+          }
         >
           <Heart
             size={21}
@@ -369,23 +428,23 @@ export default function ProductPurchasePanel({
 
       <div className="krve-price-row">
         {discount !==
-          null && (
+          null ? (
           <span className="krve-discount">
             {discount}% OFF
           </span>
-        )}
+        ) : null}
 
         {product.compareAtPrice !==
           null &&
-          product.compareAtPrice >
-            product.price && (
-            <del>
-              {formatPrice(
-                product.compareAtPrice,
-                product.currency,
-              )}
-            </del>
-          )}
+        product.compareAtPrice >
+          product.price ? (
+          <del>
+            {formatPrice(
+              product.compareAtPrice,
+              product.currency,
+            )}
+          </del>
+        ) : null}
 
         <strong>
           {formatPrice(
@@ -395,7 +454,7 @@ export default function ProductPurchasePanel({
         </strong>
       </div>
 
-      {savings > 0 && (
+      {savings > 0 ? (
         <p className="krve-saving">
           You save{" "}
           {formatPrice(
@@ -403,7 +462,7 @@ export default function ProductPurchasePanel({
             product.currency,
           )}
         </p>
-      )}
+      ) : null}
 
       <p className="krve-tax-note">
         Inclusive of all
@@ -411,7 +470,7 @@ export default function ProductPurchasePanel({
       </p>
 
       {product.sizes.length >
-        0 && (
+      0 ? (
         <section className="krve-selection-section">
           <div className="krve-selection-heading">
             <strong>
@@ -444,13 +503,11 @@ export default function ProductPurchasePanel({
                   }
                 >
                   {selectedSize ===
-                    size && (
+                  size ? (
                     <Check
-                      size={
-                        12
-                      }
+                      size={12}
                     />
-                  )}
+                  ) : null}
 
                   {size}
                 </button>
@@ -458,10 +515,10 @@ export default function ProductPurchasePanel({
             )}
           </div>
         </section>
-      )}
+      ) : null}
 
       {product.colours.length >
-        0 && (
+      0 ? (
         <section className="krve-selection-section">
           <div className="krve-selection-heading">
             <strong>
@@ -495,7 +552,7 @@ export default function ProductPurchasePanel({
             )}
           </div>
         </section>
-      )}
+      ) : null}
 
       <div className="krve-stock-line">
         <div
@@ -537,18 +594,24 @@ export default function ProductPurchasePanel({
             type="button"
             onClick={() =>
               setQuantity(
-                (current) =>
+                (
+                  current,
+                ) =>
                   Math.max(
                     1,
-                    current - 1,
+                    current -
+                      1,
                   ),
               )
             }
             disabled={
-              quantity <= 1
+              quantity <=
+              1
             }
           >
-            <Minus size={15} />
+            <Minus
+              size={15}
+            />
           </button>
 
           <strong>
@@ -559,10 +622,13 @@ export default function ProductPurchasePanel({
             type="button"
             onClick={() =>
               setQuantity(
-                (current) =>
+                (
+                  current,
+                ) =>
                   Math.min(
                     maximumQuantity,
-                    current + 1,
+                    current +
+                      1,
                   ),
               )
             }
@@ -571,7 +637,9 @@ export default function ProductPurchasePanel({
               maximumQuantity
             }
           >
-            <Plus size={15} />
+            <Plus
+              size={15}
+            />
           </button>
         </div>
       </div>
@@ -581,7 +649,7 @@ export default function ProductPurchasePanel({
           type="button"
           className="krve-add-cart"
           onClick={
-            saveToCart
+            handleAddToCart
           }
           disabled={
             !product.inStock ||
@@ -593,6 +661,7 @@ export default function ProductPurchasePanel({
               <Check
                 size={19}
               />
+
               Added to Cart
             </>
           ) : (
@@ -600,6 +669,7 @@ export default function ProductPurchasePanel({
               <ShoppingBag
                 size={19}
               />
+
               Add to Cart
             </>
           )}
@@ -608,13 +678,18 @@ export default function ProductPurchasePanel({
         <button
           type="button"
           className="krve-buy-now"
-          onClick={buyNow}
+          onClick={
+            buyNow
+          }
           disabled={
             !product.inStock ||
             !selectionReady
           }
         >
-          <Zap size={18} />
+          <Zap
+            size={18}
+          />
+
           Buy Now
         </button>
       </div>
