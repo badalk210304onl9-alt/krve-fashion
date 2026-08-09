@@ -1,121 +1,42 @@
 import { NextResponse } from "next/server";
+import Razorpay from "razorpay";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 type CreateOrderRequest = {
-  customer?: {
-    firstName?: string;
-    lastName?: string;
-    email?: string;
-    phone?: string;
-  };
+  amount?: number;
+  receipt?: string;
 
+  customerName?: string;
   customerEmail?: string;
   customerPhone?: string;
-
-  subtotal?: number;
-  discount?: number;
-  shipping?: number;
-  tax?: number;
-  total?: number;
-
-  currency?: string;
-
-  couponCode?: string | null;
-
-  shippingAddress?: {
-    recipientName?: string;
-    phone?: string;
-
-    addressLine1?: string;
-    addressLine2?: string;
-
-    city?: string;
-    state?: string;
-    postalCode?: string;
-    country?: string;
-  };
-
-  billingAddress?: {
-    recipientName?: string;
-    phone?: string;
-
-    addressLine1?: string;
-    addressLine2?: string;
-
-    city?: string;
-    state?: string;
-    postalCode?: string;
-    country?: string;
-  };
-
-  notes?: string | null;
-
-  items?: Array<{
-    productId?: string | null;
-
-    productName?: string;
-
-    productImageUrl?: string | null;
-
-    sku?: string | null;
-
-    size?: string | null;
-
-    colour?: string | null;
-
-    unitPrice?: number;
-
-    quantity?: number;
-
-    lineTotal?: number;
-  }>;
-
-  payment?: {
-    provider?: string;
-
-    providerOrderId?: string | null;
-
-    providerPaymentId?: string | null;
-
-    providerSignature?: string | null;
-
-    amount?: number;
-
-    currency?: string;
-
-    status?: string;
-
-    rawResponse?: unknown;
-  };
 };
 
-function getCentralApiUrl() {
-  const url =
-    process.env.KRVE_API_URL?.trim() ||
-    process.env.NEXT_PUBLIC_KRVE_API_URL?.trim();
+function getRazorpayCredentials() {
+  const keyId =
+    process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID?.trim() ||
+    process.env.RAZORPAY_KEY_ID?.trim();
 
-  if (!url) {
+  const keySecret =
+    process.env.RAZORPAY_KEY_SECRET?.trim();
+
+  if (!keyId) {
     throw new Error(
-      "KRVE_API_URL is missing in Vercel Environment Variables.",
+      "RAZORPAY_KEY_ID is missing in Vercel Environment Variables.",
     );
   }
 
-  return url.replace(/\/+$/, "");
-}
-
-function getWebsiteSecret() {
-  const secret =
-    process.env.KRVE_WEBSITE_SECRET?.trim();
-
-  if (!secret) {
+  if (!keySecret) {
     throw new Error(
-      "KRVE_WEBSITE_SECRET is missing in Vercel Environment Variables.",
+      "RAZORPAY_KEY_SECRET is missing in Vercel Environment Variables.",
     );
   }
 
-  return secret;
+  return {
+    keyId,
+    keySecret,
+  };
 }
 
 export async function POST(
@@ -125,17 +46,29 @@ export async function POST(
     const body =
       (await request.json()) as CreateOrderRequest;
 
+    /*
+      Checkout sends amount in RUPEES.
+
+      Example:
+      4727
+
+      Razorpay requires PAISE.
+
+      4727 × 100 = 472700
+    */
+
+    const amount =
+      Number(body.amount);
+
     if (
-      !body.items ||
-      !Array.isArray(body.items) ||
-      body.items.length === 0
+      !Number.isFinite(amount) ||
+      amount <= 0
     ) {
       return NextResponse.json(
         {
           success: false,
-
           message:
-            "Order items are required.",
+            "Invalid payment amount.",
         },
         {
           status: 400,
@@ -143,19 +76,19 @@ export async function POST(
       );
     }
 
-    const total =
-      Number(body.total ?? 0);
+    const amountInPaise =
+      Math.round(
+        amount * 100,
+      );
 
     if (
-      !Number.isFinite(total) ||
-      total <= 0
+      amountInPaise < 100
     ) {
       return NextResponse.json(
         {
           success: false,
-
           message:
-            "Invalid order total.",
+            "Minimum payment amount is ₹1.",
         },
         {
           status: 400,
@@ -163,162 +96,105 @@ export async function POST(
       );
     }
 
-    const paymentId =
-      body.payment
-        ?.providerPaymentId
-        ?.trim();
+    const {
+      keyId,
+      keySecret,
+    } =
+      getRazorpayCredentials();
 
-    const razorpayOrderId =
-      body.payment
-        ?.providerOrderId
-        ?.trim();
+    const razorpay =
+      new Razorpay({
+        key_id: keyId,
+        key_secret:
+          keySecret,
+      });
 
-    if (
-      !paymentId ||
-      !razorpayOrderId
-    ) {
-      return NextResponse.json(
+    const receipt =
+      (
+        body.receipt ||
+        `krve_${Date.now()}`
+      )
+        .trim()
+        .slice(
+          0,
+          40,
+        );
+
+    const order =
+      await razorpay.orders.create(
         {
-          success: false,
+          amount:
+            amountInPaise,
 
-          message:
-            "Verified Razorpay payment information is required.",
-        },
-        {
-          status: 400,
-        },
-      );
-    }
+          currency:
+            "INR",
 
-    const apiUrl =
-      getCentralApiUrl();
+          receipt,
 
-    const websiteSecret =
-      getWebsiteSecret();
+          notes: {
+            brand:
+              "KRVE",
 
-    const centralApiResponse =
-      await fetch(
-        `${apiUrl}/orders`,
-        {
-          method: "POST",
+            customer_name:
+              (
+                body.customerName ||
+                ""
+              ).slice(
+                0,
+                100,
+              ),
 
-          headers: {
-            "Content-Type":
-              "application/json",
+            customer_email:
+              (
+                body.customerEmail ||
+                ""
+              ).slice(
+                0,
+                100,
+              ),
 
-            "X-KRVE-Website-Key":
-              websiteSecret,
+            customer_phone:
+              (
+                body.customerPhone ||
+                ""
+              ).slice(
+                0,
+                30,
+              ),
           },
-
-          body:
-            JSON.stringify(body),
-
-          cache: "no-store",
         },
       );
-
-    let centralApiData:
-      | {
-          success?: boolean;
-
-          message?: string;
-
-          data?: {
-            order?: {
-              id?: string;
-
-              orderNumber?: string;
-
-              status?: string;
-
-              paymentStatus?: string;
-
-              total?: number;
-
-              currency?: string;
-
-              createdAt?: string;
-            };
-
-            payment?: {
-              id?: string;
-
-              provider?: string;
-
-              providerOrderId?: string | null;
-
-              providerPaymentId?: string | null;
-
-              status?: string;
-            };
-          };
-        }
-      | null = null;
-
-    try {
-      centralApiData =
-        await centralApiResponse.json();
-    } catch {
-      centralApiData = null;
-    }
-
-    if (
-      !centralApiResponse.ok ||
-      !centralApiData?.success
-    ) {
-      console.error(
-        "KRVE_CENTRAL_API_ORDER_ERROR",
-        {
-          status:
-            centralApiResponse.status,
-
-          response:
-            centralApiData,
-        },
-      );
-
-      return NextResponse.json(
-        {
-          success: false,
-
-          message:
-            centralApiData?.message ||
-            "Payment succeeded, but KRVE could not save the order. Please contact KRVE support.",
-        },
-        {
-          status:
-            centralApiResponse.status >=
-              400 &&
-            centralApiResponse.status <
-              600
-              ? centralApiResponse.status
-              : 500,
-        },
-      );
-    }
 
     return NextResponse.json(
       {
         success: true,
 
-        message:
-          "Order created successfully.",
+        keyId,
 
-        order:
-          centralApiData.data
-            ?.order ?? null,
+        order: {
+          id:
+            order.id,
 
-        payment:
-          centralApiData.data
-            ?.payment ?? null,
+          amount:
+            order.amount,
+
+          currency:
+            order.currency,
+
+          receipt:
+            order.receipt,
+
+          status:
+            order.status,
+        },
       },
       {
-        status: 201,
+        status: 200,
       },
     );
   } catch (error) {
     console.error(
-      "KRVE_CREATE_ORDER_ROUTE_ERROR",
+      "KRVE_RAZORPAY_CREATE_ORDER_ERROR",
       error,
     );
 
@@ -329,7 +205,7 @@ export async function POST(
         message:
           error instanceof Error
             ? error.message
-            : "Unable to save KRVE order.",
+            : "Unable to create Razorpay order.",
       },
       {
         status: 500,
