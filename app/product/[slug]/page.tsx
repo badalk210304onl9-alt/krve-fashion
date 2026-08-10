@@ -1,8 +1,8 @@
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import ProductDetailsSections from "@/components/product/product-details-sections";
+import ProductGallery from "@/components/product/product-gallery";
 import ProductPurchasePanel from "@/components/product/product-purchase-panel";
 import SimilarProducts from "@/components/product/similar-products";
 
@@ -117,13 +117,6 @@ export default async function ProductPage({
   const galleryImages =
     getGalleryImages(product);
 
-  const mainImage =
-    galleryImages[0] ||
-    "/images/products/product-1.jpg";
-
-  const secondaryImages =
-    galleryImages.slice(1);
-
   return (
     <main className={styles.page}>
       <section className={styles.breadcrumbBar}>
@@ -166,77 +159,18 @@ export default async function ProductPage({
           className={`${styles.container} ${styles.productGrid}`}
         >
           <div className={styles.leftColumn}>
-            <section
-              className={styles.gallerySection}
-            >
-              <div
-                className={styles.mainImageCard}
-              >
-                <Image
-                  src={mainImage}
-                  alt={product.name}
-                  fill
-                  priority
-                  sizes="(max-width: 900px) 100vw, 58vw"
-                  className={styles.mainImage}
-                />
-
-                <div
-                  className={styles.imageLabels}
-                >
-                  <span>
-                    {getCategoryLabel(
-                      product.category,
-                    )}
-                  </span>
-
-                  {product.newArrival && (
-                    <strong>
-                      New Arrival
-                    </strong>
-                  )}
-                </div>
-
-                <button
-                  type="button"
-                  className={
-                    styles.imageWishlist
-                  }
-                  aria-label="Add product to wishlist"
-                >
-                  ♡
-                </button>
-              </div>
-
-              {secondaryImages.length > 0 && (
-                <div
-                  className={
-                    styles.secondaryImageGrid
-                  }
-                >
-                  {secondaryImages.map(
-                    (image, index) => (
-                      <div
-                        key={`${image}-${index}`}
-                        className={
-                          styles.secondaryImageCard
-                        }
-                      >
-                        <Image
-                          src={image}
-                          alt={`${product.name} view ${index + 2}`}
-                          fill
-                          sizes="(max-width: 700px) 100vw, 28vw"
-                          className={
-                            styles.secondaryImage
-                          }
-                        />
-                      </div>
-                    ),
-                  )}
-                </div>
+            <ProductGallery
+              productName={product.name}
+              categoryLabel={getCategoryLabel(
+                product.category,
               )}
-            </section>
+              newArrival={
+                product.newArrival
+              }
+              images={
+                galleryImages
+              }
+            />
 
             <ProductPurchasePanel
               product={product}
