@@ -139,9 +139,11 @@ export default async function HomePage() {
 
   return (
     <main>
-      <section className="hero">
-        <div className="hero-silk" />
+      {/* =====================================================
+          HERO SECTION
+      ===================================================== */}
 
+      <section className="hero">
         <div className="hero-copy">
           <div className="eyebrow">
             <span />
@@ -203,6 +205,81 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* =====================================================
+          RAKSHA BANDHAN SALE BANNER
+      ===================================================== */}
+
+      <section
+        style={{
+          background: "#050505",
+          padding:
+            "28px 0 32px",
+          borderTop:
+            "1px solid rgba(218, 165, 32, 0.35)",
+          borderBottom:
+            "1px solid rgba(218, 165, 32, 0.35)",
+        }}
+      >
+        <div
+          style={{
+            width:
+              "min(1500px, calc(100% - 32px))",
+
+            margin:
+              "0 auto",
+          }}
+        >
+          <Link
+            href="/collections"
+            aria-label="Shop Raksha Bandhan Sale - Up to 60% off"
+            style={{
+              position:
+                "relative",
+
+              display:
+                "block",
+
+              width:
+                "100%",
+
+              aspectRatio:
+                "16 / 9",
+
+              overflow:
+                "hidden",
+
+              border:
+                "1px solid rgba(220, 168, 30, 0.65)",
+
+              background:
+                "#000",
+
+              boxShadow:
+                "0 24px 70px rgba(0,0,0,0.45)",
+            }}
+          >
+            <Image
+              src="/images/raksha-bandhan-sale.png"
+              alt="KRVE Raksha Bandhan Sale is live - Up to 60% off"
+              fill
+              priority
+              sizes="100vw"
+              style={{
+                objectFit:
+                  "cover",
+
+                objectPosition:
+                  "center",
+              }}
+            />
+          </Link>
+        </div>
+      </section>
+
+      {/* =====================================================
+          BENEFITS
+      ===================================================== */}
+
       <section className="benefits">
         {[
           [
@@ -254,6 +331,10 @@ export default async function HomePage() {
           ),
         )}
       </section>
+
+      {/* =====================================================
+          NEW ARRIVALS
+      ===================================================== */}
 
       <section className="new-arrivals">
         <div className="section-heading">
@@ -365,6 +446,10 @@ export default async function HomePage() {
           </article>
         </div>
       </section>
+
+      {/* =====================================================
+          BOTTOM STRIP
+      ===================================================== */}
 
       <section className="bottom-strip">
         {[
