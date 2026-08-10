@@ -12,13 +12,10 @@ import type {
   Product,
 } from "@/lib/catalog";
 
-export const dynamic =
-  "force-dynamic";
+export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title:
-    "KRVE — The Fashion Studio",
-
+  title: "KRVE — The Fashion Studio",
   description:
     "Luxury fashion, intelligent fit and AI-powered personal styling.",
 };
@@ -27,9 +24,7 @@ function convertToProductCardProduct(
   product: KrveProduct,
 ): Product {
   return {
-    id:
-      product.slug ||
-      product.id,
+    id: product.slug || product.id,
 
     slug:
       product.slug ||
@@ -211,19 +206,23 @@ export default async function HomePage() {
 
       <section
         style={{
-          background: "#050505",
+          background:
+            "#050505",
+
           padding:
-            "28px 0 32px",
+            "22px 0",
+
           borderTop:
-            "1px solid rgba(218, 165, 32, 0.35)",
+            "1px solid rgba(220, 168, 30, 0.32)",
+
           borderBottom:
-            "1px solid rgba(218, 165, 32, 0.35)",
+            "1px solid rgba(220, 168, 30, 0.32)",
         }}
       >
         <div
           style={{
             width:
-              "min(1500px, calc(100% - 32px))",
+              "min(1540px, calc(100% - 28px))",
 
             margin:
               "0 auto",
@@ -231,7 +230,7 @@ export default async function HomePage() {
         >
           <Link
             href="/collections"
-            aria-label="Shop Raksha Bandhan Sale - Up to 60% off"
+            aria-label="Shop KRVE Raksha Bandhan Sale"
             style={{
               position:
                 "relative",
@@ -243,24 +242,24 @@ export default async function HomePage() {
                 "100%",
 
               aspectRatio:
-                "16 / 9",
+                "16 / 10",
 
               overflow:
                 "hidden",
 
               border:
-                "1px solid rgba(220, 168, 30, 0.65)",
+                "1px solid rgba(225, 173, 35, 0.68)",
 
               background:
                 "#000",
 
               boxShadow:
-                "0 24px 70px rgba(0,0,0,0.45)",
+                "0 24px 80px rgba(0,0,0,0.55)",
             }}
           >
             <Image
               src="/images/raksha-bandhan-sale.png"
-              alt="KRVE Raksha Bandhan Sale is live - Up to 60% off"
+              alt="KRVE Raksha Bandhan Sale is live with up to 60 percent off"
               fill
               priority
               sizes="100vw"
@@ -402,6 +401,10 @@ export default async function HomePage() {
               </div>
             )}
           </div>
+
+          {/* =====================================================
+              AI TRY-ON CARD
+          ===================================================== */}
 
           <article className="tryon-card">
             <div>
