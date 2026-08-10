@@ -54,8 +54,7 @@ export default async function ProductPage({
     await params;
 
   let product:
-    | KrveProduct
-    | null =
+    KrveProduct | null =
     null;
 
   try {
@@ -85,14 +84,14 @@ export default async function ProductPage({
     [];
 
   try {
-    const categoryProducts =
+    const products =
       await getProductsByCategory(
         product.category,
         12,
       );
 
     similarProducts =
-      categoryProducts
+      products
         .filter(
           (item) =>
             item.id !==
@@ -131,7 +130,6 @@ export default async function ProductPage({
             className={
               styles.breadcrumb
             }
-            aria-label="Breadcrumb"
           >
             <Link href="/">
               Home
@@ -188,23 +186,26 @@ export default async function ProductPage({
         </div>
       </section>
 
-      <section
-        className={
-          styles.similarArea
-        }
-      >
-        <div
+      {similarProducts.length >
+      0 ? (
+        <section
           className={
-            styles.container
+            styles.similarArea
           }
         >
-          <SimilarProducts
-            products={
-              similarProducts
+          <div
+            className={
+              styles.container
             }
-          />
-        </div>
-      </section>
+          >
+            <SimilarProducts
+              products={
+                similarProducts
+              }
+            />
+          </div>
+        </section>
+      ) : null}
     </main>
   );
 }
