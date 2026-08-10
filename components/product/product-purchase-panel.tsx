@@ -6,10 +6,6 @@ import {
 } from "react";
 
 import {
-  useRouter,
-} from "next/navigation";
-
-import {
   Check,
   ChevronDown,
   Heart,
@@ -20,20 +16,36 @@ import {
   Zap,
 } from "lucide-react";
 
-import {
-  useCart,
-} from "@/components/cart-provider";
-
-import type {
-  Product,
-} from "@/lib/catalog";
-
 import type {
   KrveProduct,
 } from "@/lib/api";
 
 type ProductPurchasePanelProps = {
   product: KrveProduct;
+
+  selectedColour?: string;
+
+  onSelectedColourChange?: (
+    colour: string,
+  ) => void;
+
+  selectedImage?: string;
+
+  hideHeaderPrice?: boolean;
+
+  hideColourSelector?: boolean;
+};
+
+type StoredCartItem = {
+  id: string;
+  slug: string;
+  name: string;
+  image: string;
+  price: number;
+  currency: string;
+  size: string;
+  colour: string;
+  quantity: number;
 };
 
 function formatPrice(
@@ -64,13 +76,8 @@ function getDiscountPercentage(
   }
 
   return Math.round(
-    (
-      (
-        compareAtPrice -
-        price
-      ) /
-      compareAtPrice
-    ) *
+    ((compareAtPrice - price) /
+      compareAtPrice) *
       100,
   );
 }
@@ -88,46 +95,50 @@ function getProductImage(
 
 export default function ProductPurchasePanel({
   product,
+  selectedColour:
+    controlledColour,
+  onSelectedColourChange,
+  selectedImage,
+  hideHeaderPrice = false,
+  hideColourSelector = false,
 }: ProductPurchasePanelProps) {
-  const router =
-    useRouter();
-
-  const {
-    addToCart,
-    toggleWishlist,
-    wishlist,
-  } = useCart();
-
   const [
     selectedSize,
     setSelectedSize,
-  ] = useState(
-    product.sizes[0] ||
-      "",
-  );
+  ] =
+    useState(
+      product.sizes[0] || "",
+    );
 
   const [
-    selectedColour,
-    setSelectedColour,
-  ] = useState(
-    product.colours[0] ||
-      "",
-  );
+    internalColour,
+    setInternalColour,
+  ] =
+    useState(
+      product.colours[0] || "",
+    );
+
+  const selectedColour =
+    controlledColour ??
+    internalColour;
 
   const [
     quantity,
     setQuantity,
-  ] = useState(1);
+  ] =
+    useState(1);
 
   const [
     addedToCart,
     setAddedToCart,
-  ] = useState(false);
+  ] =
+    useState(false);
 
-  const wishlistAdded =
-    wishlist.includes(
-      product.id,
-    );
+  const [
+    wishlistAdded,
+    setWishlistAdded,
+  ] =
+    useState(false);
 
   const discount =
     getDiscountPercentage(
@@ -153,18 +164,10 @@ export default function ProductPurchasePanel({
     );
 
   const selectionReady =
-    (
-      !product.sizes.length ||
-      Boolean(
-        selectedSize,
-      )
-    ) &&
-    (
-      !product.colours.length ||
-      Boolean(
-        selectedColour,
-      )
-    );
+    (!product.sizes.length ||
+      selectedSize) &&
+    (!product.colours.length ||
+      selectedColour);
 
   const deliveryDate =
     useMemo(() => {
@@ -172,129 +175,32 @@ export default function ProductPurchasePanel({
         new Date();
 
       date.setDate(
-        date.getDate() +
-          4,
+        date.getDate() + 4,
       );
 
       return new Intl.DateTimeFormat(
         "en-IN",
         {
-          weekday:
-            "short",
-
-          day:
-            "numeric",
-
-          month:
-            "short",
+          weekday: "short",
+          day: "numeric",
+          month: "short",
         },
       ).format(date);
     }, []);
 
-  function getCartProduct(): Product {
-    const productImage =
-      getProductImage(
-        product,
-      );
+  function selectColour(
+    colour: string,
+  ) {
+    setInternalColour(
+      colour,
+    );
 
-    return {
-      id:
-        product.id,
-
-      slug:
-        product.slug,
-
-      name:
-        product.name,
-
-      price:
-        Number(
-          product.price,
-        ),
-
-      compareAtPrice:
-        product.compareAtPrice,
-
-      currency:
-        product.currency ||
-        "INR",
-
-      image:
-        productImage,
-
-      imageUrl:
-        productImage,
-
-      gallery:
-        product.gallery ??
-        [],
-
-      category:
-        product.category,
-
-      description:
-        product.description ??
-        "",
-
-      shortDescription:
-        product.shortDescription ??
-        "",
-
-      sizes:
-        product.sizes ??
-        [],
-
-      /*
-        Selected colour ko first position
-        me rakh rahe hain, taaki checkout
-        wahi selected colour receive kare.
-      */
-      colours:
-        selectedColour
-          ? [
-              selectedColour,
-
-              ...(
-                product.colours ??
-                []
-              ).filter(
-                (
-                  colour,
-                ) =>
-                  colour !==
-                  selectedColour,
-              ),
-            ]
-          : product.colours ??
-            [],
-
-      sku:
-        product.sku,
-
-      stockQuantity:
-        product.stockQuantity,
-
-      inStock:
-        product.inStock,
-
-      featured:
-        product.featured,
-
-      newArrival:
-        product.newArrival,
-
-      status:
-        product.status,
-
-      createdAt:
-        product.createdAt,
-
-      updatedAt:
-        product.updatedAt,
-    };
+    onSelectedColourChange?.(
+      colour,
+    );
   }
 
-  function addSelectedProductToCart() {
+  function saveToCart() {
     if (
       !product.inStock ||
       !selectionReady
@@ -302,175 +208,259 @@ export default function ProductPurchasePanel({
       return false;
     }
 
-    const cartProduct =
-      getCartProduct();
+    const cartItem:
+      StoredCartItem = {
+      id: product.id,
+      slug: product.slug,
+      name: product.name,
+      image:
+        selectedImage ||
+        getProductImage(
+          product,
+        ),
+      price: product.price,
+      currency:
+        product.currency,
+      size: selectedSize,
+      colour:
+        selectedColour,
+      quantity,
+    };
 
-    const sizeForCart =
-      selectedSize ||
-      product.sizes[0] ||
-      "ONE SIZE";
+    try {
+      const currentCart =
+        JSON.parse(
+          window.localStorage.getItem(
+            "krve-cart",
+          ) || "[]",
+        ) as StoredCartItem[];
 
-    /*
-      CartProvider currently ek call
-      par quantity +1 karta hai.
-
-      Isliye selected quantity ke
-      according call kar rahe hain.
-    */
-
-    for (
-      let index = 0;
-      index < quantity;
-      index += 1
-    ) {
-      addToCart(
-        cartProduct,
-        sizeForCart,
-      );
-    }
-
-    return true;
-  }
-
-  function handleAddToCart() {
-    const added =
-      addSelectedProductToCart();
-
-    if (!added) {
-      return;
-    }
-
-    setAddedToCart(
-      true,
-    );
-
-    window.setTimeout(
-      () => {
-        setAddedToCart(
-          false,
+      const existingIndex =
+        currentCart.findIndex(
+          (item) =>
+            item.id ===
+              cartItem.id &&
+            item.size ===
+              cartItem.size &&
+            item.colour ===
+              cartItem.colour,
         );
-      },
-      2500,
-    );
+
+      if (
+        existingIndex >= 0
+      ) {
+        currentCart[
+          existingIndex
+        ] = {
+          ...currentCart[
+            existingIndex
+          ],
+
+          image:
+            cartItem.image,
+
+          quantity:
+            currentCart[
+              existingIndex
+            ].quantity +
+            cartItem.quantity,
+        };
+      } else {
+        currentCart.push(
+          cartItem,
+        );
+      }
+
+      window.localStorage.setItem(
+        "krve-cart",
+        JSON.stringify(
+          currentCart,
+        ),
+      );
+
+      window.dispatchEvent(
+        new CustomEvent(
+          "krve-cart-updated",
+          {
+            detail:
+              currentCart,
+          },
+        ),
+      );
+
+      setAddedToCart(
+        true,
+      );
+
+      window.setTimeout(
+        () => {
+          setAddedToCart(
+            false,
+          );
+        },
+        2500,
+      );
+
+      return true;
+    } catch (error) {
+      console.error(
+        "KRVE_CART_SAVE_ERROR",
+        error,
+      );
+
+      return false;
+    }
   }
 
   function buyNow() {
-    const added =
-      addSelectedProductToCart();
+    const saved =
+      saveToCart();
 
-    if (!added) {
-      return;
+    if (saved) {
+      window.location.href =
+        "/checkout";
     }
-
-    /*
-      IMPORTANT:
-
-      window.location.href use nahi
-      kar rahe.
-
-      router.push se CartProvider
-      mounted rehta hai aur checkout
-      ko updated cart immediately
-      milta hai.
-    */
-
-    router.push(
-      "/checkout",
-    );
   }
 
-  function handleWishlist() {
-    toggleWishlist(
-      product.id,
-    );
+  function toggleWishlist() {
+    try {
+      const currentWishlist =
+        JSON.parse(
+          window.localStorage.getItem(
+            "krve-wishlist",
+          ) || "[]",
+        ) as string[];
+
+      const nextWishlist =
+        currentWishlist.includes(
+          product.id,
+        )
+          ? currentWishlist.filter(
+              (id) =>
+                id !==
+                product.id,
+            )
+          : [
+              ...currentWishlist,
+              product.id,
+            ];
+
+      window.localStorage.setItem(
+        "krve-wishlist",
+        JSON.stringify(
+          nextWishlist,
+        ),
+      );
+
+      setWishlistAdded(
+        nextWishlist.includes(
+          product.id,
+        ),
+      );
+
+      window.dispatchEvent(
+        new CustomEvent(
+          "krve-wishlist-updated",
+          {
+            detail:
+              nextWishlist,
+          },
+        ),
+      );
+    } catch (error) {
+      console.error(
+        "KRVE_WISHLIST_ERROR",
+        error,
+      );
+    }
   }
 
   return (
     <section className="krve-purchase-panel">
-      <div className="krve-purchase-top">
-        <div>
-          <p className="krve-purchase-label">
-            KRVE PRIVATE
-            COLLECTION
-          </p>
+      {!hideHeaderPrice ? (
+        <>
+          <div className="krve-purchase-top">
+            <div>
+              <p className="krve-purchase-label">
+                KRVE PRIVATE
+                COLLECTION
+              </p>
 
-          <h2>
-            {product.name}
-          </h2>
-        </div>
+              <h2>
+                {product.name}
+              </h2>
+            </div>
 
-        <button
-          type="button"
-          className={`krve-wishlist-control ${
-            wishlistAdded
-              ? "active"
-              : ""
-          }`}
-          onClick={
-            handleWishlist
-          }
-          aria-label={
-            wishlistAdded
-              ? "Remove from wishlist"
-              : "Add to wishlist"
-          }
-        >
-          <Heart
-            size={21}
-            fill={
-              wishlistAdded
-                ? "currentColor"
-                : "none"
-            }
-          />
-        </button>
-      </div>
+            <button
+              type="button"
+              className={`krve-wishlist-control ${
+                wishlistAdded
+                  ? "active"
+                  : ""
+              }`}
+              onClick={
+                toggleWishlist
+              }
+              aria-label="Add to wishlist"
+            >
+              <Heart
+                size={21}
+                fill={
+                  wishlistAdded
+                    ? "currentColor"
+                    : "none"
+                }
+              />
+            </button>
+          </div>
 
-      <div className="krve-price-row">
-        {discount !==
-          null ? (
-          <span className="krve-discount">
-            {discount}% OFF
-          </span>
-        ) : null}
-
-        {product.compareAtPrice !==
-          null &&
-        product.compareAtPrice >
-          product.price ? (
-          <del>
-            {formatPrice(
-              product.compareAtPrice,
-              product.currency,
+          <div className="krve-price-row">
+            {discount !==
+              null && (
+              <span className="krve-discount">
+                {discount}% OFF
+              </span>
             )}
-          </del>
-        ) : null}
 
-        <strong>
-          {formatPrice(
-            product.price,
-            product.currency,
-          )}
-        </strong>
-      </div>
+            {product.compareAtPrice !==
+              null &&
+              product.compareAtPrice >
+                product.price && (
+                <del>
+                  {formatPrice(
+                    product.compareAtPrice,
+                    product.currency,
+                  )}
+                </del>
+              )}
 
-      {savings > 0 ? (
-        <p className="krve-saving">
-          You save{" "}
-          {formatPrice(
-            savings,
-            product.currency,
+            <strong>
+              {formatPrice(
+                product.price,
+                product.currency,
+              )}
+            </strong>
+          </div>
+
+          {savings > 0 && (
+            <p className="krve-saving">
+              You save{" "}
+              {formatPrice(
+                savings,
+                product.currency,
+              )}
+            </p>
           )}
-        </p>
+
+          <p className="krve-tax-note">
+            Inclusive of all
+            taxes
+          </p>
+        </>
       ) : null}
 
-      <p className="krve-tax-note">
-        Inclusive of all
-        taxes
-      </p>
-
       {product.sizes.length >
-      0 ? (
+        0 && (
         <section className="krve-selection-section">
           <div className="krve-selection-heading">
             <strong>
@@ -503,11 +493,13 @@ export default function ProductPurchasePanel({
                   }
                 >
                   {selectedSize ===
-                  size ? (
+                    size && (
                     <Check
-                      size={12}
+                      size={
+                        12
+                      }
                     />
-                  ) : null}
+                  )}
 
                   {size}
                 </button>
@@ -515,10 +507,11 @@ export default function ProductPurchasePanel({
             )}
           </div>
         </section>
-      ) : null}
+      )}
 
-      {product.colours.length >
-      0 ? (
+      {!hideColourSelector &&
+      product.colours.length >
+        0 ? (
         <section className="krve-selection-section">
           <div className="krve-selection-heading">
             <strong>
@@ -533,7 +526,7 @@ export default function ProductPurchasePanel({
                   type="button"
                   key={colour}
                   onClick={() =>
-                    setSelectedColour(
+                    selectColour(
                       colour,
                     )
                   }
@@ -594,24 +587,18 @@ export default function ProductPurchasePanel({
             type="button"
             onClick={() =>
               setQuantity(
-                (
-                  current,
-                ) =>
+                (current) =>
                   Math.max(
                     1,
-                    current -
-                      1,
+                    current - 1,
                   ),
               )
             }
             disabled={
-              quantity <=
-              1
+              quantity <= 1
             }
           >
-            <Minus
-              size={15}
-            />
+            <Minus size={15} />
           </button>
 
           <strong>
@@ -622,13 +609,10 @@ export default function ProductPurchasePanel({
             type="button"
             onClick={() =>
               setQuantity(
-                (
-                  current,
-                ) =>
+                (current) =>
                   Math.min(
                     maximumQuantity,
-                    current +
-                      1,
+                    current + 1,
                   ),
               )
             }
@@ -637,9 +621,7 @@ export default function ProductPurchasePanel({
               maximumQuantity
             }
           >
-            <Plus
-              size={15}
-            />
+            <Plus size={15} />
           </button>
         </div>
       </div>
@@ -649,7 +631,7 @@ export default function ProductPurchasePanel({
           type="button"
           className="krve-add-cart"
           onClick={
-            handleAddToCart
+            saveToCart
           }
           disabled={
             !product.inStock ||
@@ -661,7 +643,6 @@ export default function ProductPurchasePanel({
               <Check
                 size={19}
               />
-
               Added to Cart
             </>
           ) : (
@@ -669,7 +650,6 @@ export default function ProductPurchasePanel({
               <ShoppingBag
                 size={19}
               />
-
               Add to Cart
             </>
           )}
@@ -678,18 +658,13 @@ export default function ProductPurchasePanel({
         <button
           type="button"
           className="krve-buy-now"
-          onClick={
-            buyNow
-          }
+          onClick={buyNow}
           disabled={
             !product.inStock ||
             !selectionReady
           }
         >
-          <Zap
-            size={18}
-          />
-
+          <Zap size={18} />
           Buy Now
         </button>
       </div>
