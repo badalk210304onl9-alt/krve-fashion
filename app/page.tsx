@@ -12,13 +12,10 @@ import type {
   Product,
 } from "@/lib/catalog";
 
-export const dynamic =
-  "force-dynamic";
+export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title:
-    "KRVE — The Fashion Studio",
-
+  title: "KRVE — The Fashion Studio",
   description:
     "Luxury fashion, intelligent fit and AI-powered personal styling.",
 };
@@ -116,9 +113,7 @@ function convertToProductCardProduct(
 async function loadNewArrivals() {
   try {
     const liveProducts =
-      await getNewArrivalProducts(
-        4,
-      );
+      await getNewArrivalProducts(4);
 
     return liveProducts.map(
       convertToProductCardProduct,
@@ -140,7 +135,7 @@ export default async function HomePage() {
   return (
     <main>
       {/* =====================================================
-          HERO SECTION
+          MAIN HERO SECTION
       ===================================================== */}
 
       <section className="hero">
@@ -171,8 +166,7 @@ export default async function HomePage() {
               href="/collections"
               className="button solid"
             >
-              EXPLORE COLLECTIONS
-              →
+              EXPLORE COLLECTIONS →
             </Link>
 
             <Link
@@ -206,92 +200,50 @@ export default async function HomePage() {
       </section>
 
       {/* =====================================================
-          RAKSHA BANDHAN SALE
-          SMALLER PREMIUM BANNER
+          RAKSHA BANDHAN SALE BANNER
+          WIDE + LOW HEIGHT
       ===================================================== */}
 
       <section
         style={{
-          background:
-            "#050505",
-
-          padding:
-            "24px 20px",
-
+          position: "relative",
+          width: "100%",
+          background: "#000000",
           borderTop:
-            "1px solid rgba(220, 168, 30, 0.22)",
-
+            "1px solid rgba(218, 165, 32, 0.35)",
           borderBottom:
-            "1px solid rgba(220, 168, 30, 0.22)",
+            "1px solid rgba(218, 165, 32, 0.35)",
+          overflow: "hidden",
         }}
       >
-        <div
+        <Link
+          href="/collections"
+          aria-label="Shop KRVE Raksha Bandhan Sale"
           style={{
+            position: "relative",
+            display: "block",
             width: "100%",
-
-            maxWidth:
-              "1180px",
-
-            margin:
-              "0 auto",
+            height: "365px",
+            overflow: "hidden",
+            background: "#000000",
           }}
         >
-          <Link
-            href="/collections"
-            aria-label="Shop KRVE Raksha Bandhan Sale - Up to 60 percent off"
+          <Image
+            src="/images/raksha-bandhan-sale.png"
+            alt="KRVE Raksha Bandhan Sale is live - Up to 60% off"
+            fill
+            priority
+            sizes="100vw"
             style={{
-              position:
-                "relative",
-
-              display:
-                "block",
-
-              width:
-                "100%",
-
-              aspectRatio:
-                "16 / 9",
-
-              overflow:
-                "hidden",
-
-              borderRadius:
-                "4px",
-
-              border:
-                "1px solid rgba(225, 173, 35, 0.58)",
-
-              background:
-                "#000",
-
-              boxShadow:
-                "0 18px 55px rgba(0,0,0,0.42)",
+              objectFit: "cover",
+              objectPosition: "center center",
             }}
-          >
-            <Image
-              src="/images/raksha-bandhan-sale.png"
-              alt="KRVE Raksha Bandhan Sale is live - Up to 60 percent off"
-              fill
-              priority
-              sizes="
-                (max-width: 768px)
-                94vw,
-                1180px
-              "
-              style={{
-                objectFit:
-                  "cover",
-
-                objectPosition:
-                  "center",
-              }}
-            />
-          </Link>
-        </div>
+          />
+        </Link>
       </section>
 
       {/* =====================================================
-          BENEFITS
+          BENEFITS STRIP
       ===================================================== */}
 
       <section className="benefits">
@@ -362,8 +314,7 @@ export default async function HomePage() {
             </h2>
 
             <small>
-              LIVE FROM KEOS
-              CENTER
+              LIVE FROM KEOS CENTER
             </small>
           </div>
 
@@ -422,7 +373,7 @@ export default async function HomePage() {
           </div>
 
           {/* =================================================
-              AI VIRTUAL TRY-ON
+              AI VIRTUAL TRY-ON CARD
           ================================================= */}
 
           <article className="tryon-card">
@@ -470,7 +421,7 @@ export default async function HomePage() {
       </section>
 
       {/* =====================================================
-          BOTTOM BENEFIT STRIP
+          BOTTOM STRIP
       ===================================================== */}
 
       <section className="bottom-strip">
