@@ -19,7 +19,7 @@ import type {
   KrveProduct,
 } from "@/lib/api";
 
-import styles from "@/app/product/[slug]/page.module.css";
+import styles from "./product-showcase.module.css";
 
 type ProductShowcaseProps = {
   product: KrveProduct;
