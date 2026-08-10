@@ -12,10 +12,13 @@ import type {
   Product,
 } from "@/lib/catalog";
 
-export const dynamic = "force-dynamic";
+export const dynamic =
+  "force-dynamic";
 
 export const metadata = {
-  title: "KRVE — The Fashion Studio",
+  title:
+    "KRVE — The Fashion Studio",
+
   description:
     "Luxury fashion, intelligent fit and AI-powered personal styling.",
 };
@@ -24,7 +27,9 @@ function convertToProductCardProduct(
   product: KrveProduct,
 ): Product {
   return {
-    id: product.slug || product.id,
+    id:
+      product.slug ||
+      product.id,
 
     slug:
       product.slug ||
@@ -201,7 +206,8 @@ export default async function HomePage() {
       </section>
 
       {/* =====================================================
-          RAKSHA BANDHAN SALE BANNER
+          RAKSHA BANDHAN SALE
+          SMALLER PREMIUM BANNER
       ===================================================== */}
 
       <section
@@ -210,19 +216,21 @@ export default async function HomePage() {
             "#050505",
 
           padding:
-            "22px 0",
+            "24px 20px",
 
           borderTop:
-            "1px solid rgba(220, 168, 30, 0.32)",
+            "1px solid rgba(220, 168, 30, 0.22)",
 
           borderBottom:
-            "1px solid rgba(220, 168, 30, 0.32)",
+            "1px solid rgba(220, 168, 30, 0.22)",
         }}
       >
         <div
           style={{
-            width:
-              "min(1540px, calc(100% - 28px))",
+            width: "100%",
+
+            maxWidth:
+              "1180px",
 
             margin:
               "0 auto",
@@ -230,7 +238,7 @@ export default async function HomePage() {
         >
           <Link
             href="/collections"
-            aria-label="Shop KRVE Raksha Bandhan Sale"
+            aria-label="Shop KRVE Raksha Bandhan Sale - Up to 60 percent off"
             style={{
               position:
                 "relative",
@@ -242,27 +250,34 @@ export default async function HomePage() {
                 "100%",
 
               aspectRatio:
-                "16 / 10",
+                "16 / 9",
 
               overflow:
                 "hidden",
 
+              borderRadius:
+                "4px",
+
               border:
-                "1px solid rgba(225, 173, 35, 0.68)",
+                "1px solid rgba(225, 173, 35, 0.58)",
 
               background:
                 "#000",
 
               boxShadow:
-                "0 24px 80px rgba(0,0,0,0.55)",
+                "0 18px 55px rgba(0,0,0,0.42)",
             }}
           >
             <Image
               src="/images/raksha-bandhan-sale.png"
-              alt="KRVE Raksha Bandhan Sale is live with up to 60 percent off"
+              alt="KRVE Raksha Bandhan Sale is live - Up to 60 percent off"
               fill
               priority
-              sizes="100vw"
+              sizes="
+                (max-width: 768px)
+                94vw,
+                1180px
+              "
               style={{
                 objectFit:
                   "cover",
@@ -286,21 +301,25 @@ export default async function HomePage() {
             "FREE WORLDWIDE SHIPPING",
             "On all orders above $200",
           ],
+
           [
             "◌",
             "EASY RETURNS",
             "30-day return policy",
           ],
+
           [
             "♜",
             "PREMIUM QUALITY",
             "Finest materials",
           ],
+
           [
             "♙",
             "AI PERSONAL STYLIST",
             "Style that matches you",
           ],
+
           [
             "▣",
             "SECURE SHOPPING",
@@ -402,9 +421,9 @@ export default async function HomePage() {
             )}
           </div>
 
-          {/* =====================================================
-              AI TRY-ON CARD
-          ===================================================== */}
+          {/* =================================================
+              AI VIRTUAL TRY-ON
+          ================================================= */}
 
           <article className="tryon-card">
             <div>
@@ -451,7 +470,7 @@ export default async function HomePage() {
       </section>
 
       {/* =====================================================
-          BOTTOM STRIP
+          BOTTOM BENEFIT STRIP
       ===================================================== */}
 
       <section className="bottom-strip">
@@ -461,16 +480,19 @@ export default async function HomePage() {
             "EXCLUSIVE COLLECTIONS",
             "Unique & limited designs",
           ],
+
           [
             "◇",
             "LUXURY MATERIALS",
             "Premium & sustainable",
           ],
+
           [
             "✤",
             "CRAFTED TO PERFECTION",
             "Attention to every detail",
           ],
+
           [
             "♙",
             "TRUSTED BY THOUSANDS",
