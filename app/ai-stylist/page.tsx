@@ -4,13 +4,14 @@ import Image from "next/image";
 import Link from "next/link";
 
 import {
+  useEffect,
   useMemo,
   useState,
 } from "react";
 
-import {
-  products,
-} from "@/lib/catalog";
+import type {
+  KrveProduct,
+} from "@/lib/api";
 
 import {
   useCart,
@@ -242,146 +243,414 @@ function RestartIcon() {
   );
 }
 
+
+const KRVE_API_BASE_URL = (
+  process.env.NEXT_PUBLIC_KRVE_CENTRAL_API_URL ||
+  "https://krve-central-api.badalk210304-onl9.workers.dev"
+).replace(/\/+$/, "");
+
+type PublicProductsResponse = {
+  success?: boolean;
+  message?: string;
+  data?: {
+    products?: KrveProduct[];
+  };
+  products?: KrveProduct[];
+};
+
+function getProductImage(
+  product: KrveProduct,
+) {
+  return (
+    product.image ||
+    product.imageUrl ||
+    product.gallery?.[0] ||
+    "/images/products/product-1.jpg"
+  );
+}
+
+function getProductSlug(
+  product: KrveProduct,
+) {
+  return (
+    product.slug ||
+    product.id
+  );
+}
+
+function getSearchableProductText(
+  product: KrveProduct,
+) {
+  return [
+    product.name,
+    product.category,
+    product.description,
+    product.shortDescription,
+    product.sku,
+    ...(product.colours || []),
+    ...(product.sizes || []),
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+}
+
+function includesAny(
+  text: string,
+  words: string[],
+) {
+  return words.some(
+    (word) =>
+      text.includes(word),
+  );
+}
+
 function getProductScore(
-  productName: string,
+  product: KrveProduct,
   profile: StyleProfile,
 ) {
-  const name =
-    productName.toLowerCase();
+  const text =
+    getSearchableProductText(
+      product,
+    );
 
-  let score = 10;
+  let score = 20;
 
+  /*
+    OCCASION
+    Rank only from real product information.
+  */
   if (
-    profile.occasion === "business" &&
-    (
-      name.includes("blazer") ||
-      name.includes("shirt")
-    )
+    profile.occasion ===
+    "business"
   ) {
-    score += 35;
+    if (
+      includesAny(text, [
+        "shirt",
+        "blazer",
+        "formal",
+        "trouser",
+        "kurta",
+        "kurti",
+        "classic",
+        "structured",
+      ])
+    ) {
+      score += 34;
+    }
   }
 
   if (
-    profile.occasion === "evening" &&
-    (
-      name.includes("blazer") ||
-      name.includes("sneaker")
-    )
+    profile.occasion ===
+    "evening"
+  ) {
+    if (
+      includesAny(text, [
+        "black",
+        "premium",
+        "luxury",
+        "statement",
+        "dress",
+        "shirt",
+        "kurti",
+        "embroider",
+        "graphic",
+      ])
+    ) {
+      score += 28;
+    }
+  }
+
+  if (
+    profile.occasion ===
+    "travel"
+  ) {
+    if (
+      includesAny(text, [
+        "oversized",
+        "relaxed",
+        "comfort",
+        "cotton",
+        "t-shirt",
+        "tee",
+        "shirt",
+        "footwear",
+        "accessories",
+      ])
+    ) {
+      score += 32;
+    }
+  }
+
+  if (
+    profile.occasion ===
+    "everyday"
+  ) {
+    if (
+      includesAny(text, [
+        "t-shirt",
+        "tee",
+        "shirt",
+        "kurti",
+        "cotton",
+        "casual",
+        "oversized",
+        "everyday",
+      ])
+    ) {
+      score += 31;
+    }
+  }
+
+  /*
+    AESTHETIC
+  */
+  if (
+    profile.aesthetic ===
+    "classic" &&
+    includesAny(text, [
+      "classic",
+      "minimal",
+      "solid",
+      "shirt",
+      "kurti",
+      "elegant",
+      "premium",
+    ])
+  ) {
+    score += 24;
+  }
+
+  if (
+    profile.aesthetic ===
+    "minimal" &&
+    includesAny(text, [
+      "minimal",
+      "solid",
+      "clean",
+      "less is more",
+      "focus",
+      "simple",
+      "neutral",
+    ])
   ) {
     score += 27;
   }
 
   if (
-    profile.occasion === "travel" &&
-    (
-      name.includes("duffle") ||
-      name.includes("sneaker")
-    )
+    profile.aesthetic ===
+    "bold" &&
+    includesAny(text, [
+      "graphic",
+      "abstract",
+      "embroider",
+      "statement",
+      "print",
+      "bold",
+      "contrast",
+    ])
   ) {
-    score += 38;
+    score += 28;
   }
 
   if (
-    profile.occasion === "everyday" &&
+    profile.aesthetic ===
+    "modern" &&
+    includesAny(text, [
+      "oversized",
+      "modern",
+      "graphic",
+      "abstract",
+      "contemporary",
+      "drop shoulder",
+      "tee",
+      "t-shirt",
+    ])
+  ) {
+    score += 27;
+  }
+
+  /*
+    COLOUR
+  */
+  const colours = (
+    product.colours || []
+  )
+    .join(" ")
+    .toLowerCase();
+
+  if (
+    profile.colour ===
+    "black" &&
     (
-      name.includes("shirt") ||
-      name.includes("sneaker")
+      colours.includes("black") ||
+      text.includes("black") ||
+      text.includes("charcoal")
     )
   ) {
     score += 31;
   }
 
   if (
-    profile.aesthetic === "classic" &&
-    (
-      name.includes("blazer") ||
-      name.includes("shirt")
-    )
-  ) {
-    score += 27;
-  }
-
-  if (
-    profile.aesthetic === "minimal" &&
-    (
-      name.includes("shirt") ||
-      name.includes("sneaker")
-    )
-  ) {
-    score += 24;
-  }
-
-  if (
-    profile.aesthetic === "bold" &&
-    (
-      name.includes("blazer") ||
-      name.includes("duffle")
+    profile.colour ===
+    "neutral" &&
+    includesAny(
+      `${colours} ${text}`,
+      [
+        "white",
+        "beige",
+        "cream",
+        "ivory",
+        "grey",
+        "gray",
+        "charcoal",
+        "olive",
+        "sage",
+        "neutral",
+      ],
     )
   ) {
     score += 25;
   }
 
   if (
-    profile.aesthetic === "modern" &&
+    profile.colour ===
+    "contrast" &&
     (
-      name.includes("sneaker") ||
-      name.includes("blazer")
+      (product.colours?.length ||
+        0) > 1 ||
+      includesAny(text, [
+        "graphic",
+        "contrast",
+        "abstract",
+        "print",
+      ])
     )
+  ) {
+    score += 22;
+  }
+
+  if (
+    profile.colour ===
+    "open"
+  ) {
+    score += 10;
+  }
+
+  /*
+    PRIORITY
+  */
+  if (
+    profile.priority ===
+    "luxury" &&
+    includesAny(text, [
+      "premium",
+      "luxury",
+      "embroider",
+      "signature",
+      "elegant",
+      "collection",
+    ])
+  ) {
+    score += 28;
+  }
+
+  if (
+    profile.priority ===
+    "versatility" &&
+    includesAny(text, [
+      "everyday",
+      "casual",
+      "shirt",
+      "tee",
+      "t-shirt",
+      "kurti",
+      "solid",
+      "minimal",
+    ])
   ) {
     score += 26;
   }
 
   if (
-    profile.colour === "black"
-  ) {
-    score += 18;
-  }
-
-  if (
-    profile.priority === "luxury" &&
-    (
-      name.includes("blazer") ||
-      name.includes("duffle")
-    )
-  ) {
-    score += 29;
-  }
-
-  if (
-    profile.priority === "versatility" &&
-    (
-      name.includes("shirt") ||
-      name.includes("sneaker")
-    )
-  ) {
-    score += 26;
-  }
-
-  if (
-    profile.priority === "comfort" &&
-    name.includes("sneaker")
-  ) {
-    score += 38;
-  }
-
-  if (
-    profile.priority === "statement" &&
-    (
-      name.includes("blazer") ||
-      name.includes("duffle")
-    )
+    profile.priority ===
+    "comfort" &&
+    includesAny(text, [
+      "cotton",
+      "oversized",
+      "relaxed",
+      "comfort",
+      "soft",
+      "tee",
+      "t-shirt",
+    ])
   ) {
     score += 31;
   }
 
+  if (
+    profile.priority ===
+    "statement" &&
+    includesAny(text, [
+      "graphic",
+      "abstract",
+      "embroider",
+      "bold",
+      "statement",
+      "print",
+      "contrast",
+    ])
+  ) {
+    score += 30;
+  }
+
+  /*
+    BUSINESS PRIORITY:
+    Featured/New Arrival products get a small
+    ranking boost, but profile match stays primary.
+  */
+  if (product.featured) {
+    score += 5;
+  }
+
+  if (product.newArrival) {
+    score += 3;
+  }
+
+  if (product.inStock) {
+    score += 2;
+  }
+
   return score;
 }
+
 
 export default function AiStylistPage() {
   const {
     wishlist,
     toggleWishlist,
   } = useCart();
+
+  const [
+    liveProducts,
+    setLiveProducts,
+  ] =
+    useState<KrveProduct[]>(
+      [],
+    );
+
+  const [
+    productsLoading,
+    setProductsLoading,
+  ] =
+    useState(true);
+
+  const [
+    productsError,
+    setProductsError,
+  ] =
+    useState("");
+
 
   const [
     profile,
@@ -425,10 +694,89 @@ export default function AiStylistPage() {
             100,
         );
 
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadLiveProducts() {
+      setProductsLoading(true);
+      setProductsError("");
+
+      try {
+        const response =
+          await fetch(
+            `${KRVE_API_BASE_URL}/products?limit=100`,
+            {
+              method: "GET",
+              headers: {
+                Accept:
+                  "application/json",
+              },
+              cache:
+                "no-store",
+            },
+          );
+
+        const payload =
+          (await response.json()) as PublicProductsResponse;
+
+        if (!response.ok) {
+          throw new Error(
+            payload.message ||
+              "KRVE collection could not be loaded.",
+          );
+        }
+
+        const products =
+          payload.data?.products ||
+          payload.products ||
+          [];
+
+        const publishedProducts =
+          products.filter(
+            (product) =>
+              product.status ===
+                "published" &&
+              product.inStock !==
+                false,
+          );
+
+        if (!cancelled) {
+          setLiveProducts(
+            publishedProducts,
+          );
+        }
+      } catch (error) {
+        console.error(
+          "AI_STYLIST_PRODUCTS_ERROR",
+          error,
+        );
+
+        if (!cancelled) {
+          setLiveProducts([]);
+          setProductsError(
+            "Live KRVE collection could not be loaded. Please try again.",
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setProductsLoading(
+            false,
+          );
+        }
+      }
+    }
+
+    void loadLiveProducts();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const recommendations =
     useMemo(
       () =>
-        [...products]
+        liveProducts
           .map(
             (
               product,
@@ -436,7 +784,7 @@ export default function AiStylistPage() {
               product,
               score:
                 getProductScore(
-                  product.name,
+                  product,
                   profile,
                 ),
             }),
@@ -448,8 +796,10 @@ export default function AiStylistPage() {
             ) =>
               second.score -
               first.score,
-          ),
+          )
+          .slice(0, 8),
       [
+        liveProducts,
         profile,
       ],
     );
@@ -1082,153 +1432,256 @@ export default function AiStylistPage() {
               styles.recommendationGrid
             }
           >
-            {recommendations.map(
-              (
-                {
-                  product,
-                  score,
-                },
-                index,
-              ) => {
-                const saved =
-                  wishlist.includes(
-                    product.id,
-                  );
+            {productsLoading ? (
+              <div
+                style={{
+                  gridColumn:
+                    "1 / -1",
+                  minHeight:
+                    260,
+                  display:
+                    "grid",
+                  placeItems:
+                    "center",
+                  border:
+                    "1px solid rgba(216,165,41,.25)",
+                  color:
+                    "#d8a529",
+                  letterSpacing:
+                    ".12em",
+                  fontSize:
+                    12,
+                }}
+              >
+                LOADING LIVE KRVE COLLECTION...
+              </div>
+            ) : productsError ? (
+              <div
+                style={{
+                  gridColumn:
+                    "1 / -1",
+                  padding:
+                    32,
+                  border:
+                    "1px solid rgba(216,165,41,.25)",
+                  color:
+                    "#d8a529",
+                  textAlign:
+                    "center",
+                }}
+              >
+                {productsError}
+              </div>
+            ) : recommendations.length ===
+              0 ? (
+              <div
+                style={{
+                  gridColumn:
+                    "1 / -1",
+                  padding:
+                    42,
+                  border:
+                    "1px solid rgba(216,165,41,.25)",
+                  textAlign:
+                    "center",
+                  color:
+                    "#a29a90",
+                }}
+              >
+                <strong
+                  style={{
+                    display:
+                      "block",
+                    color:
+                      "#f6efe5",
+                    marginBottom:
+                      8,
+                  }}
+                >
+                  No live products available
+                </strong>
 
-                const match =
-                  Math.min(
-                    98,
-                    72 +
-                      Math.round(
-                        score / 5,
+                Publish products from KEOS Center and they will automatically become available to KRVE AI Stylist.
+              </div>
+            ) : (
+              recommendations.map(
+                (
+                  {
+                    product,
+                    score,
+                  },
+                  index,
+                ) => {
+                  const productKey =
+                    getProductSlug(
+                      product,
+                    );
+
+                  const saved =
+                    wishlist.includes(
+                      product.id,
+                    ) ||
+                    wishlist.includes(
+                      productKey,
+                    );
+
+                  const match =
+                    Math.min(
+                      98,
+                      Math.max(
+                        72,
+                        72 +
+                          Math.round(
+                            score /
+                              5,
+                          ),
                       ),
-                  );
+                    );
 
-                return (
-                  <article
-                    key={
-                      product.id
-                    }
-                    className={
-                      styles.productCard
-                    }
-                  >
-                    <div
+                  return (
+                    <article
+                      key={
+                        product.id
+                      }
                       className={
-                        styles.rankBadge
+                        styles.productCard
                       }
                     >
-                      0{index + 1}
-                    </div>
+                      <div
+                        className={
+                          styles.rankBadge
+                        }
+                      >
+                        {String(
+                          index + 1,
+                        ).padStart(
+                          2,
+                          "0",
+                        )}
+                      </div>
 
-                    <button
-                      type="button"
-                      className={
-                        styles.wishlistButton
-                      }
-                      onClick={() =>
-                        toggleWishlist(
-                          product.id,
-                        )
-                      }
-                      aria-label={
-                        saved
-                          ? `Remove ${product.name} from wishlist`
-                          : `Save ${product.name} to wishlist`
-                      }
-                    >
-                      <HeartIcon
-                        filled={
+                      <button
+                        type="button"
+                        className={
+                          styles.wishlistButton
+                        }
+                        onClick={() =>
+                          toggleWishlist(
+                            product.id,
+                          )
+                        }
+                        aria-label={
                           saved
-                        }
-                      />
-                    </button>
-
-                    <Link
-                      href={`/product/${product.id}`}
-                      className={
-                        styles.productImage
-                      }
-                    >
-                      <Image
-                        src={
-                          product.image
-                        }
-                        alt={
-                          product.name
-                        }
-                        fill
-                        sizes="(max-width: 700px) 100vw, 25vw"
-                      />
-
-                      <span />
-                    </Link>
-
-                    <div
-                      className={
-                        styles.productContent
-                      }
-                    >
-                      <div
-                        className={
-                          styles.matchRow
+                            ? `Remove ${product.name} from wishlist`
+                            : `Save ${product.name} to wishlist`
                         }
                       >
-                        <span>
-                          AI MATCH
-                        </span>
-
-                        <strong>
-                          {match}%
-                        </strong>
-                      </div>
-
-                      <div
-                        className={
-                          styles.matchBar
-                        }
-                      >
-                        <span
-                          style={{
-                            width:
-                              `${match}%`,
-                          }}
+                        <HeartIcon
+                          filled={
+                            saved
+                          }
                         />
-                      </div>
+                      </button>
 
-                      <p>
-                        KRVE PRIVATE
-                        COLLECTION
-                      </p>
-
-                      <h3>
-                        {
-                          product.name
+                      <Link
+                        href={`/product/${encodeURIComponent(
+                          productKey,
+                        )}`}
+                        className={
+                          styles.productImage
                         }
-                      </h3>
+                      >
+                        <Image
+                          src={
+                            getProductImage(
+                              product,
+                            )
+                          }
+                          alt={
+                            product.name
+                          }
+                          fill
+                          sizes="(max-width: 700px) 100vw, 25vw"
+                        />
+
+                        <span />
+                      </Link>
 
                       <div
                         className={
-                          styles.productPrice
+                          styles.productContent
                         }
                       >
-                        <strong>
-                          {money.format(
-                            product.price,
-                          )}
-                        </strong>
-
-                        <Link
-                          href={`/product/${product.id}`}
+                        <div
+                          className={
+                            styles.matchRow
+                          }
                         >
-                          VIEW PIECE
-                          <ArrowIcon />
-                        </Link>
+                          <span>
+                            AI MATCH
+                          </span>
+
+                          <strong>
+                            {match}%
+                          </strong>
+                        </div>
+
+                        <div
+                          className={
+                            styles.matchBar
+                          }
+                        >
+                          <span
+                            style={{
+                              width:
+                                `${match}%`,
+                            }}
+                          />
+                        </div>
+
+                        <p>
+                          {String(
+                            product.category ||
+                              "KRVE COLLECTION",
+                          )
+                            .replace(
+                              /-/g,
+                              " ",
+                            )
+                            .toUpperCase()}
+                        </p>
+
+                        <h3>
+                          {
+                            product.name
+                          }
+                        </h3>
+
+                        <div
+                          className={
+                            styles.productPrice
+                          }
+                        >
+                          <strong>
+                            {money.format(
+                              product.price,
+                            )}
+                          </strong>
+
+                          <Link
+                            href={`/product/${encodeURIComponent(
+                              productKey,
+                            )}`}
+                          >
+                            VIEW PIECE
+                            <ArrowIcon />
+                          </Link>
+                        </div>
                       </div>
-                    </div>
-                  </article>
-                );
-              },
+                    </article>
+                  );
+                },
+              )
             )}
           </div>
 
