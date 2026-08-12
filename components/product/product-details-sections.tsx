@@ -1323,8 +1323,38 @@ export default function ProductDetailsSections({
             )}
 
             <style jsx>{`
+              .krve-reviews-content {
+                display: grid;
+                grid-template-columns:
+                  minmax(180px, 0.75fr)
+                  minmax(300px, 1.45fr);
+                gap: 28px 36px;
+                align-items: start;
+                width: 100%;
+              }
+
+              .krve-rating-summary {
+                grid-column: 1;
+                min-width: 0;
+              }
+
+              .krve-rating-bars {
+                grid-column: 2;
+                min-width: 0;
+              }
+
+              .krve-review-write-box,
+              .krve-review-list-heading,
+              .krve-review-cards,
+              .krve-review-empty {
+                grid-column: 1 / -1;
+                width: 100%;
+                min-width: 0;
+                box-sizing: border-box;
+              }
+
               .krve-review-write-box {
-                margin-top: 28px;
+                margin-top: 8px;
                 border: 1px solid
                   rgba(
                     255,
@@ -1338,7 +1368,11 @@ export default function ProductDetailsSections({
                   255,
                   0.035
                 );
-                padding: 24px;
+                padding: 26px;
+              }
+
+              .krve-review-write-heading {
+                width: 100%;
               }
 
               .krve-review-write-heading
@@ -1355,13 +1389,14 @@ export default function ProductDetailsSections({
                 h3 {
                 margin: 7px 0 0;
                 color: #fff;
-                font-size: 22px;
+                font-size: 24px;
+                line-height: 1.2;
               }
 
               .krve-review-write-heading
                 p {
                 margin: 8px 0 0;
-                max-width: 620px;
+                max-width: 720px;
                 color: #8b8b8b;
                 font-size: 13px;
                 line-height: 1.65;
@@ -1369,13 +1404,25 @@ export default function ProductDetailsSections({
 
               .krve-review-form {
                 display: grid;
+                grid-template-columns:
+                  repeat(2, minmax(0, 1fr));
                 gap: 18px;
                 margin-top: 22px;
+                width: 100%;
+              }
+
+              .krve-review-form > label:first-child,
+              .krve-review-form
+                > label:nth-of-type(2),
+              .krve-review-message,
+              .krve-submit-review-button {
+                grid-column: 1 / -1;
               }
 
               .krve-review-form label {
                 display: grid;
                 gap: 8px;
+                min-width: 0;
               }
 
               .krve-review-form
@@ -1387,10 +1434,20 @@ export default function ProductDetailsSections({
                 letter-spacing: 0.04em;
               }
 
+              .krve-review-form-grid {
+                grid-column: 1 / -1;
+                display: grid;
+                grid-template-columns:
+                  repeat(2, minmax(0, 1fr));
+                gap: 14px;
+                width: 100%;
+              }
+
               .krve-review-form input,
               .krve-review-form
                 textarea {
                 width: 100%;
+                min-width: 0;
                 box-sizing: border-box;
                 border: 1px solid
                   rgba(
@@ -1407,13 +1464,13 @@ export default function ProductDetailsSections({
               }
 
               .krve-review-form input {
-                min-height: 46px;
+                min-height: 48px;
               }
 
               .krve-review-form
                 textarea {
                 resize: vertical;
-                min-height: 125px;
+                min-height: 140px;
               }
 
               .krve-review-form input:focus,
@@ -1436,17 +1493,11 @@ export default function ProductDetailsSections({
                 font-size: 10px;
               }
 
-              .krve-review-form-grid {
-                display: grid;
-                grid-template-columns:
-                  repeat(2, minmax(0, 1fr));
-                gap: 14px;
-              }
-
               .krve-review-star-picker {
                 display: flex;
                 align-items: center;
-                gap: 4px;
+                flex-wrap: wrap;
+                gap: 6px;
               }
 
               .krve-review-star-picker
@@ -1470,12 +1521,12 @@ export default function ProductDetailsSections({
 
               .krve-submit-review-button {
                 justify-self: start;
-                min-width: 180px;
-                min-height: 46px;
+                min-width: 190px;
+                min-height: 48px;
                 border: 1px solid #d8a529;
                 background: #d8a529;
                 color: #050505;
-                padding: 0 20px;
+                padding: 0 22px;
                 font-size: 10px;
                 font-weight: 900;
                 letter-spacing: 0.08em;
@@ -1528,11 +1579,11 @@ export default function ProductDetailsSections({
 
               .krve-review-list-heading {
                 display: flex;
-                align-items: end;
+                align-items: flex-end;
                 justify-content:
                   space-between;
                 gap: 16px;
-                margin-top: 32px;
+                margin-top: 4px;
                 padding-bottom: 13px;
                 border-bottom: 1px solid
                   rgba(
@@ -1561,13 +1612,14 @@ export default function ProductDetailsSections({
                 > strong {
                 color: #d8a529;
                 font-size: 11px;
+                white-space: nowrap;
               }
 
               .krve-review-empty {
                 display: grid;
                 justify-items: center;
                 gap: 8px;
-                margin-top: 18px;
+                margin-top: 0;
                 border: 1px dashed
                   rgba(
                     255,
@@ -1595,10 +1647,15 @@ export default function ProductDetailsSections({
                 margin: 0;
               }
 
+              .krve-review-cards {
+                display: grid;
+                gap: 14px;
+              }
+
               .krve-rating-bars
                 > div {
                 grid-template-columns:
-                  42px 1fr 30px;
+                  42px minmax(0, 1fr) 30px;
               }
 
               .krve-rating-bars
@@ -1610,12 +1667,28 @@ export default function ProductDetailsSections({
               }
 
               @media (
+                max-width: 900px
+              ) {
+                .krve-reviews-content {
+                  grid-template-columns:
+                    1fr;
+                  gap: 22px;
+                }
+
+                .krve-rating-summary,
+                .krve-rating-bars {
+                  grid-column: 1;
+                }
+              }
+
+              @media (
                 max-width: 720px
               ) {
                 .krve-review-write-box {
                   padding: 18px;
                 }
 
+                .krve-review-form,
                 .krve-review-form-grid {
                   grid-template-columns:
                     1fr;
@@ -1623,6 +1696,13 @@ export default function ProductDetailsSections({
 
                 .krve-submit-review-button {
                   width: 100%;
+                }
+
+                .krve-review-list-heading {
+                  align-items:
+                    flex-start;
+                  flex-direction:
+                    column;
                 }
               }
             `}</style>
