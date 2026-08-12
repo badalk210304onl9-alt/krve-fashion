@@ -1,6 +1,8 @@
 "use client";
 
 import {
+  useCallback,
+  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -109,6 +111,125 @@ function createHighlights(
   ];
 }
 
+
+type ProductReview = {
+  id: string;
+  productId: string;
+  customerName: string;
+  rating: number;
+  reviewText: string;
+  verifiedBuyer: boolean;
+  createdAt: string;
+  updatedAt?: string;
+};
+
+type ReviewSummary = {
+  totalReviews: number;
+  averageRating: number;
+  distribution: {
+    5: number;
+    4: number;
+    3: number;
+    2: number;
+    1: number;
+  };
+};
+
+type ReviewsApiResponse = {
+  success?: boolean;
+  message?: string;
+  data?: {
+    summary?: ReviewSummary;
+    reviews?: ProductReview[];
+  };
+  summary?: ReviewSummary;
+  reviews?: ProductReview[];
+};
+
+const EMPTY_REVIEW_SUMMARY: ReviewSummary = {
+  totalReviews: 0,
+  averageRating: 0,
+  distribution: {
+    5: 0,
+    4: 0,
+    3: 0,
+    2: 0,
+    1: 0,
+  },
+};
+
+const REVIEWS_API_BASE_URL = (
+  process.env.NEXT_PUBLIC_KRVE_CENTRAL_API_URL ||
+  "https://krve-central-api.badalk210304-onl9.workers.dev"
+).replace(/\/+$/, "");
+
+function getReviewProductKey(
+  product: KrveProduct,
+) {
+  return (
+    product.slug ||
+    product.id
+  );
+}
+
+function getReviewsEndpoint(
+  product: KrveProduct,
+) {
+  return `${REVIEWS_API_BASE_URL}/products/${encodeURIComponent(
+    getReviewProductKey(product),
+  )}/reviews`;
+}
+
+function formatReviewDate(
+  value: string,
+) {
+  const date =
+    new Date(value);
+
+  if (
+    Number.isNaN(
+      date.getTime(),
+    )
+  ) {
+    return "";
+  }
+
+  return new Intl.DateTimeFormat(
+    "en-IN",
+    {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    },
+  ).format(date);
+}
+
+function reviewRatingLabel(
+  rating: number,
+) {
+  if (rating >= 4.5) {
+    return "Excellent";
+  }
+
+  if (rating >= 4) {
+    return "Very Good";
+  }
+
+  if (rating >= 3) {
+    return "Good";
+  }
+
+  if (rating >= 2) {
+    return "Average";
+  }
+
+  if (rating > 0) {
+    return "Needs Improvement";
+  }
+
+  return "No ratings yet";
+}
+
 export default function ProductDetailsSections({
   product,
 }: ProductDetailsSectionsProps) {
@@ -135,6 +256,75 @@ export default function ProductDetailsSections({
     setReviewsOpen,
   ] =
     useState(true);
+
+  const [
+    reviews,
+    setReviews,
+  ] =
+    useState<ProductReview[]>(
+      [],
+    );
+
+  const [
+    reviewSummary,
+    setReviewSummary,
+  ] =
+    useState<ReviewSummary>(
+      EMPTY_REVIEW_SUMMARY,
+    );
+
+  const [
+    reviewsLoading,
+    setReviewsLoading,
+  ] =
+    useState(true);
+
+  const [
+    reviewSubmitting,
+    setReviewSubmitting,
+  ] =
+    useState(false);
+
+  const [
+    selectedRating,
+    setSelectedRating,
+  ] =
+    useState(0);
+
+  const [
+    hoveredRating,
+    setHoveredRating,
+  ] =
+    useState(0);
+
+  const [
+    reviewerName,
+    setReviewerName,
+  ] =
+    useState("");
+
+  const [
+    reviewerEmail,
+    setReviewerEmail,
+  ] =
+    useState("");
+
+  const [
+    reviewText,
+    setReviewText,
+  ] =
+    useState("");
+
+  const [
+    reviewMessage,
+    setReviewMessage,
+  ] =
+    useState<{
+      type:
+        | "success"
+        | "error";
+      text: string;
+    } | null>(null);
 
   const [
     postalCode,
@@ -186,6 +376,222 @@ export default function ProductDetailsSections({
       );
     }
   }
+
+  const loadReviews =
+    useCallback(
+      async () => {
+        setReviewsLoading(
+          true,
+        );
+
+        try {
+          const response =
+            await fetch(
+              getReviewsEndpoint(
+                product,
+              ),
+              {
+                method: "GET",
+                headers: {
+                  Accept:
+                    "application/json",
+                },
+                cache:
+                  "no-store",
+              },
+            );
+
+          const payload =
+            (await response.json()) as ReviewsApiResponse;
+
+          if (!response.ok) {
+            throw new Error(
+              payload.message ||
+                "Reviews could not be loaded.",
+            );
+          }
+
+          const data =
+            payload.data ||
+            payload;
+
+          setReviews(
+            Array.isArray(
+              data.reviews,
+            )
+              ? data.reviews
+              : [],
+          );
+
+          setReviewSummary(
+            data.summary ||
+              EMPTY_REVIEW_SUMMARY,
+          );
+        } catch (error) {
+          console.error(
+            "KRVE_REVIEWS_LOAD_ERROR",
+            error,
+          );
+
+          setReviews([]);
+          setReviewSummary(
+            EMPTY_REVIEW_SUMMARY,
+          );
+        } finally {
+          setReviewsLoading(
+            false,
+          );
+        }
+      },
+      [product],
+    );
+
+  useEffect(() => {
+    void loadReviews();
+  }, [loadReviews]);
+
+  async function submitReview() {
+    setReviewMessage(
+      null,
+    );
+
+    if (
+      selectedRating < 1 ||
+      selectedRating > 5
+    ) {
+      setReviewMessage({
+        type: "error",
+        text: "Please select a star rating.",
+      });
+
+      return;
+    }
+
+    if (
+      reviewerName.trim()
+        .length < 2
+    ) {
+      setReviewMessage({
+        type: "error",
+        text: "Please enter your name.",
+      });
+
+      return;
+    }
+
+    if (
+      reviewText.trim()
+        .length < 5
+    ) {
+      setReviewMessage({
+        type: "error",
+        text: "Please write a little more about your experience.",
+      });
+
+      return;
+    }
+
+    setReviewSubmitting(
+      true,
+    );
+
+    try {
+      const response =
+        await fetch(
+          getReviewsEndpoint(
+            product,
+          ),
+          {
+            method: "POST",
+            headers: {
+              Accept:
+                "application/json",
+              "Content-Type":
+                "application/json",
+            },
+            body:
+              JSON.stringify({
+                customerName:
+                  reviewerName.trim(),
+                customerEmail:
+                  reviewerEmail
+                    .trim()
+                    .toLowerCase(),
+                rating:
+                  selectedRating,
+                reviewText:
+                  reviewText.trim(),
+              }),
+          },
+        );
+
+      const payload =
+        (await response.json()) as {
+          success?: boolean;
+          message?: string;
+        };
+
+      if (!response.ok) {
+        throw new Error(
+          payload.message ||
+            "Review could not be submitted.",
+        );
+      }
+
+      setSelectedRating(0);
+      setHoveredRating(0);
+      setReviewerName("");
+      setReviewerEmail("");
+      setReviewText("");
+
+      setReviewMessage({
+        type: "success",
+        text: "Thank you. Your review has been submitted successfully.",
+      });
+
+      await loadReviews();
+    } catch (error) {
+      setReviewMessage({
+        type: "error",
+        text:
+          error instanceof Error
+            ? error.message
+            : "Review could not be submitted.",
+      });
+    } finally {
+      setReviewSubmitting(
+        false,
+      );
+    }
+  }
+
+  const reviewBars =
+    ([5, 4, 3, 2, 1] as const).map(
+      (rating) => {
+        const count =
+          reviewSummary
+            .distribution[
+            rating
+          ] || 0;
+
+        const width =
+          reviewSummary
+            .totalReviews >
+          0
+            ? `${Math.round(
+                (count /
+                  reviewSummary.totalReviews) *
+                  100,
+              )}%`
+            : "0%";
+
+        return {
+          rating,
+          count,
+          width,
+        };
+      },
+    );
 
   return (
     <div className="krve-detail-sections">
@@ -562,7 +968,12 @@ export default function ProductDetailsSections({
             <div className="krve-rating-summary">
               <div>
                 <strong>
-                  4.7
+                  {reviewSummary.totalReviews >
+                  0
+                    ? reviewSummary.averageRating.toFixed(
+                        1,
+                      )
+                    : "0.0"}
                 </strong>
 
                 <Star
@@ -572,39 +983,21 @@ export default function ProductDetailsSections({
               </div>
 
               <span>
-                Excellent
+                {reviewRatingLabel(
+                  reviewSummary.averageRating,
+                )}
               </span>
 
               <p>
-                Based on verified
-                KRVE customer
-                ratings
+                {reviewSummary.totalReviews ===
+                1
+                  ? "Based on 1 customer review"
+                  : `Based on ${reviewSummary.totalReviews} customer reviews`}
               </p>
             </div>
 
             <div className="krve-rating-bars">
-              {[
-                {
-                  rating: 5,
-                  width: "82%",
-                },
-                {
-                  rating: 4,
-                  width: "64%",
-                },
-                {
-                  rating: 3,
-                  width: "31%",
-                },
-                {
-                  rating: 2,
-                  width: "12%",
-                },
-                {
-                  rating: 1,
-                  width: "6%",
-                },
-              ].map(
+              {reviewBars.map(
                 (item) => (
                   <div
                     key={
@@ -623,59 +1016,616 @@ export default function ProductDetailsSections({
                         }}
                       />
                     </div>
+
+                    <small>
+                      {item.count}
+                    </small>
                   </div>
                 ),
               )}
             </div>
 
-            <div className="krve-review-cards">
-              <article>
+            <div className="krve-review-write-box">
+              <div className="krve-review-write-heading">
                 <div>
-                  <strong>
-                    5 ★
-                  </strong>
-
                   <span>
-                    Verified Buyer
+                    Share your experience
                   </span>
+
+                  <h3>
+                    Write a review
+                  </h3>
+
+                  <p>
+                    Rate this product and
+                    help other KRVE
+                    customers make a
+                    confident choice.
+                  </p>
+                </div>
+              </div>
+
+              <div className="krve-review-form">
+                <label>
+                  <span>
+                    Your rating *
+                  </span>
+
+                  <div
+                    className="krve-review-star-picker"
+                    onMouseLeave={() =>
+                      setHoveredRating(
+                        0,
+                      )
+                    }
+                  >
+                    {[1, 2, 3, 4, 5].map(
+                      (rating) => {
+                        const active =
+                          rating <=
+                          (hoveredRating ||
+                            selectedRating);
+
+                        return (
+                          <button
+                            type="button"
+                            key={
+                              rating
+                            }
+                            onMouseEnter={() =>
+                              setHoveredRating(
+                                rating,
+                              )
+                            }
+                            onClick={() =>
+                              setSelectedRating(
+                                rating,
+                              )
+                            }
+                            aria-label={`${rating} star rating`}
+                            aria-pressed={
+                              selectedRating ===
+                              rating
+                            }
+                          >
+                            <Star
+                              size={28}
+                              fill={
+                                active
+                                  ? "currentColor"
+                                  : "none"
+                              }
+                            />
+                          </button>
+                        );
+                      },
+                    )}
+                  </div>
+
+                  {selectedRating >
+                    0 && (
+                    <small>
+                      {
+                        selectedRating
+                      }{" "}
+                      out of 5 stars
+                    </small>
+                  )}
+                </label>
+
+                <div className="krve-review-form-grid">
+                  <label>
+                    <span>
+                      Your name *
+                    </span>
+
+                    <input
+                      type="text"
+                      value={
+                        reviewerName
+                      }
+                      onChange={(
+                        event,
+                      ) =>
+                        setReviewerName(
+                          event.target
+                            .value,
+                        )
+                      }
+                      maxLength={80}
+                      placeholder="Enter your name"
+                      autoComplete="name"
+                    />
+                  </label>
+
+                  <label>
+                    <span>
+                      Email
+                    </span>
+
+                    <input
+                      type="email"
+                      value={
+                        reviewerEmail
+                      }
+                      onChange={(
+                        event,
+                      ) =>
+                        setReviewerEmail(
+                          event.target
+                            .value,
+                        )
+                      }
+                      placeholder="Enter your email (optional)"
+                      autoComplete="email"
+                    />
+                  </label>
                 </div>
 
-                <p>
-                  Premium quality,
-                  excellent fit and
-                  the product looks
-                  exactly as shown.
-                </p>
-
-                <small>
-                  KRVE Customer
-                </small>
-              </article>
-
-              <article>
-                <div>
-                  <strong>
-                    4 ★
-                  </strong>
-
+                <label>
                   <span>
-                    Verified Buyer
+                    Your review *
                   </span>
-                </div>
 
-                <p>
-                  Comfortable,
-                  stylish and
-                  suitable for
-                  everyday premium
-                  wear.
-                </p>
+                  <textarea
+                    value={
+                      reviewText
+                    }
+                    onChange={(
+                      event,
+                    ) =>
+                      setReviewText(
+                        event.target
+                          .value,
+                      )
+                    }
+                    maxLength={1500}
+                    rows={5}
+                    placeholder="Tell us about the quality, fit, comfort and your overall experience..."
+                  />
 
-                <small>
-                  KRVE Customer
-                </small>
-              </article>
+                  <small>
+                    {
+                      reviewText.length
+                    }
+                    /1500
+                  </small>
+                </label>
+
+                {reviewMessage && (
+                  <div
+                    className={`krve-review-message ${
+                      reviewMessage.type ===
+                      "success"
+                        ? "success"
+                        : "error"
+                    }`}
+                  >
+                    {
+                      reviewMessage.text
+                    }
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  className="krve-submit-review-button"
+                  onClick={() =>
+                    void submitReview()
+                  }
+                  disabled={
+                    reviewSubmitting
+                  }
+                >
+                  {reviewSubmitting
+                    ? "SUBMITTING..."
+                    : "SUBMIT REVIEW"}
+                </button>
+              </div>
             </div>
+
+            <div className="krve-review-list-heading">
+              <div>
+                <h3>
+                  Customer reviews
+                </h3>
+
+                <p>
+                  Genuine feedback from
+                  KRVE customers.
+                </p>
+              </div>
+
+              <strong>
+                {
+                  reviewSummary.totalReviews
+                }{" "}
+                review
+                {reviewSummary.totalReviews ===
+                1
+                  ? ""
+                  : "s"}
+              </strong>
+            </div>
+
+            {reviewsLoading ? (
+              <div className="krve-review-empty">
+                Loading customer
+                reviews...
+              </div>
+            ) : reviews.length ===
+              0 ? (
+              <div className="krve-review-empty">
+                <Star
+                  size={28}
+                />
+
+                <strong>
+                  Be the first to review
+                  this product
+                </strong>
+
+                <p>
+                  Your feedback will
+                  appear here after you
+                  submit it.
+                </p>
+              </div>
+            ) : (
+              <div className="krve-review-cards">
+                {reviews.map(
+                  (review) => (
+                    <article
+                      key={
+                        review.id
+                      }
+                    >
+                      <div>
+                        <strong>
+                          {
+                            review.rating
+                          }{" "}
+                          ★
+                        </strong>
+
+                        {review.verifiedBuyer ? (
+                          <span>
+                            Verified Buyer
+                          </span>
+                        ) : (
+                          <span>
+                            Customer Review
+                          </span>
+                        )}
+                      </div>
+
+                      <p>
+                        {
+                          review.reviewText
+                        }
+                      </p>
+
+                      <small>
+                        {
+                          review.customerName
+                        }
+
+                        {review.createdAt
+                          ? ` · ${formatReviewDate(
+                              review.createdAt,
+                            )}`
+                          : ""}
+                      </small>
+                    </article>
+                  ),
+                )}
+              </div>
+            )}
+
+            <style jsx>{`
+              .krve-review-write-box {
+                margin-top: 28px;
+                border: 1px solid
+                  rgba(
+                    255,
+                    255,
+                    255,
+                    0.12
+                  );
+                background: rgba(
+                  255,
+                  255,
+                  255,
+                  0.035
+                );
+                padding: 24px;
+              }
+
+              .krve-review-write-heading
+                span {
+                display: block;
+                color: #d8a529;
+                font-size: 10px;
+                font-weight: 900;
+                letter-spacing: 0.14em;
+                text-transform: uppercase;
+              }
+
+              .krve-review-write-heading
+                h3 {
+                margin: 7px 0 0;
+                color: #fff;
+                font-size: 22px;
+              }
+
+              .krve-review-write-heading
+                p {
+                margin: 8px 0 0;
+                max-width: 620px;
+                color: #8b8b8b;
+                font-size: 13px;
+                line-height: 1.65;
+              }
+
+              .krve-review-form {
+                display: grid;
+                gap: 18px;
+                margin-top: 22px;
+              }
+
+              .krve-review-form label {
+                display: grid;
+                gap: 8px;
+              }
+
+              .krve-review-form
+                label
+                > span {
+                color: #ddd;
+                font-size: 11px;
+                font-weight: 800;
+                letter-spacing: 0.04em;
+              }
+
+              .krve-review-form input,
+              .krve-review-form
+                textarea {
+                width: 100%;
+                box-sizing: border-box;
+                border: 1px solid
+                  rgba(
+                    255,
+                    255,
+                    255,
+                    0.13
+                  );
+                background: #0b0b0b;
+                color: #fff;
+                outline: none;
+                padding: 13px 14px;
+                font: inherit;
+              }
+
+              .krve-review-form input {
+                min-height: 46px;
+              }
+
+              .krve-review-form
+                textarea {
+                resize: vertical;
+                min-height: 125px;
+              }
+
+              .krve-review-form input:focus,
+              .krve-review-form
+                textarea:focus {
+                border-color: #d8a529;
+                box-shadow: 0 0 0 2px
+                  rgba(
+                    216,
+                    165,
+                    41,
+                    0.12
+                  );
+              }
+
+              .krve-review-form
+                label
+                > small {
+                color: #777;
+                font-size: 10px;
+              }
+
+              .krve-review-form-grid {
+                display: grid;
+                grid-template-columns:
+                  repeat(2, minmax(0, 1fr));
+                gap: 14px;
+              }
+
+              .krve-review-star-picker {
+                display: flex;
+                align-items: center;
+                gap: 4px;
+              }
+
+              .krve-review-star-picker
+                button {
+                display: grid;
+                place-items: center;
+                border: 0;
+                background: transparent;
+                color: #d8a529;
+                cursor: pointer;
+                padding: 2px;
+                transition:
+                  transform 0.15s ease,
+                  opacity 0.15s ease;
+              }
+
+              .krve-review-star-picker
+                button:hover {
+                transform: scale(1.12);
+              }
+
+              .krve-submit-review-button {
+                justify-self: start;
+                min-width: 180px;
+                min-height: 46px;
+                border: 1px solid #d8a529;
+                background: #d8a529;
+                color: #050505;
+                padding: 0 20px;
+                font-size: 10px;
+                font-weight: 900;
+                letter-spacing: 0.08em;
+                cursor: pointer;
+              }
+
+              .krve-submit-review-button:disabled {
+                cursor: wait;
+                opacity: 0.6;
+              }
+
+              .krve-review-message {
+                padding: 11px 13px;
+                border: 1px solid;
+                font-size: 12px;
+                line-height: 1.5;
+              }
+
+              .krve-review-message.success {
+                border-color: rgba(
+                  16,
+                  185,
+                  129,
+                  0.35
+                );
+                background: rgba(
+                  16,
+                  185,
+                  129,
+                  0.08
+                );
+                color: #8ee8c8;
+              }
+
+              .krve-review-message.error {
+                border-color: rgba(
+                  239,
+                  68,
+                  68,
+                  0.35
+                );
+                background: rgba(
+                  239,
+                  68,
+                  68,
+                  0.08
+                );
+                color: #ffaaaa;
+              }
+
+              .krve-review-list-heading {
+                display: flex;
+                align-items: end;
+                justify-content:
+                  space-between;
+                gap: 16px;
+                margin-top: 32px;
+                padding-bottom: 13px;
+                border-bottom: 1px solid
+                  rgba(
+                    255,
+                    255,
+                    255,
+                    0.09
+                  );
+              }
+
+              .krve-review-list-heading
+                h3 {
+                margin: 0;
+                color: #fff;
+                font-size: 17px;
+              }
+
+              .krve-review-list-heading
+                p {
+                margin: 5px 0 0;
+                color: #777;
+                font-size: 11px;
+              }
+
+              .krve-review-list-heading
+                > strong {
+                color: #d8a529;
+                font-size: 11px;
+              }
+
+              .krve-review-empty {
+                display: grid;
+                justify-items: center;
+                gap: 8px;
+                margin-top: 18px;
+                border: 1px dashed
+                  rgba(
+                    255,
+                    255,
+                    255,
+                    0.12
+                  );
+                padding: 34px 20px;
+                text-align: center;
+                color: #777;
+                font-size: 12px;
+              }
+
+              .krve-review-empty svg {
+                color: #d8a529;
+              }
+
+              .krve-review-empty
+                strong {
+                color: #ddd;
+                font-size: 13px;
+              }
+
+              .krve-review-empty p {
+                margin: 0;
+              }
+
+              .krve-rating-bars
+                > div {
+                grid-template-columns:
+                  42px 1fr 30px;
+              }
+
+              .krve-rating-bars
+                > div
+                > small {
+                color: #777;
+                text-align: right;
+                font-size: 10px;
+              }
+
+              @media (
+                max-width: 720px
+              ) {
+                .krve-review-write-box {
+                  padding: 18px;
+                }
+
+                .krve-review-form-grid {
+                  grid-template-columns:
+                    1fr;
+                }
+
+                .krve-submit-review-button {
+                  width: 100%;
+                }
+              }
+            `}</style>
           </div>
         )}
       </section>
