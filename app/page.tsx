@@ -12,13 +12,33 @@ import type {
   Product,
 } from "@/lib/catalog";
 
-export const dynamic = "force-dynamic";
+export const dynamic =
+  "force-dynamic";
 
 export const metadata = {
-  title: "KRVE — The Fashion Studio",
+  title:
+    "KRVE — The Fashion Studio",
+
   description:
     "Luxury fashion, intelligent fit and AI-powered personal styling.",
 };
+
+/*
+ * Raksha Bandhan Sale expires:
+ *
+ * 29 August 2026
+ * 12:00 AM IST
+ *
+ * IST = UTC + 5:30
+ *
+ * Therefore UTC expiry =
+ * 28 August 2026
+ * 6:30 PM UTC
+ */
+const RAKSHA_SALE_END =
+  new Date(
+    "2026-08-28T18:30:00.000Z",
+  );
 
 function convertToProductCardProduct(
   product: KrveProduct,
@@ -113,7 +133,9 @@ function convertToProductCardProduct(
 async function loadNewArrivals() {
   try {
     const liveProducts =
-      await getNewArrivalProducts(4);
+      await getNewArrivalProducts(
+        4,
+      );
 
     return liveProducts.map(
       convertToProductCardProduct,
@@ -132,10 +154,18 @@ export default async function HomePage() {
   const newArrivalProducts =
     await loadNewArrivals();
 
+  /*
+   * Because this page is force-dynamic,
+   * this gets checked on every request.
+   */
+  const rakshaSaleActive =
+    new Date().getTime() <
+    RAKSHA_SALE_END.getTime();
+
   return (
     <main>
       {/* =====================================================
-          MAIN HERO SECTION
+          MAIN HERO
       ===================================================== */}
 
       <section className="hero">
@@ -200,50 +230,79 @@ export default async function HomePage() {
       </section>
 
       {/* =====================================================
-          RAKSHA BANDHAN SALE BANNER
-          WIDE + LOW HEIGHT
+          RAKSHA BANDHAN SALE
+          AUTOMATICALLY DISAPPEARS
+          ON 29 AUGUST 2026
       ===================================================== */}
 
-      <section
-        style={{
-          position: "relative",
-          width: "100%",
-          background: "#000000",
-          borderTop:
-            "1px solid rgba(218, 165, 32, 0.35)",
-          borderBottom:
-            "1px solid rgba(218, 165, 32, 0.35)",
-          overflow: "hidden",
-        }}
-      >
-        <Link
-          href="/collections"
-          aria-label="Shop KRVE Raksha Bandhan Sale"
+      {rakshaSaleActive ? (
+        <section
           style={{
-            position: "relative",
-            display: "block",
-            width: "100%",
-            height: "365px",
-            overflow: "hidden",
-            background: "#000000",
+            position:
+              "relative",
+
+            width:
+              "100%",
+
+            background:
+              "#000000",
+
+            borderTop:
+              "1px solid rgba(218,165,32,0.35)",
+
+            borderBottom:
+              "1px solid rgba(218,165,32,0.35)",
+
+            overflow:
+              "hidden",
           }}
         >
-          <Image
-            src="/images/raksha-bandhan-sale.png"
-            alt="KRVE Raksha Bandhan Sale is live - Up to 60% off"
-            fill
-            priority
-            sizes="100vw"
+          <Link
+            href="/raksha-bandhan-sale"
+            aria-label="Shop the KRVE Raksha Bandhan Sale"
             style={{
-              objectFit: "cover",
-              objectPosition: "center center",
+              position:
+                "relative",
+
+              display:
+                "block",
+
+              width:
+                "100%",
+
+              height:
+                "365px",
+
+              overflow:
+                "hidden",
+
+              background:
+                "#000000",
+
+              textDecoration:
+                "none",
             }}
-          />
-        </Link>
-      </section>
+          >
+            <Image
+              src="/images/raksha-bandhan-sale.png"
+              alt="KRVE Raksha Bandhan Sale is live - Up to 60 percent off"
+              fill
+              priority
+              sizes="100vw"
+              style={{
+                objectFit:
+                  "cover",
+
+                objectPosition:
+                  "center",
+              }}
+            />
+          </Link>
+        </section>
+      ) : null}
 
       {/* =====================================================
-          BENEFITS STRIP
+          BENEFITS
       ===================================================== */}
 
       <section className="benefits">
@@ -364,8 +423,7 @@ export default async function HomePage() {
                     href="/collections"
                     className="button ghost"
                   >
-                    EXPLORE
-                    COLLECTIONS →
+                    EXPLORE COLLECTIONS →
                   </Link>
                 </div>
               </div>
@@ -373,7 +431,7 @@ export default async function HomePage() {
           </div>
 
           {/* =================================================
-              AI VIRTUAL TRY-ON CARD
+              AI TRY-ON
           ================================================= */}
 
           <article className="tryon-card">
