@@ -16,6 +16,10 @@ import type {
   Product,
 } from "@/lib/catalog";
 
+/* =========================================================
+   PAGE CONFIG
+========================================================= */
+
 export const dynamic =
   "force-dynamic";
 
@@ -27,19 +31,37 @@ export const metadata = {
     "Celebrate Raksha Bandhan with KRVE. Shop selected fashion with savings up to 60% off.",
 };
 
-/*
- * Sale expires:
- * 29 August 2026
- * 12:00 AM IST
- */
+/* =========================================================
+   SALE EXPIRY
+
+   Sale remains active through:
+   28 August 2026
+
+   Ends:
+   29 August 2026
+   12:00 AM IST
+
+   IST = UTC + 5:30
+========================================================= */
+
 const RAKSHA_SALE_END =
   new Date(
     "2026-08-28T18:30:00.000Z",
   );
 
+/* =========================================================
+   PRODUCT CONVERSION
+========================================================= */
+
 function convertProduct(
   product: KrveProduct,
 ): Product {
+  const primaryImage =
+    product.image ||
+    product.imageUrl ||
+    product.gallery?.[0] ||
+    "/images/products/product-1.jpg";
+
   return {
     id:
       product.slug ||
@@ -53,33 +75,38 @@ function convertProduct(
       product.name,
 
     price:
-      product.price,
+      Number(
+        product.price || 0,
+      ),
 
     compareAtPrice:
-      product.compareAtPrice,
+      product.compareAtPrice
+        ? Number(
+            product.compareAtPrice,
+          )
+        : undefined,
 
+    /*
+     * IMPORTANT:
+     * KRVE India store.
+     *
+     * Force INR so ProductCard
+     * displays ₹ instead of $.
+     */
     currency:
-      product.currency,
+      "INR",
 
     image:
-      product.image ||
-      product.imageUrl ||
-      product.gallery?.[0] ||
-      "/images/products/product-1.jpg",
+      primaryImage,
 
     imageUrl:
-      product.image ||
-      product.imageUrl ||
-      product.gallery?.[0] ||
-      "/images/products/product-1.jpg",
+      primaryImage,
 
     gallery:
       product.gallery?.length
         ? product.gallery
         : [
-            product.image ||
-              product.imageUrl ||
-              "/images/products/product-1.jpg",
+            primaryImage,
           ],
 
     category:
@@ -127,17 +154,15 @@ function convertProduct(
   };
 }
 
+/* =========================================================
+   LOAD SALE PRODUCTS
+========================================================= */
+
 async function getSaleProducts() {
   try {
-    /*
-     * Currently using live KEOS products.
-     *
-     * Later we can add a dedicated
-     * Raksha Sale toggle inside KEOS.
-     */
     const products =
       await getNewArrivalProducts(
-        12,
+        20,
       );
 
     return products.map(
@@ -153,16 +178,18 @@ async function getSaleProducts() {
   }
 }
 
+/* =========================================================
+   PAGE
+========================================================= */
+
 export default async function RakshaBandhanSalePage() {
   const saleActive =
-    new Date().getTime() <
+    Date.now() <
     RAKSHA_SALE_END.getTime();
 
   /*
-   * Sale over?
-   *
-   * Customer automatically
-   * returns to collections.
+   * After campaign expiry,
+   * customer cannot open this page.
    */
   if (!saleActive) {
     redirect(
@@ -199,18 +226,21 @@ export default async function RakshaBandhanSalePage() {
             "100%",
 
           height:
-            "430px",
+            "365px",
 
           overflow:
             "hidden",
 
+          background:
+            "#000000",
+
           borderBottom:
-            "1px solid rgba(220,170,35,0.45)",
+            "1px solid rgba(216,165,41,0.35)",
         }}
       >
         <Image
           src="/images/raksha-bandhan-sale.png"
-          alt="KRVE Raksha Bandhan Sale"
+          alt="KRVE Raksha Bandhan Sale - Up to 60% off"
           fill
           priority
           sizes="100vw"
@@ -225,19 +255,19 @@ export default async function RakshaBandhanSalePage() {
       </section>
 
       {/* =====================================================
-          SALE INTRO
+          INTRO
       ===================================================== */}
 
       <section
         style={{
           width:
-            "min(1400px, calc(100% - 40px))",
+            "min(1500px, calc(100% - 40px))",
 
           margin:
             "0 auto",
 
           padding:
-            "60px 0 40px",
+            "55px 0 35px",
 
           textAlign:
             "center",
@@ -246,16 +276,16 @@ export default async function RakshaBandhanSalePage() {
         <p
           style={{
             margin:
-              "0 0 14px",
+              "0 0 12px",
 
             color:
               "#d8a529",
 
             fontSize:
-              "11px",
+              "10px",
 
             fontWeight:
-              800,
+              900,
 
             letterSpacing:
               "0.18em",
@@ -266,24 +296,22 @@ export default async function RakshaBandhanSalePage() {
 
         <h1
           style={{
-            margin:
-              "0",
+            margin: 0,
 
             fontFamily:
-              "Georgia, serif",
+              "Georgia, 'Times New Roman', serif",
 
             fontSize:
-              "clamp(42px, 6vw, 82px)",
+              "clamp(38px, 5vw, 72px)",
 
             fontWeight:
               400,
 
             lineHeight:
-              0.98,
+              1,
           }}
         >
-          Raksha Bandhan
-          <br />
+          Raksha Bandhan{" "}
 
           <span
             style={{
@@ -291,40 +319,51 @@ export default async function RakshaBandhanSalePage() {
                 "#d8a529",
             }}
           >
-            Sale Collection
+            Sale
           </span>
         </h1>
 
         <p
           style={{
-            maxWidth:
-              "650px",
+            width:
+              "min(620px, 100%)",
 
             margin:
-              "24px auto 0",
+              "20px auto 0",
 
             color:
-              "#979797",
+              "#929292",
 
             fontSize:
               "14px",
 
             lineHeight:
-              1.8,
+              1.7,
           }}
         >
           Celebrate the bond
-          with elevated KRVE
-          fashion. Discover
-          selected festive
-          styles and limited-time
-          savings of up to 60%.
+          with KRVE. Discover
+          selected styles and
+          limited-time savings
+          of up to 60% off.
         </p>
 
         <div
           style={{
+            display:
+              "flex",
+
+            justifyContent:
+              "center",
+
+            flexWrap:
+              "wrap",
+
+            gap:
+              "10px",
+
             marginTop:
-              "28px",
+              "24px",
           }}
         >
           <span
@@ -335,17 +374,20 @@ export default async function RakshaBandhanSalePage() {
               alignItems:
                 "center",
 
-              minHeight:
-                "42px",
+              justifyContent:
+                "center",
 
-              border:
-                "1px solid rgba(216,165,41,0.55)",
+              minHeight:
+                "38px",
 
               padding:
-                "0 18px",
+                "0 17px",
+
+              border:
+                "1px solid rgba(216,165,41,0.45)",
 
               color:
-                "#e0ad2c",
+                "#d8a529",
 
               fontSize:
                 "10px",
@@ -354,7 +396,43 @@ export default async function RakshaBandhanSalePage() {
                 900,
 
               letterSpacing:
-                "0.12em",
+                "0.1em",
+            }}
+          >
+            UP TO 60% OFF
+          </span>
+
+          <span
+            style={{
+              display:
+                "inline-flex",
+
+              alignItems:
+                "center",
+
+              justifyContent:
+                "center",
+
+              minHeight:
+                "38px",
+
+              padding:
+                "0 17px",
+
+              border:
+                "1px solid rgba(255,255,255,0.14)",
+
+              color:
+                "#ffffff",
+
+              fontSize:
+                "10px",
+
+              fontWeight:
+                900,
+
+              letterSpacing:
+                "0.1em",
             }}
           >
             ENDS 28 AUGUST
@@ -369,7 +447,7 @@ export default async function RakshaBandhanSalePage() {
       <section
         style={{
           width:
-            "min(1400px, calc(100% - 40px))",
+            "min(1500px, calc(100% - 40px))",
 
           margin:
             "0 auto",
@@ -378,35 +456,40 @@ export default async function RakshaBandhanSalePage() {
             "90px",
         }}
       >
+        {/* HEADING */}
+
         <div
           style={{
             display:
               "flex",
 
+            alignItems:
+              "flex-end",
+
             justifyContent:
               "space-between",
 
-            alignItems:
-              "end",
+            flexWrap:
+              "wrap",
 
             gap:
               "20px",
+
+            padding:
+              "0 0 18px",
 
             marginBottom:
               "30px",
 
             borderBottom:
-              "1px solid rgba(220,170,35,0.30)",
-
-            paddingBottom:
-              "18px",
+              "1px solid rgba(216,165,41,0.32)",
           }}
         >
           <div>
             <p
               style={{
                 margin:
-                  "0 0 7px",
+                  "0 0 6px",
 
                 color:
                   "#d8a529",
@@ -428,11 +511,14 @@ export default async function RakshaBandhanSalePage() {
               style={{
                 margin: 0,
 
+                color:
+                  "#ffffff",
+
                 fontFamily:
-                  "Georgia, serif",
+                  "Georgia, 'Times New Roman', serif",
 
                 fontSize:
-                  "clamp(30px, 4vw, 48px)",
+                  "clamp(30px, 4vw, 46px)",
 
                 fontWeight:
                   400,
@@ -446,7 +532,7 @@ export default async function RakshaBandhanSalePage() {
             href="/collections"
             style={{
               color:
-                "#d9a725",
+                "#d8a529",
 
               fontSize:
                 "10px",
@@ -454,16 +540,18 @@ export default async function RakshaBandhanSalePage() {
               fontWeight:
                 900,
 
+              letterSpacing:
+                "0.08em",
+
               textDecoration:
                 "none",
-
-              letterSpacing:
-                "0.1em",
             }}
           >
             VIEW ALL COLLECTIONS →
           </Link>
         </div>
+
+        {/* PRODUCT GRID */}
 
         {products.length >
         0 ? (
@@ -473,14 +561,16 @@ export default async function RakshaBandhanSalePage() {
                 "grid",
 
               gridTemplateColumns:
-                "repeat(auto-fit, minmax(250px, 1fr))",
+                "repeat(auto-fit, minmax(260px, 1fr))",
 
               gap:
-                "20px",
+                "24px",
             }}
           >
             {products.map(
-              (product) => (
+              (
+                product,
+              ) => (
                 <ProductCard
                   key={
                     product.id
@@ -495,30 +585,51 @@ export default async function RakshaBandhanSalePage() {
         ) : (
           <div
             style={{
-              border:
-                "1px solid rgba(220,170,35,0.35)",
-
               padding:
-                "70px 30px",
+                "80px 30px",
+
+              border:
+                "1px solid rgba(216,165,41,0.32)",
 
               textAlign:
                 "center",
             }}
           >
+            <p
+              style={{
+                color:
+                  "#d8a529",
+
+                fontSize:
+                  "11px",
+
+                fontWeight:
+                  900,
+
+                letterSpacing:
+                  "0.15em",
+              }}
+            >
+              KRVE FESTIVE EDIT
+            </p>
+
             <h3
               style={{
+                margin:
+                  "14px 0 0",
+
                 fontFamily:
                   "Georgia, serif",
 
                 fontSize:
-                  "30px",
+                  "32px",
 
                 fontWeight:
                   400,
               }}
             >
-              The festive edit
-              is being curated.
+              Products are being
+              curated.
             </h3>
 
             <Link
@@ -527,14 +638,23 @@ export default async function RakshaBandhanSalePage() {
                 display:
                   "inline-flex",
 
+                alignItems:
+                  "center",
+
+                justifyContent:
+                  "center",
+
                 marginTop:
-                  "20px",
+                  "25px",
+
+                minHeight:
+                  "44px",
+
+                padding:
+                  "0 22px",
 
                 border:
                   "1px solid #d8a529",
-
-                padding:
-                  "15px 25px",
 
                 color:
                   "#d8a529",
@@ -549,7 +669,7 @@ export default async function RakshaBandhanSalePage() {
                   900,
               }}
             >
-              SHOP COLLECTIONS →
+              EXPLORE COLLECTIONS →
             </Link>
           </div>
         )}
