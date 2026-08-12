@@ -16,10 +16,6 @@ import type {
   Product,
 } from "@/lib/catalog";
 
-/* =========================================================
-   PAGE CONFIG
-========================================================= */
-
 export const dynamic =
   "force-dynamic";
 
@@ -31,27 +27,14 @@ export const metadata = {
     "Celebrate Raksha Bandhan with KRVE. Shop selected fashion with savings up to 60% off.",
 };
 
-/* =========================================================
-   SALE EXPIRY
-
-   Sale remains active through:
-   28 August 2026
-
-   Ends:
-   29 August 2026
-   12:00 AM IST
-
-   IST = UTC + 5:30
-========================================================= */
-
+/*
+ * 29 August 2026
+ * 12:00 AM IST
+ */
 const RAKSHA_SALE_END =
   new Date(
     "2026-08-28T18:30:00.000Z",
   );
-
-/* =========================================================
-   PRODUCT CONVERSION
-========================================================= */
 
 function convertProduct(
   product: KrveProduct,
@@ -79,19 +62,23 @@ function convertProduct(
         product.price || 0,
       ),
 
+    /*
+     * FIX:
+     * Product expects:
+     * number | null
+     *
+     * Never undefined.
+     */
     compareAtPrice:
-      product.compareAtPrice
-        ? Number(
+      product.compareAtPrice ==
+      null
+        ? null
+        : Number(
             product.compareAtPrice,
-          )
-        : undefined,
+          ),
 
     /*
-     * IMPORTANT:
-     * KRVE India store.
-     *
-     * Force INR so ProductCard
-     * displays ₹ instead of $.
+     * KRVE Indian Store
      */
     currency:
       "INR",
@@ -154,10 +141,6 @@ function convertProduct(
   };
 }
 
-/* =========================================================
-   LOAD SALE PRODUCTS
-========================================================= */
-
 async function getSaleProducts() {
   try {
     const products =
@@ -178,19 +161,11 @@ async function getSaleProducts() {
   }
 }
 
-/* =========================================================
-   PAGE
-========================================================= */
-
 export default async function RakshaBandhanSalePage() {
   const saleActive =
     Date.now() <
     RAKSHA_SALE_END.getTime();
 
-  /*
-   * After campaign expiry,
-   * customer cannot open this page.
-   */
   if (!saleActive) {
     redirect(
       "/collections",
@@ -213,9 +188,9 @@ export default async function RakshaBandhanSalePage() {
           "#ffffff",
       }}
     >
-      {/* =====================================================
-          SALE HERO
-      ===================================================== */}
+      {/* ===============================================
+          SALE BANNER
+      =============================================== */}
 
       <section
         style={{
@@ -232,7 +207,7 @@ export default async function RakshaBandhanSalePage() {
             "hidden",
 
           background:
-            "#000000",
+            "#000",
 
           borderBottom:
             "1px solid rgba(216,165,41,0.35)",
@@ -240,7 +215,7 @@ export default async function RakshaBandhanSalePage() {
       >
         <Image
           src="/images/raksha-bandhan-sale.png"
-          alt="KRVE Raksha Bandhan Sale - Up to 60% off"
+          alt="KRVE Raksha Bandhan Sale"
           fill
           priority
           sizes="100vw"
@@ -254,9 +229,9 @@ export default async function RakshaBandhanSalePage() {
         />
       </section>
 
-      {/* =====================================================
-          INTRO
-      ===================================================== */}
+      {/* ===============================================
+          SALE INTRO
+      =============================================== */}
 
       <section
         style={{
@@ -440,9 +415,9 @@ export default async function RakshaBandhanSalePage() {
         </div>
       </section>
 
-      {/* =====================================================
-          PRODUCTS
-      ===================================================== */}
+      {/* ===============================================
+          SALE PRODUCTS
+      =============================================== */}
 
       <section
         style={{
@@ -456,8 +431,6 @@ export default async function RakshaBandhanSalePage() {
             "90px",
         }}
       >
-        {/* HEADING */}
-
         <div
           style={{
             display:
@@ -475,8 +448,8 @@ export default async function RakshaBandhanSalePage() {
             gap:
               "20px",
 
-            padding:
-              "0 0 18px",
+            paddingBottom:
+              "18px",
 
             marginBottom:
               "30px",
@@ -550,8 +523,6 @@ export default async function RakshaBandhanSalePage() {
             VIEW ALL COLLECTIONS →
           </Link>
         </div>
-
-        {/* PRODUCT GRID */}
 
         {products.length >
         0 ? (
