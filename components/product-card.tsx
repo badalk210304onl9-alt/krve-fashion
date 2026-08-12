@@ -87,6 +87,33 @@ function BagIcon() {
   );
 }
 
+/* =========================================================
+   KRVE INDIA PRICE FORMAT
+========================================================= */
+
+function formatIndianPrice(
+  price: number,
+) {
+  const safePrice =
+    Number.isFinite(
+      Number(price),
+    )
+      ? Number(price)
+      : 0;
+
+  return safePrice.toLocaleString(
+    "en-IN",
+    {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    },
+  );
+}
+
+/* =========================================================
+   PRODUCT CARD
+========================================================= */
+
 export default function ProductCard({
   product,
 }: ProductCardProps) {
@@ -97,18 +124,32 @@ export default function ProductCard({
   } = useCart();
 
   const wished =
-    wishlist.includes(product.id);
+    wishlist.includes(
+      product.id,
+    );
+
+  const productHref =
+    `/product/${
+      product.slug ||
+      product.id
+    }`;
 
   return (
     <article className="product-card">
+      {/* PRODUCT IMAGE */}
+
       <div className="product-media">
         <Link
-          href={`/product/${product.id}`}
+          href={productHref}
           className="product-image"
           aria-label={`Open ${product.name}`}
         >
           <Image
-            src={product.image}
+            src={
+              product.image ||
+              product.imageUrl ||
+              "/images/products/product-1.jpg"
+            }
             alt={product.name}
             fill
             sizes="
@@ -124,11 +165,15 @@ export default function ProductCard({
           />
         </Link>
 
+        {/* WISHLIST */}
+
         <button
           type="button"
           className="wishlist-button"
           onClick={() =>
-            toggleWishlist(product.id)
+            toggleWishlist(
+              product.id,
+            )
           }
           aria-label={
             wished
@@ -136,26 +181,47 @@ export default function ProductCard({
               : "Add to wishlist"
           }
         >
-          <HeartIcon filled={wished} />
+          <HeartIcon
+            filled={wished}
+          />
         </button>
+
+        {/* CATEGORY */}
 
         <span className="product-category">
           {product.category}
         </span>
       </div>
 
+      {/* PRODUCT DETAILS */}
+
       <div className="product-copy">
         <div className="product-details">
           <Link
-            href={`/product/${product.id}`}
+            href={productHref}
           >
-            <h3>{product.name}</h3>
+            <h3>
+              {product.name}
+            </h3>
           </Link>
 
+          {/* =============================================
+              IMPORTANT:
+              Direct Indian Rupee symbol.
+              No USD.
+              No product.currency.
+              No Intl currency conversion.
+          ============================================== */}
+
           <p>
-            ${product.price.toFixed(2)}
+            ₹
+            {formatIndianPrice(
+              product.price,
+            )}
           </p>
         </div>
+
+        {/* ADD TO CART */}
 
         <button
           type="button"
@@ -167,7 +233,9 @@ export default function ProductCard({
         >
           <BagIcon />
 
-          <span>ADD</span>
+          <span>
+            ADD
+          </span>
         </button>
       </div>
     </article>
