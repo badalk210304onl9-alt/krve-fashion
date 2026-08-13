@@ -2,7 +2,6 @@
 
 import {
   Canvas,
-  useLoader,
 } from "@react-three/fiber";
 
 import {
@@ -15,29 +14,19 @@ import * as THREE from "three";
 
 import {
   Suspense,
+  useEffect,
   useMemo,
+  useState,
 } from "react";
 
-type BodyMeasurements = {
-  heightCm?: number;
-  shoulderWidthCm?: number;
-  chestCm?: number;
-  waistCm?: number;
-  hipCm?: number;
-  inseamCm?: number;
-};
+import type {
+  BodyAnalysisResult,
+} from "@/lib/body-analysis";
 
 type PersonalTwinViewerProps = {
-  photoUrl?: string | null;
-  productImage?: string | null;
-  productName?: string;
-  measurements?: BodyMeasurements | null;
-  heightCm?: number;
+  analysis: BodyAnalysisResult;
+  garmentImage?: string | null;
 };
-
-/* =========================================================
-   HELPERS
-========================================================= */
 
 function clamp(
   value: number,
@@ -45,658 +34,574 @@ function clamp(
   max: number,
 ) {
   return Math.min(
-    Math.max(value, min),
     max,
+    Math.max(min, value),
   );
 }
 
-function normaliseMeasurements(
-  measurements?: BodyMeasurements | null,
-  heightCm?: number,
+function useSafeTexture(
+  source?: string | null,
 ) {
-  const height =
-    measurements?.heightCm ||
-    heightCm ||
-    170;
-
-  /*
-   * These are only proportions used for visualising
-   * the avatar.
-   *
-   * They are NOT medical/body measurements.
-   */
-
-  const shoulder =
-    measurements?.shoulderWidthCm ||
-    height * 0.255;
-
-  const chest =
-    measurements?.chestCm ||
-    height * 0.55;
-
-  const waist =
-    measurements?.waistCm ||
-    height * 0.46;
-
-  const hip =
-    measurements?.hipCm ||
-    height * 0.54;
-
-  const inseam =
-    measurements?.inseamCm ||
-    height * 0.46;
-
-  return {
-    height,
-    shoulder,
-    chest,
-    waist,
-    hip,
-    inseam,
-  };
-}
-
-/* =========================================================
-   FACE / PHOTO TEXTURE
-========================================================= */
-
-function PhotoFace({
-  photoUrl,
-}: {
-  photoUrl: string;
-}) {
-  const texture =
-    useLoader(
-      THREE.TextureLoader,
-      photoUrl,
+  const [
+    texture,
+    setTexture,
+  ] =
+    useState<THREE.Texture | null>(
+      null,
     );
 
-  texture.colorSpace =
-    THREE.SRGBColorSpace;
+  useEffect(() => {
+    let active = true;
 
+    if (!source) {
+      setTexture(null);
+      return;
+    }
+
+    const loader =
+      new THREE.TextureLoader();
+
+    loader.setCrossOrigin(
+      "anonymous",
+    );
+
+    loader.load(
+      source,
+      (loaded) => {
+        if (!active) {
+          loaded.dispose();
+          return;
+        }
+
+        loaded.colorSpace =
+          THREE.SRGBColorSpace;
+
+        loaded.needsUpdate =
+          true;
+
+        setTexture(
+          loaded,
+        );
+      },
+      undefined,
+      (error) => {
+        console.warn(
+          "TWIN_TEXTURE_LOAD_FAILED",
+          source,
+          error,
+        );
+
+        if (active) {
+          setTexture(null);
+        }
+      },
+    );
+
+    return () => {
+      active = false;
+    };
+  }, [source]);
+
+  return texture;
+}
+
+function FacePanel({
+  faceTexture,
+}: {
+  faceTexture: THREE.Texture;
+}) {
   return (
     <mesh
-      position={[0, 3.42, 0.315]}
+      position={[
+        0,
+        3.37,
+        0.405,
+      ]}
+      scale={[
+        0.72,
+        0.89,
+        1,
+      ]}
     >
       <planeGeometry
-        args={[0.58, 0.72]}
+        args={[0.82, 0.92]}
       />
 
-      <meshStandardMaterial
-        map={texture}
+      <meshBasicMaterial
+        map={faceTexture}
         transparent
-        roughness={0.8}
-        metalness={0}
+        alphaTest={0.02}
+        toneMapped={false}
         side={THREE.DoubleSide}
       />
     </mesh>
   );
 }
 
-/* =========================================================
-   GARMENT PREVIEW
-========================================================= */
-
-function GarmentPreview({
-  image,
-  torsoWidth,
-  torsoHeight,
+function GarmentPanel({
+  garmentTexture,
+  shoulderRatio,
+  torsoRatio,
 }: {
-  image: string;
-  torsoWidth: number;
-  torsoHeight: number;
+  garmentTexture: THREE.Texture;
+  shoulderRatio: number;
+  torsoRatio: number;
 }) {
-  const texture =
-    useLoader(
-      THREE.TextureLoader,
-      image,
-    );
-
-  texture.colorSpace =
-    THREE.SRGBColorSpace;
-
   const width =
-    torsoWidth * 1.08;
+    1.82 *
+    shoulderRatio;
 
   const height =
-    torsoHeight * 0.9;
+    2.05 *
+    torsoRatio;
 
   return (
     <mesh
       position={[
         0,
-        1.66,
-        0.44,
+        1.9,
+        0.55,
+      ]}
+      scale={[
+        width,
+        height,
+        1,
       ]}
     >
       <planeGeometry
-        args={[
-          width,
-          height,
-        ]}
+        args={[1, 1]}
       />
 
-      <meshStandardMaterial
-        map={texture}
+      <meshBasicMaterial
+        map={
+          garmentTexture
+        }
         transparent
         alphaTest={0.04}
-        roughness={0.92}
-        metalness={0}
+        toneMapped={false}
         side={THREE.DoubleSide}
       />
     </mesh>
   );
 }
 
-/* =========================================================
-   DIGITAL HUMAN
-========================================================= */
-
-function DigitalHuman({
-  photoUrl,
-  productImage,
-  measurements,
-  heightCm,
-}: {
-  photoUrl?: string | null;
-  productImage?: string | null;
-  measurements?: BodyMeasurements | null;
-  heightCm?: number;
-}) {
-  const body =
-    useMemo(
-      () =>
-        normaliseMeasurements(
-          measurements,
-          heightCm,
-        ),
-      [
-        measurements,
-        heightCm,
-      ],
+function PersonalAvatar({
+  analysis,
+  garmentImage,
+}: PersonalTwinViewerProps) {
+  const faceTexture =
+    useSafeTexture(
+      analysis.faceTextureDataUrl,
     );
 
-  /*
-   * Convert real-world proportions into
-   * stable Three.js visual proportions.
-   */
+  const garmentTexture =
+    useSafeTexture(
+      garmentImage,
+    );
 
-  const shoulderScale =
+  const shoulder =
     clamp(
-      body.shoulder / 43,
+      analysis.bodyRatios
+        .shoulder,
+      0.78,
+      1.28,
+    );
+
+  const torso =
+    clamp(
+      analysis.bodyRatios
+        .torso,
       0.82,
-      1.22,
+      1.23,
     );
 
-  const chestScale =
+  const hip =
     clamp(
-      body.chest / 94,
-      0.82,
-      1.24,
+      analysis.bodyRatios
+        .hip,
+      0.78,
+      1.28,
     );
 
-  const waistScale =
+  const leg =
     clamp(
-      body.waist / 78,
+      analysis.bodyRatios
+        .leg,
       0.8,
-      1.22,
+      1.25,
     );
 
-  const hipScale =
+  const bodyHeightScale =
     clamp(
-      body.hip / 92,
+      analysis.measurements
+        .heightCm / 170,
+      0.88,
+      1.14,
+    );
+
+  const shoulderWidth =
+    1.72 *
+    shoulder;
+
+  const chestWidth =
+    1.42 *
+    shoulder;
+
+  const waistWidth =
+    1.03 *
+    clamp(
+      analysis.measurements
+        .waistCm / 78,
       0.82,
       1.25,
     );
 
-  const heightScale =
-    clamp(
-      body.height / 170,
-      0.86,
-      1.16,
-    );
-
-  const torsoWidth =
-    1.48 *
-    shoulderScale *
-    chestScale;
-
-  const torsoHeight =
-    1.72 *
-    heightScale;
-
-  const waistWidth =
-    1.12 *
-    waistScale;
-
   const hipWidth =
-    1.32 *
-    hipScale;
+    1.25 *
+    hip;
 
-  const skinColor =
-    "#b98970";
+  const armX =
+    shoulderWidth / 2 +
+    0.18;
 
-  const bodyColor =
+  const legX =
+    0.34 *
+    hip;
+
+  const skin =
+    "#a77b64";
+
+  const dark =
     "#171512";
 
-  const jointColor =
+  const darkTwo =
     "#211e1a";
 
   return (
     <group
-      position={[0, -0.15, 0]}
+      position={[
+        0,
+        -0.35,
+        0,
+      ]}
       scale={[
         1,
-        heightScale,
+        bodyHeightScale,
         1,
       ]}
     >
-      {/* ==============================================
-          HEAD
-      ============================================== */}
-
+      {/* HEAD */}
       <mesh
-        position={[0, 3.42, 0]}
+        position={[
+          0,
+          3.36,
+          0,
+        ]}
         scale={[
-          0.88,
+          0.9,
           1.06,
           0.9,
         ]}
       >
         <sphereGeometry
           args={[
-            0.42,
+            0.43,
             48,
             48,
           ]}
         />
 
         <meshStandardMaterial
-          color={skinColor}
-          roughness={0.82}
+          color={skin}
+          roughness={0.83}
         />
       </mesh>
 
-      {/* hair */}
-
+      {/* HAIR CAP */}
       <mesh
         position={[
           0,
-          3.67,
-          -0.03,
+          3.63,
+          -0.035,
         ]}
         scale={[
-          0.92,
-          0.56,
-          0.92,
+          0.93,
+          0.55,
+          0.94,
         ]}
       >
         <sphereGeometry
           args={[
-            0.43,
+            0.44,
             36,
             36,
           ]}
         />
 
         <meshStandardMaterial
-          color="#15110f"
-          roughness={0.95}
+          color="#14110f"
+          roughness={0.98}
         />
       </mesh>
 
-      {/* uploaded customer photo */}
+      {/* CUSTOMER FACE TEXTURE */}
+      {faceTexture && (
+        <FacePanel
+          faceTexture={
+            faceTexture
+          }
+        />
+      )}
 
-      {photoUrl ? (
-        <Suspense fallback={null}>
-          <PhotoFace
-            photoUrl={photoUrl}
-          />
-        </Suspense>
-      ) : null}
-
-      {/* ==============================================
-          NECK
-      ============================================== */}
-
+      {/* NECK */}
       <mesh
-        position={[0, 2.93, 0]}
+        position={[
+          0,
+          2.89,
+          0,
+        ]}
       >
         <cylinderGeometry
           args={[
-            0.22,
-            0.26,
-            0.48,
+            0.2,
+            0.25,
+            0.46,
             32,
           ]}
         />
 
         <meshStandardMaterial
-          color={skinColor}
-          roughness={0.82}
+          color={skin}
+          roughness={0.84}
         />
       </mesh>
 
-      {/* ==============================================
-          SHOULDERS
-      ============================================== */}
-
+      {/* SHOULDERS */}
       <RoundedBox
         args={[
-          torsoWidth,
-          0.38,
-          0.52,
+          shoulderWidth,
+          0.36,
+          0.55,
         ]}
-        radius={0.18}
+        radius={0.17}
         smoothness={5}
         position={[
           0,
-          2.56,
+          2.57,
           0,
         ]}
       >
         <meshStandardMaterial
-          color={bodyColor}
-          roughness={0.9}
+          color={dark}
+          roughness={0.92}
         />
       </RoundedBox>
 
-      {/* ==============================================
-          CHEST / TORSO
-      ============================================== */}
-
+      {/* UPPER TORSO */}
       <RoundedBox
         args={[
-          torsoWidth * 0.91,
-          torsoHeight,
+          chestWidth,
+          1.42 *
+            torso,
           0.62,
         ]}
-        radius={0.25}
+        radius={0.23}
         smoothness={6}
         position={[
           0,
-          1.78,
+          1.85,
           0,
         ]}
       >
         <meshStandardMaterial
-          color={bodyColor}
-          roughness={0.91}
+          color={dark}
+          roughness={0.92}
         />
       </RoundedBox>
 
-      {/* waist */}
-
+      {/* WAIST */}
       <RoundedBox
         args={[
           waistWidth,
-          0.62,
+          0.68 *
+            torso,
           0.55,
         ]}
         radius={0.2}
         smoothness={5}
         position={[
           0,
-          0.83,
+          0.9,
           0,
         ]}
       >
         <meshStandardMaterial
-          color={bodyColor}
-          roughness={0.9}
+          color={dark}
+          roughness={0.92}
         />
       </RoundedBox>
 
-      {/* hips */}
-
+      {/* HIPS */}
       <RoundedBox
         args={[
           hipWidth,
-          0.58,
-          0.64,
+          0.6,
+          0.65,
         ]}
         radius={0.22}
         smoothness={5}
         position={[
           0,
-          0.28,
+          0.32,
           0,
         ]}
       >
         <meshStandardMaterial
-          color={jointColor}
-          roughness={0.92}
-        />
-      </RoundedBox>
-
-      {/* ==============================================
-          LEFT ARM
-      ============================================== */}
-
-      <mesh
-        position={[
-          -(torsoWidth / 2 + 0.19),
-          1.74,
-          0,
-        ]}
-        rotation={[
-          0,
-          0,
-          -0.055,
-        ]}
-      >
-        <capsuleGeometry
-          args={[
-            0.18,
-            1.48,
-            10,
-            24,
-          ]}
-        />
-
-        <meshStandardMaterial
-          color={skinColor}
-          roughness={0.84}
-        />
-      </mesh>
-
-      {/* ==============================================
-          RIGHT ARM
-      ============================================== */}
-
-      <mesh
-        position={[
-          torsoWidth / 2 + 0.19,
-          1.74,
-          0,
-        ]}
-        rotation={[
-          0,
-          0,
-          0.055,
-        ]}
-      >
-        <capsuleGeometry
-          args={[
-            0.18,
-            1.48,
-            10,
-            24,
-          ]}
-        />
-
-        <meshStandardMaterial
-          color={skinColor}
-          roughness={0.84}
-        />
-      </mesh>
-
-      {/* hands */}
-
-      <mesh
-        position={[
-          -(torsoWidth / 2 + 0.25),
-          0.63,
-          0,
-        ]}
-      >
-        <sphereGeometry
-          args={[
-            0.2,
-            24,
-            24,
-          ]}
-        />
-
-        <meshStandardMaterial
-          color={skinColor}
-          roughness={0.85}
-        />
-      </mesh>
-
-      <mesh
-        position={[
-          torsoWidth / 2 + 0.25,
-          0.63,
-          0,
-        ]}
-      >
-        <sphereGeometry
-          args={[
-            0.2,
-            24,
-            24,
-          ]}
-        />
-
-        <meshStandardMaterial
-          color={skinColor}
-          roughness={0.85}
-        />
-      </mesh>
-
-      {/* ==============================================
-          LEFT LEG
-      ============================================== */}
-
-      <mesh
-        position={[
-          -0.36 * hipScale,
-          -1.18,
-          0,
-        ]}
-      >
-        <capsuleGeometry
-          args={[
-            0.27,
-            2.35,
-            12,
-            28,
-          ]}
-        />
-
-        <meshStandardMaterial
-          color="#121110"
+          color={darkTwo}
           roughness={0.94}
         />
-      </mesh>
-
-      {/* ==============================================
-          RIGHT LEG
-      ============================================== */}
-
-      <mesh
-        position={[
-          0.36 * hipScale,
-          -1.18,
-          0,
-        ]}
-      >
-        <capsuleGeometry
-          args={[
-            0.27,
-            2.35,
-            12,
-            28,
-          ]}
-        />
-
-        <meshStandardMaterial
-          color="#121110"
-          roughness={0.94}
-        />
-      </mesh>
-
-      {/* ==============================================
-          SHOES / FEET
-      ============================================== */}
-
-      <RoundedBox
-        args={[
-          0.52,
-          0.28,
-          0.88,
-        ]}
-        radius={0.12}
-        smoothness={4}
-        position={[
-          -0.36 * hipScale,
-          -2.55,
-          0.18,
-        ]}
-      >
-        <meshStandardMaterial
-          color="#090909"
-          roughness={0.72}
-        />
       </RoundedBox>
 
-      <RoundedBox
-        args={[
-          0.52,
-          0.28,
-          0.88,
-        ]}
-        radius={0.12}
-        smoothness={4}
-        position={[
-          0.36 * hipScale,
-          -2.55,
-          0.18,
-        ]}
-      >
-        <meshStandardMaterial
-          color="#090909"
-          roughness={0.72}
+      {/* ARMS */}
+      {[-1, 1].map(
+        (side) => (
+          <group
+            key={`arm-${side}`}
+          >
+            <mesh
+              position={[
+                side *
+                  armX,
+                1.86,
+                0,
+              ]}
+              rotation={[
+                0,
+                0,
+                side *
+                  0.055,
+              ]}
+            >
+              <capsuleGeometry
+                args={[
+                  0.18,
+                  1.52 *
+                    torso,
+                  12,
+                  28,
+                ]}
+              />
+
+              <meshStandardMaterial
+                color={skin}
+                roughness={0.86}
+              />
+            </mesh>
+
+            <mesh
+              position={[
+                side *
+                  (armX +
+                    0.06),
+                0.67,
+                0.02,
+              ]}
+            >
+              <sphereGeometry
+                args={[
+                  0.19,
+                  24,
+                  24,
+                ]}
+              />
+
+              <meshStandardMaterial
+                color={skin}
+                roughness={0.87}
+              />
+            </mesh>
+          </group>
+        ),
+      )}
+
+      {/* LEGS */}
+      {[-1, 1].map(
+        (side) => (
+          <group
+            key={`leg-${side}`}
+          >
+            <mesh
+              position={[
+                side *
+                  legX,
+                -1.08,
+                0,
+              ]}
+              scale={[
+                1,
+                leg,
+                1,
+              ]}
+            >
+              <capsuleGeometry
+                args={[
+                  0.27,
+                  2.08,
+                  12,
+                  28,
+                ]}
+              />
+
+              <meshStandardMaterial
+                color={dark}
+                roughness={0.95}
+              />
+            </mesh>
+
+            <RoundedBox
+              args={[
+                0.5,
+                0.25,
+                0.82,
+              ]}
+              radius={0.1}
+              smoothness={4}
+              position={[
+                side *
+                  legX,
+                -2.48 *
+                  leg,
+                0.15,
+              ]}
+            >
+              <meshStandardMaterial
+                color="#080808"
+                roughness={0.75}
+              />
+            </RoundedBox>
+          </group>
+        ),
+      )}
+
+      {/* LIVE KRVE GARMENT */}
+      {garmentTexture && (
+        <GarmentPanel
+          garmentTexture={
+            garmentTexture
+          }
+          shoulderRatio={
+            shoulder
+          }
+          torsoRatio={
+            torso
+          }
         />
-      </RoundedBox>
-
-      {/* ==============================================
-          SELECTED KRVE GARMENT
-      ============================================== */}
-
-      {productImage ? (
-        <Suspense fallback={null}>
-          <GarmentPreview
-            image={productImage}
-            torsoWidth={
-              torsoWidth
-            }
-            torsoHeight={
-              torsoHeight
-            }
-          />
-        </Suspense>
-      ) : null}
+      )}
     </group>
   );
 }
 
-/* =========================================================
-   FLOOR
-========================================================= */
-
-function Floor() {
+function StudioFloor() {
   return (
     <>
       <mesh
@@ -705,16 +610,24 @@ function Floor() {
           0,
           0,
         ]}
-        position={[0, -3, 0]}
+        position={[
+          0,
+          -3.08,
+          0,
+        ]}
+        receiveShadow
       >
         <circleGeometry
-          args={[3.2, 64]}
+          args={[
+            3.1,
+            64,
+          ]}
         />
 
         <meshStandardMaterial
-          color="#090806"
-          roughness={0.82}
-          metalness={0.08}
+          color="#0b0906"
+          roughness={0.8}
+          metalness={0.12}
         />
       </mesh>
 
@@ -726,7 +639,7 @@ function Floor() {
         ]}
         position={[
           0,
-          -2.985,
+          -3.065,
           0,
         ]}
       >
@@ -739,110 +652,97 @@ function Floor() {
         />
 
         <meshBasicMaterial
-          color="#d9a91d"
+          color="#d8a529"
           transparent
-          opacity={0.45}
+          opacity={0.55}
         />
       </mesh>
     </>
   );
 }
 
-/* =========================================================
-   SCENE
-========================================================= */
-
-function TwinScene({
-  photoUrl,
-  productImage,
-  measurements,
-  heightCm,
-}: {
-  photoUrl?: string | null;
-  productImage?: string | null;
-  measurements?: BodyMeasurements | null;
-  heightCm?: number;
-}) {
+function Scene(
+  props: PersonalTwinViewerProps,
+) {
   return (
     <>
       <color
         attach="background"
-        args={["#050504"]}
+        args={["#050505"]}
       />
 
       <fog
         attach="fog"
         args={[
-          "#050504",
-          8,
-          16,
+          "#050505",
+          9,
+          17,
         ]}
       />
 
       <ambientLight
-        intensity={1.4}
+        intensity={1.45}
       />
 
       <directionalLight
         position={[
           4,
           7,
-          6,
+          5,
         ]}
-        intensity={3.4}
-        color="#fff2d4"
+        intensity={3}
+        color="#fff1d0"
+        castShadow
       />
 
       <directionalLight
         position={[
-          -5,
+          -4,
+          4,
           3,
-          2,
         ]}
-        intensity={1.7}
-        color="#d6b060"
+        intensity={1.45}
+        color="#d8a529"
       />
 
       <pointLight
         position={[
           0,
           4,
-          -4,
+          -3,
         ]}
-        intensity={2}
-        color="#d9a91d"
+        intensity={1.7}
+        color="#d8a529"
       />
 
       <Suspense fallback={null}>
-        <DigitalHuman
-          photoUrl={photoUrl}
-          productImage={
-            productImage
-          }
-          measurements={
-            measurements
-          }
-          heightCm={heightCm}
+        <PersonalAvatar
+          {...props}
         />
       </Suspense>
 
-      <Floor />
+      <StudioFloor />
 
       <OrbitControls
         makeDefault
         enablePan={false}
         enableRotate
         enableZoom
-        autoRotate={false}
         minDistance={5.8}
         maxDistance={10}
+        target={[
+          0,
+          0.25,
+          0,
+        ]}
         minPolarAngle={
-          Math.PI * 0.25
+          Math.PI *
+          0.24
         }
         maxPolarAngle={
-          Math.PI * 0.72
+          Math.PI *
+          0.72
         }
-        target={[0, 0.25, 0]}
       />
 
       <Environment
@@ -852,47 +752,71 @@ function TwinScene({
   );
 }
 
-/* =========================================================
-   MAIN COMPONENT
-========================================================= */
-
 export default function PersonalTwinViewer({
-  photoUrl,
-  productImage,
-  productName,
-  measurements,
-  heightCm = 170,
+  analysis,
+  garmentImage,
 }: PersonalTwinViewerProps) {
+  const suggestedSize =
+    useMemo(() => {
+      const chest =
+        analysis.measurements
+          .chestCm;
+
+      if (chest <= 86) {
+        return "XS";
+      }
+
+      if (chest <= 94) {
+        return "S";
+      }
+
+      if (chest <= 102) {
+        return "M";
+      }
+
+      if (chest <= 110) {
+        return "L";
+      }
+
+      if (chest <= 118) {
+        return "XL";
+      }
+
+      return "XXL";
+    }, [analysis]);
+
   return (
     <div
       style={{
+        position:
+          "relative",
         width: "100%",
         height: "100%",
-        minHeight: "650px",
-        position: "relative",
-        overflow: "hidden",
+        minHeight: 650,
+        overflow:
+          "hidden",
         background:
-          "radial-gradient(circle at 50% 35%, rgba(210,160,35,0.10), transparent 34%), #050504",
+          "radial-gradient(circle at 50% 38%, rgba(216,165,41,.12), transparent 38%), #050505",
       }}
     >
-      {/* STATUS */}
-
       <div
         style={{
           position:
             "absolute",
-          top: 22,
-          left: 22,
           zIndex: 10,
-          display: "flex",
+          top: 20,
+          left: 20,
+          display:
+            "flex",
           alignItems:
             "center",
           gap: 8,
-          fontSize: 11,
-          fontWeight: 800,
+          color:
+            "#64e89b",
+          fontSize: 10,
+          fontWeight: 900,
           letterSpacing:
-            "0.1em",
-          color: "#5ee69b",
+            ".12em",
           pointerEvents:
             "none",
         }}
@@ -904,94 +828,154 @@ export default function PersonalTwinViewer({
             borderRadius:
               "50%",
             background:
-              "#5ee69b",
+              "#64e89b",
             boxShadow:
-              "0 0 14px rgba(94,230,155,.7)",
+              "0 0 14px rgba(100,232,155,.75)",
           }}
         />
 
-        DIGITAL TWIN READY
+        PERSONAL 3D TWIN
       </div>
-
-      {/* PRODUCT LABEL */}
-
-      {productName ? (
-        <div
-          style={{
-            position:
-              "absolute",
-            left: 22,
-            bottom: 22,
-            zIndex: 10,
-            padding:
-              "11px 14px",
-            border:
-              "1px solid rgba(218,171,41,.35)",
-            background:
-              "rgba(0,0,0,.72)",
-            color:
-              "#e2b126",
-            fontSize: 10,
-            fontWeight: 800,
-            letterSpacing:
-              "0.08em",
-            maxWidth: 250,
-            pointerEvents:
-              "none",
-          }}
-        >
-          TRYING ON
-          <div
-            style={{
-              marginTop: 5,
-              color:
-                "#f6efe5",
-              fontSize: 12,
-              letterSpacing:
-                "0",
-            }}
-          >
-            {productName}
-          </div>
-        </div>
-      ) : null}
-
-      {/* ROTATION HELP */}
 
       <div
         style={{
           position:
             "absolute",
-          right: 22,
-          bottom: 22,
           zIndex: 10,
+          top: 20,
+          right: 20,
+          padding:
+            "9px 12px",
+          border:
+            "1px solid rgba(216,165,41,.35)",
+          background:
+            "rgba(0,0,0,.72)",
           color:
-            "#81796e",
-          fontSize: 10,
+            "#d8a529",
+          fontSize: 9,
+          fontWeight: 900,
           letterSpacing:
-            "0.06em",
+            ".08em",
           pointerEvents:
             "none",
         }}
       >
-        DRAG TO ROTATE • SCROLL TO ZOOM
+        AI SIZE {suggestedSize}
+      </div>
+
+      <div
+        style={{
+          position:
+            "absolute",
+          zIndex: 10,
+          left: 20,
+          bottom: 20,
+          display:
+            "grid",
+          gridTemplateColumns:
+            "repeat(4, auto)",
+          gap: 8,
+          pointerEvents:
+            "none",
+        }}
+      >
+        {[
+          [
+            "SHOULDER",
+            `${analysis.measurements.shoulderCm} cm`,
+          ],
+          [
+            "CHEST",
+            `${analysis.measurements.chestCm} cm`,
+          ],
+          [
+            "WAIST",
+            `${analysis.measurements.waistCm} cm`,
+          ],
+          [
+            "HEIGHT",
+            `${analysis.measurements.heightCm} cm`,
+          ],
+        ].map(
+          ([label, value]) => (
+            <div
+              key={label}
+              style={{
+                display:
+                  "grid",
+                gap: 3,
+                minWidth: 76,
+                padding:
+                  "8px 10px",
+                border:
+                  "1px solid rgba(216,165,41,.24)",
+                background:
+                  "rgba(0,0,0,.68)",
+              }}
+            >
+              <span
+                style={{
+                  color:
+                    "#6e685f",
+                  fontSize: 7,
+                  fontWeight:
+                    900,
+                  letterSpacing:
+                    ".09em",
+                }}
+              >
+                {label}
+              </span>
+
+              <strong
+                style={{
+                  color:
+                    "#eee7dd",
+                  fontSize: 9,
+                }}
+              >
+                {value}
+              </strong>
+            </div>
+          ),
+        )}
+      </div>
+
+      <div
+        style={{
+          position:
+            "absolute",
+          zIndex: 10,
+          right: 20,
+          bottom: 20,
+          color:
+            "#746d64",
+          fontSize: 9,
+          letterSpacing:
+            ".06em",
+          pointerEvents:
+            "none",
+        }}
+      >
+        DRAG TO ROTATE · SCROLL TO ZOOM
       </div>
 
       <Canvas
         shadows
-        dpr={[1, 1.75]}
+        dpr={[1, 1.7]}
         camera={{
           position: [
             0,
-            0.4,
-            7.2,
+            0.35,
+            7.4,
           ],
-          fov: 43,
+          fov: 42,
           near: 0.1,
           far: 100,
         }}
         gl={{
-          antialias: true,
+          antialias:
+            true,
           alpha: false,
           powerPreference:
             "high-performance",
@@ -999,19 +983,16 @@ export default function PersonalTwinViewer({
         style={{
           width: "100%",
           height: "100%",
-          minHeight:
-            "650px",
+          minHeight: 650,
         }}
       >
-        <TwinScene
-          photoUrl={photoUrl}
-          productImage={
-            productImage
+        <Scene
+          analysis={
+            analysis
           }
-          measurements={
-            measurements
+          garmentImage={
+            garmentImage
           }
-          heightCm={heightCm}
         />
       </Canvas>
     </div>
