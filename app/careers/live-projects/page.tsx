@@ -95,8 +95,6 @@ const process = [
 export default function LiveProjectsPage() {
   return (
     <main className={styles.page}>
-      {/* HERO */}
-
       <section className={styles.hero}>
         <div className={styles.container}>
           <Link
@@ -138,10 +136,12 @@ export default function LiveProjectsPage() {
                 </a>
 
                 <a
-                  href="#program"
+                  href="/KRVE_Live_Business_Project_Program_Detailed.pdf"
+                  download="KRVE_Live_Business_Project_Program_Detailed.pdf"
                   className={styles.secondaryButton}
                 >
                   Program Details
+                  <span>↓</span>
                 </a>
               </div>
             </div>
@@ -188,8 +188,6 @@ export default function LiveProjectsPage() {
         </div>
       </section>
 
-      {/* PROGRAM INTRO */}
-
       <section
         id="program"
         className={styles.introSection}
@@ -228,8 +226,6 @@ export default function LiveProjectsPage() {
           </div>
         </div>
       </section>
-
-      {/* PROJECT AREAS */}
 
       <section
         id="projects"
@@ -283,8 +279,6 @@ export default function LiveProjectsPage() {
           </div>
         </div>
       </section>
-
-      {/* WHAT YOU GET */}
 
       <section className={styles.benefitsSection}>
         <div className={styles.container}>
@@ -349,8 +343,6 @@ export default function LiveProjectsPage() {
         </div>
       </section>
 
-      {/* PROCESS */}
-
       <section className={styles.processSection}>
         <div className={styles.container}>
           <div className={styles.sectionHeading}>
@@ -385,8 +377,6 @@ export default function LiveProjectsPage() {
           </div>
         </div>
       </section>
-
-      {/* FINAL CTA */}
 
       <section className={styles.ctaSection}>
         <div className={styles.container}>
