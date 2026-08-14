@@ -140,6 +140,31 @@ const initialForm: CheckoutForm = {
   postalCode: "",
 };
 
+type CheckoutCouponCode =
+  | "FREEDOM500"
+  | "LOGIN100";
+
+function getCheckoutCouponDiscount(
+  code: string | null,
+  subtotal: number,
+) {
+  if (code === "FREEDOM500") {
+    return Math.min(
+      500,
+      subtotal,
+    );
+  }
+
+  if (code === "LOGIN100") {
+    return Math.min(
+      100,
+      subtotal,
+    );
+  }
+
+  return 0;
+}
+
 function ArrowLeftIcon() {
   return (
     <svg
@@ -381,21 +406,12 @@ export default function CheckoutPage() {
     useState(false);
 
   const [
-    couponInput,
-    setCouponInput,
-  ] = useState("");
-
-  const [
-    appliedCoupon,
-    setAppliedCoupon,
-  ] = useState<
-    "FREEDOM500" | "LOGIN100" | null
-  >(null);
-
-  const [
-    couponMessage,
-    setCouponMessage,
-  ] = useState("");
+    appliedCouponCode,
+    setAppliedCouponCode,
+  ] =
+    useState<CheckoutCouponCode | null>(
+      null,
+    );
 
   const shipping =
     deliveryMethod ===
@@ -403,103 +419,101 @@ export default function CheckoutPage() {
       ? 499
       : 0;
 
-  const estimatedTax =
+  const couponDiscount =
     useMemo(
       () =>
-        Math.round(
-          cartSubtotal *
-            0.075,
+        getCheckoutCouponDiscount(
+          appliedCouponCode,
+          cartSubtotal,
         ),
       [
+        appliedCouponCode,
         cartSubtotal,
       ],
     );
 
-  const discount =
-    appliedCoupon === "FREEDOM500"
-      ? Math.min(
-          500,
-          cartSubtotal,
-        )
-      : appliedCoupon === "LOGIN100"
-        ? Math.min(
-            100,
-            cartSubtotal,
-          )
-        : 0;
+  const taxableAmount =
+    Math.max(
+      0,
+      cartSubtotal -
+        couponDiscount,
+    );
+
+  const estimatedTax =
+    useMemo(
+      () =>
+        Math.round(
+          taxableAmount *
+            0.075,
+        ),
+      [
+        taxableAmount,
+      ],
+    );
 
   const total =
     Math.max(
       0,
-      cartSubtotal +
+      taxableAmount +
         shipping +
-        estimatedTax -
-        discount,
+        estimatedTax,
     );
-
-  function applyCoupon() {
-    const code =
-      couponInput
-        .trim()
-        .toUpperCase();
-
-    if (code === "FREEDOM500") {
-      setAppliedCoupon(
-        "FREEDOM500",
-      );
-
-      setCouponInput(
-        "FREEDOM500",
-      );
-
-      setCouponMessage(
-        "FREEDOM500 applied successfully. ₹500 discount added.",
-      );
-
-      return;
-    }
-
-    if (code === "LOGIN100") {
-      setAppliedCoupon(
-        "LOGIN100",
-      );
-
-      setCouponInput(
-        "LOGIN100",
-      );
-
-      setCouponMessage(
-        "LOGIN100 applied successfully. ₹100 discount added.",
-      );
-
-      return;
-    }
-
-    setAppliedCoupon(
-      null,
-    );
-
-    setCouponMessage(
-      "Invalid coupon code.",
-    );
-  }
-
-  function removeCoupon() {
-    setAppliedCoupon(
-      null,
-    );
-
-    setCouponInput(
-      "",
-    );
-
-    setCouponMessage(
-      "",
-    );
-  }
 
   useEffect(() => {
     void loadCashfreeScript();
+  }, []);
+
+  useEffect(() => {
+    try {
+      const savedCoupon =
+        window.sessionStorage.getItem(
+          "krve_applied_coupon",
+        );
+
+      if (!savedCoupon) {
+        setAppliedCouponCode(
+          null,
+        );
+        return;
+      }
+
+      const parsed =
+        JSON.parse(
+          savedCoupon,
+        ) as {
+          code?: string;
+        };
+
+      const code =
+        parsed.code
+          ?.trim()
+          .toUpperCase();
+
+      if (
+        code === "FREEDOM500" ||
+        code === "LOGIN100"
+      ) {
+        setAppliedCouponCode(
+          code,
+        );
+      } else {
+        setAppliedCouponCode(
+          null,
+        );
+
+        window.sessionStorage.removeItem(
+          "krve_applied_coupon",
+        );
+      }
+    } catch {
+      setAppliedCouponCode(
+        null,
+      );
+
+      window.sessionStorage.removeItem(
+        "krve_applied_coupon",
+      );
+    }
   }, []);
 
   function updateField(
@@ -678,7 +692,8 @@ export default function CheckoutPage() {
       subtotal:
         cartSubtotal,
 
-      discount,
+      discount:
+        couponDiscount,
 
       shipping,
 
@@ -691,7 +706,7 @@ export default function CheckoutPage() {
         "INR",
 
       couponCode:
-        appliedCoupon,
+        appliedCouponCode,
 
       shippingAddress: {
         recipientName,
@@ -2038,183 +2053,6 @@ export default function CheckoutPage() {
             </div>
 
             <div
-              style={{
-                marginTop: "22px",
-                padding: "18px",
-                border:
-                  "1px solid #e5e7eb",
-                borderRadius:
-                  "16px",
-                background:
-                  "#ffffff",
-              }}
-            >
-              <div
-                style={{
-                  marginBottom:
-                    "10px",
-                  fontSize:
-                    "12px",
-                  fontWeight:
-                    800,
-                  letterSpacing:
-                    "0.08em",
-                }}
-              >
-                COUPON CODE
-              </div>
-
-              <div
-                style={{
-                  display:
-                    "flex",
-                  gap:
-                    "10px",
-                }}
-              >
-                <input
-                  type="text"
-                  value={
-                    couponInput
-                  }
-                  onChange={(
-                    event,
-                  ) => {
-                    setCouponInput(
-                      event.target.value.toUpperCase(),
-                    );
-
-                    if (
-                      couponMessage
-                    ) {
-                      setCouponMessage(
-                        "",
-                      );
-                    }
-                  }}
-                  placeholder="Enter coupon code"
-                  disabled={
-                    appliedCoupon !==
-                    null
-                  }
-                  style={{
-                    flex:
-                      1,
-                    minWidth:
-                      0,
-                    height:
-                      "46px",
-                    border:
-                      "1px solid #d8dee9",
-                    borderRadius:
-                      "10px",
-                    padding:
-                      "0 14px",
-                    fontSize:
-                      "14px",
-                    fontWeight:
-                      700,
-                    outline:
-                      "none",
-                  }}
-                />
-
-                {appliedCoupon ? (
-                  <button
-                    type="button"
-                    onClick={
-                      removeCoupon
-                    }
-                    style={{
-                      height:
-                        "46px",
-                      padding:
-                        "0 16px",
-                      border:
-                        "1px solid #d8dee9",
-                      borderRadius:
-                        "10px",
-                      background:
-                        "#ffffff",
-                      fontWeight:
-                        800,
-                      cursor:
-                        "pointer",
-                    }}
-                  >
-                    REMOVE
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={
-                      applyCoupon
-                    }
-                    style={{
-                      height:
-                        "46px",
-                      padding:
-                        "0 18px",
-                      border:
-                        0,
-                      borderRadius:
-                        "10px",
-                      background:
-                        "#111827",
-                      color:
-                        "#ffffff",
-                      fontWeight:
-                        800,
-                      cursor:
-                        "pointer",
-                    }}
-                  >
-                    APPLY
-                  </button>
-                )}
-              </div>
-
-              {couponMessage ? (
-                <p
-                  style={{
-                    margin:
-                      "10px 0 0",
-                    fontSize:
-                      "12px",
-                    lineHeight:
-                      1.5,
-                    fontWeight:
-                      700,
-                    color:
-                      appliedCoupon
-                        ? "#15803d"
-                        : "#b91c1c",
-                  }}
-                >
-                  {
-                    couponMessage
-                  }
-                </p>
-              ) : null}
-
-              <p
-                style={{
-                  margin:
-                    "10px 0 0",
-                  fontSize:
-                    "11px",
-                  lineHeight:
-                    1.5,
-                  color:
-                    "#6b7280",
-                }}
-              >
-                Available KRVE coupons:
-                FREEDOM500 and LOGIN100.
-              </p>
-            </div>
-
-            <div
               className={
                 styles.priceSummary
               }
@@ -2251,6 +2089,31 @@ export default function CheckoutPage() {
                 </strong>
               </div>
 
+              {couponDiscount > 0 ? (
+                <div>
+                  <span>
+                    Discount
+
+                    <small>
+                      {
+                        appliedCouponCode
+                      }
+                    </small>
+                  </span>
+
+                  <strong
+                    className={
+                      styles.goldText
+                    }
+                  >
+                    -
+                    {money.format(
+                      couponDiscount,
+                    )}
+                  </strong>
+                </div>
+              ) : null}
+
               <div>
                 <span>
                   Estimated Tax
@@ -2262,29 +2125,6 @@ export default function CheckoutPage() {
                   )}
                 </strong>
               </div>
-
-              {discount > 0 ? (
-                <div>
-                  <span>
-                    Discount
-                    {appliedCoupon
-                      ? ` (${appliedCoupon})`
-                      : ""}
-                  </span>
-
-                  <strong
-                    style={{
-                      color:
-                        "#15803d",
-                    }}
-                  >
-                    -
-                    {money.format(
-                      discount,
-                    )}
-                  </strong>
-                </div>
-              ) : null}
 
               <div>
                 <span>
