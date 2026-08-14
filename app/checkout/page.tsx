@@ -380,6 +380,23 @@ export default function CheckoutPage() {
   ] =
     useState(false);
 
+  const [
+    couponInput,
+    setCouponInput,
+  ] = useState("");
+
+  const [
+    appliedCoupon,
+    setAppliedCoupon,
+  ] = useState<
+    "FREEDOM500" | "LOGIN100" | null
+  >(null);
+
+  const [
+    couponMessage,
+    setCouponMessage,
+  ] = useState("");
+
   const shipping =
     deliveryMethod ===
     "express"
@@ -398,10 +415,88 @@ export default function CheckoutPage() {
       ],
     );
 
+  const discount =
+    appliedCoupon === "FREEDOM500"
+      ? Math.min(
+          500,
+          cartSubtotal,
+        )
+      : appliedCoupon === "LOGIN100"
+        ? Math.min(
+            100,
+            cartSubtotal,
+          )
+        : 0;
+
   const total =
-    cartSubtotal +
-    shipping +
-    estimatedTax;
+    Math.max(
+      0,
+      cartSubtotal +
+        shipping +
+        estimatedTax -
+        discount,
+    );
+
+  function applyCoupon() {
+    const code =
+      couponInput
+        .trim()
+        .toUpperCase();
+
+    if (code === "FREEDOM500") {
+      setAppliedCoupon(
+        "FREEDOM500",
+      );
+
+      setCouponInput(
+        "FREEDOM500",
+      );
+
+      setCouponMessage(
+        "FREEDOM500 applied successfully. ₹500 discount added.",
+      );
+
+      return;
+    }
+
+    if (code === "LOGIN100") {
+      setAppliedCoupon(
+        "LOGIN100",
+      );
+
+      setCouponInput(
+        "LOGIN100",
+      );
+
+      setCouponMessage(
+        "LOGIN100 applied successfully. ₹100 discount added.",
+      );
+
+      return;
+    }
+
+    setAppliedCoupon(
+      null,
+    );
+
+    setCouponMessage(
+      "Invalid coupon code.",
+    );
+  }
+
+  function removeCoupon() {
+    setAppliedCoupon(
+      null,
+    );
+
+    setCouponInput(
+      "",
+    );
+
+    setCouponMessage(
+      "",
+    );
+  }
 
   useEffect(() => {
     void loadCashfreeScript();
@@ -583,8 +678,7 @@ export default function CheckoutPage() {
       subtotal:
         cartSubtotal,
 
-      discount:
-        0,
+      discount,
 
       shipping,
 
@@ -597,7 +691,7 @@ export default function CheckoutPage() {
         "INR",
 
       couponCode:
-        null,
+        appliedCoupon,
 
       shippingAddress: {
         recipientName,
@@ -1944,6 +2038,183 @@ export default function CheckoutPage() {
             </div>
 
             <div
+              style={{
+                marginTop: "22px",
+                padding: "18px",
+                border:
+                  "1px solid #e5e7eb",
+                borderRadius:
+                  "16px",
+                background:
+                  "#ffffff",
+              }}
+            >
+              <div
+                style={{
+                  marginBottom:
+                    "10px",
+                  fontSize:
+                    "12px",
+                  fontWeight:
+                    800,
+                  letterSpacing:
+                    "0.08em",
+                }}
+              >
+                COUPON CODE
+              </div>
+
+              <div
+                style={{
+                  display:
+                    "flex",
+                  gap:
+                    "10px",
+                }}
+              >
+                <input
+                  type="text"
+                  value={
+                    couponInput
+                  }
+                  onChange={(
+                    event,
+                  ) => {
+                    setCouponInput(
+                      event.target.value.toUpperCase(),
+                    );
+
+                    if (
+                      couponMessage
+                    ) {
+                      setCouponMessage(
+                        "",
+                      );
+                    }
+                  }}
+                  placeholder="Enter coupon code"
+                  disabled={
+                    appliedCoupon !==
+                    null
+                  }
+                  style={{
+                    flex:
+                      1,
+                    minWidth:
+                      0,
+                    height:
+                      "46px",
+                    border:
+                      "1px solid #d8dee9",
+                    borderRadius:
+                      "10px",
+                    padding:
+                      "0 14px",
+                    fontSize:
+                      "14px",
+                    fontWeight:
+                      700,
+                    outline:
+                      "none",
+                  }}
+                />
+
+                {appliedCoupon ? (
+                  <button
+                    type="button"
+                    onClick={
+                      removeCoupon
+                    }
+                    style={{
+                      height:
+                        "46px",
+                      padding:
+                        "0 16px",
+                      border:
+                        "1px solid #d8dee9",
+                      borderRadius:
+                        "10px",
+                      background:
+                        "#ffffff",
+                      fontWeight:
+                        800,
+                      cursor:
+                        "pointer",
+                    }}
+                  >
+                    REMOVE
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={
+                      applyCoupon
+                    }
+                    style={{
+                      height:
+                        "46px",
+                      padding:
+                        "0 18px",
+                      border:
+                        0,
+                      borderRadius:
+                        "10px",
+                      background:
+                        "#111827",
+                      color:
+                        "#ffffff",
+                      fontWeight:
+                        800,
+                      cursor:
+                        "pointer",
+                    }}
+                  >
+                    APPLY
+                  </button>
+                )}
+              </div>
+
+              {couponMessage ? (
+                <p
+                  style={{
+                    margin:
+                      "10px 0 0",
+                    fontSize:
+                      "12px",
+                    lineHeight:
+                      1.5,
+                    fontWeight:
+                      700,
+                    color:
+                      appliedCoupon
+                        ? "#15803d"
+                        : "#b91c1c",
+                  }}
+                >
+                  {
+                    couponMessage
+                  }
+                </p>
+              ) : null}
+
+              <p
+                style={{
+                  margin:
+                    "10px 0 0",
+                  fontSize:
+                    "11px",
+                  lineHeight:
+                    1.5,
+                  color:
+                    "#6b7280",
+                }}
+              >
+                Available KRVE coupons:
+                FREEDOM500 and LOGIN100.
+              </p>
+            </div>
+
+            <div
               className={
                 styles.priceSummary
               }
@@ -1991,6 +2262,29 @@ export default function CheckoutPage() {
                   )}
                 </strong>
               </div>
+
+              {discount > 0 ? (
+                <div>
+                  <span>
+                    Discount
+                    {appliedCoupon
+                      ? ` (${appliedCoupon})`
+                      : ""}
+                  </span>
+
+                  <strong
+                    style={{
+                      color:
+                        "#15803d",
+                    }}
+                  >
+                    -
+                    {money.format(
+                      discount,
+                    )}
+                  </strong>
+                </div>
+              ) : null}
 
               <div>
                 <span>
