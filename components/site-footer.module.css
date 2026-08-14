@@ -1,0 +1,290 @@
+.footer {
+  width: 100%;
+  background: #050505;
+  color: #ffffff;
+  border-top: 1px solid rgba(212, 175, 55, 0.45);
+}
+
+.container {
+  width: min(1400px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 72px 0 32px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1.35fr 0.7fr 0.9fr 0.8fr;
+  gap: 64px;
+}
+
+.brand {
+  min-width: 0;
+}
+
+.logo {
+  display: inline-block;
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.logoText {
+  margin: 0;
+  font-size: 34px;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.logoSub {
+  margin-top: 10px;
+  color: #d8a529;
+  font-size: 12px;
+  line-height: 1.4;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.description {
+  max-width: 410px;
+  margin: 28px 0 0;
+  color: #aaa7a0;
+  font-size: 14px;
+  line-height: 1.9;
+}
+
+.contact {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 26px;
+}
+
+.contactText,
+.contactLink {
+  color: #8e8b84;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.contactLink {
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.contactLink:hover {
+  color: #d8a529;
+}
+
+.social {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 28px;
+}
+
+.socialLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid rgba(216, 165, 41, 0.35);
+  color: #c9c5bc;
+  background: rgba(216, 165, 41, 0.04);
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  transition:
+    border-color 0.2s ease,
+    color 0.2s ease,
+    background 0.2s ease;
+}
+
+.socialLink:hover {
+  color: #050505;
+  background: #d8a529;
+  border-color: #d8a529;
+}
+
+.column {
+  min-width: 0;
+}
+
+.heading {
+  position: relative;
+  margin: 0 0 28px;
+  padding-bottom: 15px;
+  color: #ffffff;
+  font-size: 13px;
+  line-height: 1.4;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.heading::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 34px;
+  height: 2px;
+  background: #d8a529;
+}
+
+.links {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.link {
+  display: inline-flex;
+  width: fit-content;
+  color: #96928a;
+  text-decoration: none;
+  font-size: 14px;
+  line-height: 1.45;
+  transition:
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.link:hover {
+  color: #ffffff;
+  transform: translateX(4px);
+}
+
+.careerLink {
+  color: #d8a529;
+  font-weight: 700;
+}
+
+.careerLink:hover {
+  color: #f0c24f;
+}
+
+.careerBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 8px;
+  padding: 3px 7px;
+  background: rgba(216, 165, 41, 0.12);
+  border: 1px solid rgba(216, 165, 41, 0.35);
+  color: #d8a529;
+  font-size: 8px;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-top: 64px;
+  padding-top: 28px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.copyright {
+  margin: 0;
+  color: #68655f;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.bottomLinks {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 22px;
+}
+
+.bottomText {
+  color: #68655f;
+  font-size: 11px;
+  line-height: 1.5;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.gold {
+  color: #d8a529;
+}
+
+@media (max-width: 1100px) {
+  .grid {
+    grid-template-columns: 1.3fr 1fr 1fr;
+    gap: 48px;
+  }
+
+  .brand {
+    grid-column: 1 / -1;
+  }
+
+  .description {
+    max-width: 650px;
+  }
+}
+
+@media (max-width: 760px) {
+  .container {
+    width: min(100% - 32px, 1400px);
+    padding-top: 52px;
+  }
+
+  .grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 42px 32px;
+  }
+
+  .brand {
+    grid-column: 1 / -1;
+  }
+
+  .bottom {
+    flex-direction: column;
+    align-items: flex-start;
+    margin-top: 48px;
+  }
+}
+
+@media (max-width: 520px) {
+  .container {
+    width: min(100% - 28px, 1400px);
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  .brand {
+    grid-column: auto;
+  }
+
+  .logoText {
+    font-size: 30px;
+  }
+
+  .social {
+    gap: 8px;
+  }
+
+  .socialLink {
+    padding: 0 13px;
+  }
+
+  .bottomLinks {
+    gap: 12px 18px;
+  }
+}
