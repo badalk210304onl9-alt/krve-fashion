@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { useCart } from "@/components/cart-provider";
 import styles from "./cart.module.css";
@@ -38,27 +38,19 @@ function getCouponResult(
 ): CouponResult | null {
   const code = rawCode.trim().toUpperCase();
 
-  if (code === "WELCOME10") {
+  if (code === "FREEDOM500") {
     return {
       code,
-      label: "10% welcome discount",
-      discount: Math.round(subtotal * 0.1),
-    };
-  }
-
-  if (code === "KRVE15") {
-    return {
-      code,
-      label: "15% KRVE member discount",
-      discount: Math.round(subtotal * 0.15),
-    };
-  }
-
-  if (code === "FIRST500") {
-    return {
-      code,
-      label: "₹500 first-order discount",
+      label: "₹500 Freedom discount",
       discount: Math.min(500, subtotal),
+    };
+  }
+
+  if (code === "LOGIN100") {
+    return {
+      code,
+      label: "₹100 login discount",
+      discount: Math.min(100, subtotal),
     };
   }
 
@@ -173,6 +165,53 @@ export default function CartPage() {
     "idle" | "success" | "error"
   >("idle");
 
+  useEffect(() => {
+    try {
+      const savedCoupon =
+        window.sessionStorage.getItem(
+          "krve_applied_coupon",
+        );
+
+      if (!savedCoupon) {
+        return;
+      }
+
+      const parsed = JSON.parse(
+        savedCoupon,
+      ) as {
+        code?: string;
+      };
+
+      const restored =
+        getCouponResult(
+          parsed.code ?? "",
+          cartSubtotal,
+        );
+
+      if (restored) {
+        setAppliedCoupon(
+          restored,
+        );
+
+        setCouponInput(
+          restored.code,
+        );
+
+        setCouponStatus(
+          "success",
+        );
+
+        setCouponMessage(
+          `${restored.code} applied successfully.`,
+        );
+      }
+    } catch {
+      window.sessionStorage.removeItem(
+        "krve_applied_coupon",
+      );
+    }
+  }, [cartSubtotal]);
+
   const couponDiscount = useMemo(() => {
     if (!appliedCoupon) {
       return 0;
@@ -235,6 +274,13 @@ export default function CartPage() {
     setCouponMessage(
       `${result.code} applied successfully.`,
     );
+
+    window.sessionStorage.setItem(
+      "krve_applied_coupon",
+      JSON.stringify({
+        code: result.code,
+      }),
+    );
   }
 
   function removeCoupon() {
@@ -242,6 +288,10 @@ export default function CartPage() {
     setCouponInput("");
     setCouponMessage("Coupon removed.");
     setCouponStatus("idle");
+
+    window.sessionStorage.removeItem(
+      "krve_applied_coupon",
+    );
   }
 
   return (
@@ -538,28 +588,23 @@ export default function CartPage() {
                   <button
                     type="button"
                     onClick={() =>
-                      setCouponInput("WELCOME10")
+                      setCouponInput(
+                        "FREEDOM500",
+                      )
                     }
                   >
-                    WELCOME10
+                    FREEDOM500
                   </button>
 
                   <button
                     type="button"
                     onClick={() =>
-                      setCouponInput("KRVE15")
+                      setCouponInput(
+                        "LOGIN100",
+                      )
                     }
                   >
-                    KRVE15
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setCouponInput("FIRST500")
-                    }
-                  >
-                    FIRST500
+                    LOGIN100
                   </button>
                 </div>
               )}
