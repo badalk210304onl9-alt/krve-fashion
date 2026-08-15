@@ -61,23 +61,16 @@ export type ProductsPagination = {
 
 export type ProductsResult = {
   products: KrveProduct[];
-
   pagination: ProductsPagination;
 };
 
 export type ProductQuery = {
   category?: ProductCategory;
-
   status?: ProductStatus;
-
   search?: string;
-
   featured?: boolean;
-
   newArrival?: boolean;
-
   limit?: number;
-
   offset?: number;
 };
 
@@ -111,14 +104,11 @@ function getApiUrl() {
     );
   }
 
-  return apiUrl.replace(
-    /\/+$/,
-    "",
-  );
+  return apiUrl.replace(/\/+$/, "");
 }
 
 /* =========================================================
-   HELPERS
+   QUERY HELPERS
 ========================================================= */
 
 function createQueryString(
@@ -175,7 +165,9 @@ function createQueryString(
   if (
     typeof query.limit ===
       "number" &&
-    Number.isFinite(query.limit)
+    Number.isFinite(
+      query.limit,
+    )
   ) {
     parameters.set(
       "limit",
@@ -193,7 +185,9 @@ function createQueryString(
   if (
     typeof query.offset ===
       "number" &&
-    Number.isFinite(query.offset)
+    Number.isFinite(
+      query.offset,
+    )
   ) {
     parameters.set(
       "offset",
@@ -210,6 +204,10 @@ function createQueryString(
 
   return parameters.toString();
 }
+
+/* =========================================================
+   RESPONSE HELPERS
+========================================================= */
 
 async function readApiResponse<T>(
   response: Response,
@@ -238,36 +236,102 @@ async function readApiResponse<T>(
         ? result.message
         : `KRVE API request failed with status ${response.status}.`;
 
-    throw new Error(message);
+    throw new Error(
+      message,
+    );
   }
 
   return result.data;
+}
+
+/* =========================================================
+   NORMALISATION HELPERS
+========================================================= */
+
+function normaliseStringArray(
+  value: unknown,
+) {
+  if (
+    !Array.isArray(
+      value,
+    )
+  ) {
+    return [];
+  }
+
+  return value
+    .filter(
+      (
+        item,
+      ): item is string =>
+        typeof item ===
+          "string" &&
+        item.trim().length >
+          0,
+    )
+    .map(
+      (item) =>
+        item.trim(),
+    );
+}
+
+function normaliseCategory(
+  category: unknown,
+): ProductCategory {
+  switch (category) {
+    case "womenswear":
+      return "womenswear";
+
+    case "kidswear":
+      return "kidswear";
+
+    case "accessories":
+      return "accessories";
+
+    case "footwear":
+      return "footwear";
+
+    case "menswear":
+    default:
+      return "menswear";
+  }
+}
+
+function normaliseStatus(
+  status: unknown,
+): ProductStatus {
+  switch (status) {
+    case "published":
+      return "published";
+
+    case "archived":
+      return "archived";
+
+    case "draft":
+    default:
+      return "draft";
+  }
 }
 
 function normaliseProduct(
   product:
     Partial<KrveProduct>,
 ): KrveProduct {
+  const rawGallery =
+    normaliseStringArray(
+      product.gallery,
+    );
+
   const imageUrl =
-    product.imageUrl ||
-    product.image ||
-    product.gallery?.[0] ||
-    "";
+    (
+      product.imageUrl ||
+      product.image ||
+      rawGallery[0] ||
+      ""
+    ).trim();
 
   const gallery =
-    Array.isArray(
-      product.gallery,
-    )
-      ? product.gallery.filter(
-          (
-            image,
-          ): image is string =>
-            typeof image ===
-              "string" &&
-            image.trim().length >
-              0,
-        )
-      : [];
+    [...rawGallery];
 
   if (
     imageUrl &&
@@ -296,18 +360,61 @@ function normaliseProduct(
         )
       : 0;
 
-  return {
-    id:
-      product.id || "",
+  const price =
+    Number.isFinite(
+      Number(
+        product.price,
+      ),
+    )
+      ? Number(
+          product.price,
+        )
+      : 0;
 
-    slug:
+  let compareAtPrice:
+    | number
+    | null =
+    null;
+
+  if (
+    product.compareAtPrice !==
+      null &&
+    product.compareAtPrice !==
+      undefined &&
+    Number.isFinite(
+      Number(
+        product.compareAtPrice,
+      ),
+    )
+  ) {
+    compareAtPrice =
+      Number(
+        product.compareAtPrice,
+      );
+  }
+
+  const id =
+    String(
+      product.id || "",
+    ).trim();
+
+  const slug =
+    String(
       product.slug ||
-      product.id ||
-      "",
+        product.id ||
+        "",
+    ).trim();
+
+  return {
+    id,
+
+    slug,
 
     name:
-      product.name ||
-      "KRVE Product",
+      String(
+        product.name ||
+          "KRVE Product",
+      ).trim(),
 
     shortDescription:
       product.shortDescription ??
@@ -318,39 +425,21 @@ function normaliseProduct(
       null,
 
     category:
-      product.category ||
-      "menswear",
+      normaliseCategory(
+        product.category,
+      ),
 
-    price:
-      Number.isFinite(
-        Number(
-          product.price,
-        ),
-      )
-        ? Number(
-            product.price,
-          )
-        : 0,
+    price,
 
-    compareAtPrice:
-      product.compareAtPrice ===
-        null ||
-      product.compareAtPrice ===
-        undefined
-        ? null
-        : Number.isFinite(
-              Number(
-                product.compareAtPrice,
-              ),
-            )
-          ? Number(
-              product.compareAtPrice,
-            )
-          : null,
+    compareAtPrice,
 
     currency:
-      product.currency ||
-      "INR",
+      String(
+        product.currency ||
+          "INR",
+      )
+        .trim()
+        .toUpperCase(),
 
     imageUrl,
 
@@ -360,34 +449,14 @@ function normaliseProduct(
     gallery,
 
     sizes:
-      Array.isArray(
+      normaliseStringArray(
         product.sizes,
-      )
-        ? product.sizes.filter(
-            (
-              size,
-            ): size is string =>
-              typeof size ===
-                "string" &&
-              size.trim().length >
-                0,
-          )
-        : [],
+      ),
 
     colours:
-      Array.isArray(
+      normaliseStringArray(
         product.colours,
-      )
-        ? product.colours.filter(
-            (
-              colour,
-            ): colour is string =>
-              typeof colour ===
-                "string" &&
-              colour.trim().length >
-                0,
-          )
-        : [],
+      ),
 
     sku:
       product.sku ??
@@ -412,8 +481,9 @@ function normaliseProduct(
       ),
 
     status:
-      product.status ||
-      "draft",
+      normaliseStatus(
+        product.status,
+      ),
 
     createdAt:
       product.createdAt ||
@@ -448,14 +518,16 @@ export async function getProducts(
     await fetch(
       endpoint,
       {
-        method: "GET",
+        method:
+          "GET",
 
         headers: {
           Accept:
             "application/json",
         },
 
-        cache: "no-store",
+        cache:
+          "no-store",
       },
     );
 
@@ -464,57 +536,63 @@ export async function getProducts(
       response,
     );
 
+  const products =
+    Array.isArray(
+      data.products,
+    )
+      ? data.products.map(
+          normaliseProduct,
+        )
+      : [];
+
+  const total =
+    Number.isFinite(
+      Number(
+        data.pagination
+          ?.total,
+      ),
+    )
+      ? Number(
+          data.pagination
+            .total,
+        )
+      : products.length;
+
+  const limit =
+    Number.isFinite(
+      Number(
+        data.pagination
+          ?.limit,
+      ),
+    )
+      ? Number(
+          data.pagination
+            .limit,
+        )
+      : query.limit ||
+        100;
+
+  const offset =
+    Number.isFinite(
+      Number(
+        data.pagination
+          ?.offset,
+      ),
+    )
+      ? Number(
+          data.pagination
+            .offset,
+        )
+      : query.offset ||
+        0;
+
   return {
-    products:
-      Array.isArray(
-        data.products,
-      )
-        ? data.products.map(
-            normaliseProduct,
-          )
-        : [],
+    products,
 
     pagination: {
-      total:
-        Number.isFinite(
-          Number(
-            data.pagination
-              ?.total,
-          ),
-        )
-          ? Number(
-              data.pagination
-                .total,
-            )
-          : 0,
-
-      limit:
-        Number.isFinite(
-          Number(
-            data.pagination
-              ?.limit,
-          ),
-        )
-          ? Number(
-              data.pagination
-                .limit,
-            )
-          : query.limit ||
-            100,
-
-      offset:
-        Number.isFinite(
-          Number(
-            data.pagination
-              ?.offset,
-          ),
-        )
-          ? Number(
-              data.pagination
-                .offset,
-            )
-          : query.offset ||
-            0,
+      total,
+      limit,
+      offset,
     },
   };
 }
@@ -526,12 +604,21 @@ export async function getProducts(
 export async function getAllProducts() {
   const result =
     await getProducts({
-      status: "published",
-      limit: 100,
-      offset: 0,
+      status:
+        "published",
+
+      limit:
+        100,
+
+      offset:
+        0,
     });
 
-  return result.products;
+  return result.products.filter(
+    (product) =>
+      product.status ===
+      "published",
+  );
 }
 
 /* =========================================================
@@ -551,17 +638,18 @@ export async function getNewArrivalProducts(
 
   const result =
     await getProducts({
-      status: "published",
-      newArrival: true,
-      limit: safeLimit,
-      offset: 0,
-    });
+      status:
+        "published",
 
-  /*
-    Safety filtering is added here too,
-    so only published New Arrival
-    products reach the homepage.
-  */
+      newArrival:
+        true,
+
+      limit:
+        safeLimit,
+
+      offset:
+        0,
+    });
 
   return result.products
     .filter(
@@ -593,10 +681,17 @@ export async function getFeaturedProducts(
 
   const result =
     await getProducts({
-      status: "published",
-      featured: true,
-      limit: safeLimit,
-      offset: 0,
+      status:
+        "published",
+
+      featured:
+        true,
+
+      limit:
+        safeLimit,
+
+      offset:
+        0,
     });
 
   return result.products
@@ -617,18 +712,28 @@ export async function getFeaturedProducts(
 ========================================================= */
 
 export async function getProductsByCategory(
-  category: ProductCategory,
+  category:
+    ProductCategory,
   limit = 100,
 ) {
   const result =
     await getProducts({
       category,
-      status: "published",
+
+      status:
+        "published",
+
       limit,
-      offset: 0,
+
+      offset:
+        0,
     });
 
-  return result.products;
+  return result.products.filter(
+    (product) =>
+      product.status ===
+      "published",
+  );
 }
 
 /* =========================================================
@@ -656,58 +761,278 @@ export async function searchProducts(
 
       limit,
 
-      offset: 0,
+      offset:
+        0,
     });
 
-  return result.products;
-}
-
-/* =========================================================
-   SINGLE PRODUCT BY SLUG
-========================================================= */
-
-export async function getProductBySlug(
-  slug: string,
-) {
-  const cleanedSlug =
-    slug.trim();
-
-  if (!cleanedSlug) {
-    throw new Error(
-      "Product slug is required.",
-    );
-  }
-
-  const response =
-    await fetch(
-      `${getApiUrl()}/api/products/${encodeURIComponent(
-        cleanedSlug,
-      )}`,
-      {
-        method: "GET",
-
-        headers: {
-          Accept:
-            "application/json",
-        },
-
-        cache: "no-store",
-      },
-    );
-
-  const product =
-    await readApiResponse<KrveProduct>(
-      response,
-    );
-
-  return normaliseProduct(
-    product,
+  return result.products.filter(
+    (product) =>
+      product.status ===
+      "published",
   );
 }
 
 /* =========================================================
+   PRODUCT MATCH HELPER
+========================================================= */
+
+function productMatchesIdentifier(
+  product: KrveProduct,
+  identifier: string,
+) {
+  const expected =
+    identifier
+      .trim()
+      .toLowerCase();
+
+  const productSlug =
+    String(
+      product.slug || "",
+    )
+      .trim()
+      .toLowerCase();
+
+  const productId =
+    String(
+      product.id || "",
+    )
+      .trim()
+      .toLowerCase();
+
+  return (
+    productSlug ===
+      expected ||
+    productId ===
+      expected
+  );
+}
+
+/* =========================================================
+   SINGLE PRODUCT BY SLUG
+
+   IMPORTANT:
+   1. First tries the Central API's direct product endpoint.
+   2. If the backend accepts only IDs instead of slugs,
+      it falls back to the published-products list.
+   3. The fallback then finds the exact slug or ID.
+========================================================= */
+
+export async function getProductBySlug(
+  slug: string,
+): Promise<KrveProduct | null> {
+  const cleanedSlug =
+    decodeURIComponent(
+      slug,
+    ).trim();
+
+  if (!cleanedSlug) {
+    return null;
+  }
+
+  /*
+   * -------------------------------------------------------
+   * ATTEMPT 1
+   * Direct endpoint.
+   *
+   * This continues to support the Central API if
+   * /api/products/:identifier supports the product slug.
+   * -------------------------------------------------------
+   */
+
+  try {
+    const endpoint =
+      `${getApiUrl()}/api/products/${encodeURIComponent(
+        cleanedSlug,
+      )}`;
+
+    const response =
+      await fetch(
+        endpoint,
+        {
+          method:
+            "GET",
+
+          headers: {
+            Accept:
+              "application/json",
+          },
+
+          cache:
+            "no-store",
+        },
+      );
+
+    if (
+      response.ok
+    ) {
+      try {
+        const product =
+          await readApiResponse<KrveProduct>(
+            response,
+          );
+
+        const normalised =
+          normaliseProduct(
+            product,
+          );
+
+        if (
+          normalised.id ||
+          normalised.slug
+        ) {
+          return normalised;
+        }
+      } catch (
+        error
+      ) {
+        console.warn(
+          "KRVE_DIRECT_PRODUCT_PARSE_FAILED",
+          {
+            slug:
+              cleanedSlug,
+
+            error,
+          },
+        );
+      }
+    } else {
+      console.warn(
+        "KRVE_DIRECT_PRODUCT_LOOKUP_FAILED",
+        {
+          slug:
+            cleanedSlug,
+
+          status:
+            response.status,
+        },
+      );
+    }
+  } catch (
+    error
+  ) {
+    console.warn(
+      "KRVE_DIRECT_PRODUCT_REQUEST_FAILED",
+      {
+        slug:
+          cleanedSlug,
+
+        error,
+      },
+    );
+  }
+
+  /*
+   * -------------------------------------------------------
+   * ATTEMPT 2
+   * Guaranteed fallback.
+   *
+   * Collection page already receives products from
+   * /api/products, so we use the same working endpoint
+   * and find the exact product locally.
+   * -------------------------------------------------------
+   */
+
+  try {
+    const result =
+      await getProducts({
+        status:
+          "published",
+
+        limit:
+          100,
+
+        offset:
+          0,
+      });
+
+    const exactProduct =
+      result.products.find(
+        (product) =>
+          productMatchesIdentifier(
+            product,
+            cleanedSlug,
+          ),
+      );
+
+    if (
+      exactProduct
+    ) {
+      return exactProduct;
+    }
+  } catch (
+    error
+  ) {
+    console.error(
+      "KRVE_PRODUCT_LIST_FALLBACK_FAILED",
+      {
+        slug:
+          cleanedSlug,
+
+        error,
+      },
+    );
+  }
+
+  /*
+   * -------------------------------------------------------
+   * ATTEMPT 3
+   * Some API implementations may not properly honour
+   * status filtering. Therefore try one broad list.
+   * -------------------------------------------------------
+   */
+
+  try {
+    const result =
+      await getProducts({
+        limit:
+          100,
+
+        offset:
+          0,
+      });
+
+    const exactProduct =
+      result.products.find(
+        (product) =>
+          productMatchesIdentifier(
+            product,
+            cleanedSlug,
+          ),
+      );
+
+    if (
+      exactProduct
+    ) {
+      return exactProduct;
+    }
+  } catch (
+    error
+  ) {
+    console.error(
+      "KRVE_PRODUCT_FINAL_FALLBACK_FAILED",
+      {
+        slug:
+          cleanedSlug,
+
+        error,
+      },
+    );
+  }
+
+  console.error(
+    "KRVE_PRODUCT_NOT_FOUND",
+    {
+      slug:
+        cleanedSlug,
+    },
+  );
+
+  return null;
+}
+
+/* =========================================================
    SINGLE PRODUCT BY ID OR SLUG
-   Alias for compatibility with old pages
+   Compatibility alias
 ========================================================= */
 
 export async function getProduct(
