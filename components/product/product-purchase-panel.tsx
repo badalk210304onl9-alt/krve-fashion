@@ -45,21 +45,17 @@ type ProductPurchasePanelProps = {
 type StoredCartItem = {
   id: string;
   slug: string;
-
   name: string;
   image: string;
-
   price: number;
   currency: string;
-
   size: string;
   colour: string;
-
   quantity: number;
 };
 
 /* =========================================================
-   MENSWEAR SIZE CHART
+   SIZE CHART DATA
 ========================================================= */
 
 const menswearSizeChart = [
@@ -104,6 +100,90 @@ const menswearSizeChart = [
     waist: "38–40",
     shoulder: "21–22",
     length: "31–32",
+  },
+];
+
+const womenswearSizeChart = [
+  {
+    size: "XS",
+    bust: "30–32",
+    waist: "24–26",
+    hip: "34–36",
+    length: "24–25",
+  },
+  {
+    size: "S",
+    bust: "32–34",
+    waist: "26–28",
+    hip: "36–38",
+    length: "25–26",
+  },
+  {
+    size: "M",
+    bust: "34–36",
+    waist: "28–30",
+    hip: "38–40",
+    length: "26–27",
+  },
+  {
+    size: "L",
+    bust: "36–38",
+    waist: "30–32",
+    hip: "40–42",
+    length: "27–28",
+  },
+  {
+    size: "XL",
+    bust: "38–40",
+    waist: "32–34",
+    hip: "42–44",
+    length: "28–29",
+  },
+  {
+    size: "XXL",
+    bust: "40–42",
+    waist: "34–36",
+    hip: "44–46",
+    length: "29–30",
+  },
+];
+
+const kidswearSizeChart = [
+  {
+    size: "2–3Y",
+    height: "92–98",
+    chest: "20–21",
+    waist: "19–20",
+  },
+  {
+    size: "4–5Y",
+    height: "104–110",
+    chest: "22–23",
+    waist: "20–21",
+  },
+  {
+    size: "6–7Y",
+    height: "116–122",
+    chest: "24–25",
+    waist: "21–22",
+  },
+  {
+    size: "8–9Y",
+    height: "128–134",
+    chest: "26–27",
+    waist: "22–23",
+  },
+  {
+    size: "10–11Y",
+    height: "140–146",
+    chest: "28–29",
+    waist: "23–24",
+  },
+  {
+    size: "12–13Y",
+    height: "152–158",
+    chest: "30–31",
+    waist: "24–25",
   },
 ];
 
@@ -157,37 +237,24 @@ function getProductImage(
 }
 
 /* =========================================================
-   COMPONENT
+   MAIN COMPONENT
 ========================================================= */
 
 export default function ProductPurchasePanel({
   product,
-
   selectedColour:
     controlledColour,
-
   onSelectedColourChange,
-
   selectedImage,
-
   hideHeaderPrice = false,
-
   hideColourSelector = false,
 }: ProductPurchasePanelProps) {
-  /* =======================================================
-     SIZE
-  ======================================================= */
-
   const [
     selectedSize,
     setSelectedSize,
   ] = useState(
     product.sizes[0] || "",
   );
-
-  /* =======================================================
-     COLOUR
-  ======================================================= */
 
   const [
     internalColour,
@@ -200,18 +267,10 @@ export default function ProductPurchasePanel({
     controlledColour ??
     internalColour;
 
-  /* =======================================================
-     QUANTITY
-  ======================================================= */
-
   const [
     quantity,
     setQuantity,
   ] = useState(1);
-
-  /* =======================================================
-     UI STATE
-  ======================================================= */
 
   const [
     addedToCart,
@@ -228,17 +287,22 @@ export default function ProductPurchasePanel({
     setSizeChartOpen,
   ] = useState(false);
 
-  /* =======================================================
-     PRODUCT TYPE
-  ======================================================= */
-
   const isMenswear =
     product.category ===
     "menswear";
 
-  /* =======================================================
-     PRICE
-  ======================================================= */
+  const isWomenswear =
+    product.category ===
+    "womenswear";
+
+  const isKidswear =
+    product.category ===
+    "kidswear";
+
+  const hasSizeChart =
+    isMenswear ||
+    isWomenswear ||
+    isKidswear;
 
   const discount =
     getDiscountPercentage(
@@ -254,10 +318,6 @@ export default function ProductPurchasePanel({
         product.price
       : 0;
 
-  /* =======================================================
-     QUANTITY LIMIT
-  ======================================================= */
-
   const maximumQuantity =
     Math.max(
       1,
@@ -267,19 +327,11 @@ export default function ProductPurchasePanel({
       ),
     );
 
-  /* =======================================================
-     SELECTION VALIDATION
-  ======================================================= */
-
   const selectionReady =
     (!product.sizes.length ||
       selectedSize) &&
     (!product.colours.length ||
       selectedColour);
-
-  /* =======================================================
-     DELIVERY DATE
-  ======================================================= */
 
   const deliveryDate =
     useMemo(() => {
@@ -299,10 +351,6 @@ export default function ProductPurchasePanel({
         },
       ).format(date);
     }, []);
-
-  /* =======================================================
-     SIZE CHART BODY LOCK + ESC CLOSE
-  ======================================================= */
 
   useEffect(() => {
     if (!sizeChartOpen) {
@@ -345,10 +393,6 @@ export default function ProductPurchasePanel({
     };
   }, [sizeChartOpen]);
 
-  /* =======================================================
-     COLOUR HANDLER
-  ======================================================= */
-
   function selectColour(
     colour: string,
   ) {
@@ -361,10 +405,6 @@ export default function ProductPurchasePanel({
     );
   }
 
-  /* =======================================================
-     ADD TO CART
-  ======================================================= */
-
   function saveToCart() {
     if (
       !product.inStock ||
@@ -376,12 +416,8 @@ export default function ProductPurchasePanel({
     const cartItem:
       StoredCartItem = {
       id: product.id,
-
-      slug:
-        product.slug,
-
-      name:
-        product.name,
+      slug: product.slug,
+      name: product.name,
 
       image:
         selectedImage ||
@@ -489,10 +525,6 @@ export default function ProductPurchasePanel({
     }
   }
 
-  /* =======================================================
-     BUY NOW
-  ======================================================= */
-
   function buyNow() {
     const saved =
       saveToCart();
@@ -502,10 +534,6 @@ export default function ProductPurchasePanel({
         "/checkout";
     }
   }
-
-  /* =======================================================
-     WISHLIST
-  ======================================================= */
 
   function toggleWishlist() {
     try {
@@ -560,17 +588,159 @@ export default function ProductPurchasePanel({
     }
   }
 
-  /* =======================================================
-     RENDER
-  ======================================================= */
+  function renderSizeTable() {
+    if (isMenswear) {
+      return (
+        <>
+          <div className="krve-size-chart-unit">
+            <span>
+              MENSWEAR
+            </span>
+
+            <strong>
+              MEASUREMENTS IN INCHES
+            </strong>
+          </div>
+
+          <div className="krve-size-table-scroll">
+            <table className="krve-size-chart-table">
+              <thead>
+                <tr>
+                  <th>Size</th>
+                  <th>Chest</th>
+                  <th>Waist</th>
+                  <th>Shoulder</th>
+                  <th>Length</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {menswearSizeChart.map(
+                  (item) => (
+                    <tr key={item.size}>
+                      <td>{item.size}</td>
+                      <td>{item.chest}</td>
+                      <td>{item.waist}</td>
+                      <td>{item.shoulder}</td>
+                      <td>{item.length}</td>
+                    </tr>
+                  ),
+                )}
+              </tbody>
+            </table>
+          </div>
+        </>
+      );
+    }
+
+    if (isWomenswear) {
+      return (
+        <>
+          <div className="krve-size-chart-unit">
+            <span>
+              WOMEN
+            </span>
+
+            <strong>
+              MEASUREMENTS IN INCHES
+            </strong>
+          </div>
+
+          <div className="krve-size-table-scroll">
+            <table className="krve-size-chart-table">
+              <thead>
+                <tr>
+                  <th>Size</th>
+                  <th>Bust</th>
+                  <th>Waist</th>
+                  <th>Hip</th>
+                  <th>Length</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {womenswearSizeChart.map(
+                  (item) => (
+                    <tr key={item.size}>
+                      <td>{item.size}</td>
+                      <td>{item.bust}</td>
+                      <td>{item.waist}</td>
+                      <td>{item.hip}</td>
+                      <td>{item.length}</td>
+                    </tr>
+                  ),
+                )}
+              </tbody>
+            </table>
+          </div>
+        </>
+      );
+    }
+
+    if (isKidswear) {
+      return (
+        <>
+          <div className="krve-size-chart-unit">
+            <span>
+              KIDS
+            </span>
+
+            <strong>
+              HEIGHT IN CM • OTHER MEASUREMENTS IN INCHES
+            </strong>
+          </div>
+
+          <div className="krve-size-table-scroll">
+            <table className="krve-size-chart-table">
+              <thead>
+                <tr>
+                  <th>Age / Size</th>
+                  <th>Height</th>
+                  <th>Chest</th>
+                  <th>Waist</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {kidswearSizeChart.map(
+                  (item) => (
+                    <tr key={item.size}>
+                      <td>{item.size}</td>
+                      <td>{item.height}</td>
+                      <td>{item.chest}</td>
+                      <td>{item.waist}</td>
+                    </tr>
+                  ),
+                )}
+              </tbody>
+            </table>
+          </div>
+        </>
+      );
+    }
+
+    return null;
+  }
+
+  function getSizeChartTitle() {
+    if (isMenswear) {
+      return "Menswear Size Guide";
+    }
+
+    if (isWomenswear) {
+      return "Womenswear Size Guide";
+    }
+
+    if (isKidswear) {
+      return "Kidswear Size Guide";
+    }
+
+    return "Size Guide";
+  }
 
   return (
     <>
       <section className="krve-purchase-panel">
-        {/* ===============================================
-            PRODUCT HEADER + PRICE
-        =============================================== */}
-
         {!hideHeaderPrice ? (
           <>
             <div className="krve-purchase-top">
@@ -651,10 +821,6 @@ export default function ProductPurchasePanel({
           </>
         ) : null}
 
-        {/* ===============================================
-            SIZE SELECTOR
-        =============================================== */}
-
         {product.sizes.length >
           0 && (
           <section className="krve-selection-section">
@@ -663,7 +829,7 @@ export default function ProductPurchasePanel({
                 Select Size
               </strong>
 
-              {isMenswear && (
+              {hasSizeChart && (
                 <button
                   type="button"
                   className="krve-size-chart-trigger"
@@ -715,10 +881,6 @@ export default function ProductPurchasePanel({
           </section>
         )}
 
-        {/* ===============================================
-            COLOUR SELECTOR
-        =============================================== */}
-
         {!hideColourSelector &&
         product.colours.length >
           0 ? (
@@ -757,10 +919,6 @@ export default function ProductPurchasePanel({
           </section>
         ) : null}
 
-        {/* ===============================================
-            STOCK
-        =============================================== */}
-
         <div className="krve-stock-line">
           <div
             className={
@@ -777,10 +935,6 @@ export default function ProductPurchasePanel({
           </span>
         </div>
 
-        {/* ===============================================
-            DELIVERY
-        =============================================== */}
-
         <div className="krve-delivery-mini">
           <span>
             Delivery by
@@ -794,10 +948,6 @@ export default function ProductPurchasePanel({
             size={16}
           />
         </div>
-
-        {/* ===============================================
-            QUANTITY
-        =============================================== */}
 
         <div className="krve-quantity-row">
           <span>
@@ -852,10 +1002,6 @@ export default function ProductPurchasePanel({
           </div>
         </div>
 
-        {/* ===============================================
-            CART / BUY NOW
-        =============================================== */}
-
         <div className="krve-main-actions">
           <button
             type="button"
@@ -906,10 +1052,6 @@ export default function ProductPurchasePanel({
           </button>
         </div>
 
-        {/* ===============================================
-            AI TRY ON
-        =============================================== */}
-
         <a
           href={`/virtual-try-on?product=${encodeURIComponent(
             product.slug,
@@ -920,16 +1062,11 @@ export default function ProductPurchasePanel({
             size={18}
           />
 
-          Try with KRVE AI
-          Virtual Try-On
+          Try with KRVE AI Virtual Try-On
         </a>
       </section>
 
-      {/* =================================================
-          MENSWEAR SIZE CHART DRAWER
-      ================================================= */}
-
-      {isMenswear && (
+      {hasSizeChart && (
         <div
           className={`krve-size-chart-layer ${
             sizeChartOpen
@@ -940,8 +1077,6 @@ export default function ProductPurchasePanel({
             !sizeChartOpen
           }
         >
-          {/* BACKDROP */}
-
           <button
             type="button"
             aria-label="Close size chart"
@@ -953,16 +1088,14 @@ export default function ProductPurchasePanel({
             }
           />
 
-          {/* DRAWER */}
-
           <aside
             className="krve-size-chart-drawer"
             role="dialog"
             aria-modal="true"
-            aria-label="Menswear Size Guide"
+            aria-label={
+              getSizeChartTitle()
+            }
           >
-            {/* HEADER */}
-
             <div className="krve-size-chart-header">
               <div>
                 <p>
@@ -970,7 +1103,7 @@ export default function ProductPurchasePanel({
                 </p>
 
                 <h2>
-                  Menswear Size Guide
+                  {getSizeChartTitle()}
                 </h2>
               </div>
 
@@ -990,102 +1123,12 @@ export default function ProductPurchasePanel({
               </button>
             </div>
 
-            {/* MEASUREMENT LABEL */}
-
-            <div className="krve-size-chart-unit">
-              <span>
-                SIZE CHART
-              </span>
-
-              <strong>
-                MEASUREMENTS IN INCHES
-              </strong>
-            </div>
-
-            {/* TABLE */}
-
-            <div className="krve-size-table-scroll">
-              <table className="krve-size-chart-table">
-                <thead>
-                  <tr>
-                    <th>
-                      Size
-                    </th>
-
-                    <th>
-                      Chest
-                    </th>
-
-                    <th>
-                      Waist
-                    </th>
-
-                    <th>
-                      Shoulder
-                    </th>
-
-                    <th>
-                      Length
-                    </th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {menswearSizeChart.map(
-                    (item) => (
-                      <tr
-                        key={
-                          item.size
-                        }
-                      >
-                        <td>
-                          {
-                            item.size
-                          }
-                        </td>
-
-                        <td>
-                          {
-                            item.chest
-                          }
-                        </td>
-
-                        <td>
-                          {
-                            item.waist
-                          }
-                        </td>
-
-                        <td>
-                          {
-                            item.shoulder
-                          }
-                        </td>
-
-                        <td>
-                          {
-                            item.length
-                          }
-                        </td>
-                      </tr>
-                    ),
-                  )}
-                </tbody>
-              </table>
-            </div>
+            {renderSizeTable()}
           </aside>
         </div>
       )}
 
-      {/* =================================================
-          SIZE CHART CSS
-      ================================================= */}
-
       <style jsx global>{`
-        /* ===============================================
-           SIZE CHART BUTTON
-        =============================================== */
-
         .krve-size-chart-trigger {
           padding: 0;
           border: 0;
@@ -1095,17 +1138,12 @@ export default function ProductPurchasePanel({
           font-family: inherit;
           font-size: 12px;
           font-weight: 600;
-          text-decoration: none;
           transition: color 0.2s ease;
         }
 
         .krve-size-chart-trigger:hover {
           color: #ffd45e;
         }
-
-        /* ===============================================
-           FULL SCREEN LAYER
-        =============================================== */
 
         .krve-size-chart-layer {
           position: fixed;
@@ -1119,10 +1157,6 @@ export default function ProductPurchasePanel({
           visibility: visible;
           pointer-events: auto;
         }
-
-        /* ===============================================
-           BACKDROP
-        =============================================== */
 
         .krve-size-chart-backdrop {
           position: absolute;
@@ -1146,24 +1180,17 @@ export default function ProductPurchasePanel({
 
           opacity: 0;
 
-          cursor: default;
-
           backdrop-filter:
             blur(6px);
 
           transition:
-            opacity 0.32s
-            ease;
+            opacity 0.32s ease;
         }
 
         .krve-size-chart-layer.open
           .krve-size-chart-backdrop {
           opacity: 1;
         }
-
-        /* ===============================================
-           DRAWER
-        =============================================== */
 
         .krve-size-chart-drawer {
           position: absolute;
@@ -1191,16 +1218,14 @@ export default function ProductPurchasePanel({
 
           background:
             radial-gradient(
-              circle at
-                100% 0%,
+              circle at 100% 0%,
               rgba(
                 218,
                 165,
                 25,
                 0.07
               ),
-              transparent
-                28%
+              transparent 28%
             ),
             #050505;
 
@@ -1238,10 +1263,6 @@ export default function ProductPurchasePanel({
             translateX(0);
         }
 
-        /* ===============================================
-           HEADER
-        =============================================== */
-
         .krve-size-chart-header {
           display: flex;
 
@@ -1265,8 +1286,7 @@ export default function ProductPurchasePanel({
             );
         }
 
-        .krve-size-chart-header
-          p {
+        .krve-size-chart-header p {
           margin:
             0 0 12px;
 
@@ -1280,8 +1300,7 @@ export default function ProductPurchasePanel({
             0.22em;
         }
 
-        .krve-size-chart-header
-          h2 {
+        .krve-size-chart-header h2 {
           margin: 0;
 
           color: #f6f0e7;
@@ -1300,10 +1319,6 @@ export default function ProductPurchasePanel({
           letter-spacing:
             -0.035em;
         }
-
-        /* ===============================================
-           CLOSE BUTTON
-        =============================================== */
 
         .krve-size-chart-close {
           display: grid;
@@ -1337,8 +1352,7 @@ export default function ProductPurchasePanel({
           cursor: pointer;
 
           transition:
-            all 0.2s
-            ease;
+            all 0.2s ease;
         }
 
         .krve-size-chart-close:hover {
@@ -1347,10 +1361,6 @@ export default function ProductPurchasePanel({
 
           color: #050505;
         }
-
-        /* ===============================================
-           UNIT ROW
-        =============================================== */
 
         .krve-size-chart-unit {
           display: flex;
@@ -1371,20 +1381,7 @@ export default function ProductPurchasePanel({
             #252525;
         }
 
-        .krve-size-chart-unit
-          span {
-          color: #77726a;
-
-          font-size: 9px;
-
-          font-weight: 800;
-
-          letter-spacing:
-            0.18em;
-        }
-
-        .krve-size-chart-unit
-          strong {
+        .krve-size-chart-unit span {
           color: #dda91d;
 
           font-size: 10px;
@@ -1392,12 +1389,19 @@ export default function ProductPurchasePanel({
           font-weight: 800;
 
           letter-spacing:
-            0.15em;
+            0.18em;
         }
 
-        /* ===============================================
-           TABLE WRAPPER
-        =============================================== */
+        .krve-size-chart-unit strong {
+          color: #8a857d;
+
+          font-size: 10px;
+
+          font-weight: 500;
+
+          letter-spacing:
+            0.06em;
+        }
 
         .krve-size-table-scroll {
           overflow-x: auto;
@@ -1406,10 +1410,6 @@ export default function ProductPurchasePanel({
             38px 60px
             60px;
         }
-
-        /* ===============================================
-           TABLE
-        =============================================== */
 
         .krve-size-chart-table {
           width: 100%;
@@ -1433,10 +1433,7 @@ export default function ProductPurchasePanel({
             #040404;
         }
 
-        /* TABLE HEADER */
-
-        .krve-size-chart-table
-          thead {
+        .krve-size-chart-table thead {
           background:
             rgba(
               218,
@@ -1446,8 +1443,7 @@ export default function ProductPurchasePanel({
             );
         }
 
-        .krve-size-chart-table
-          th {
+        .krve-size-chart-table th {
           padding:
             25px 22px;
 
@@ -1472,10 +1468,7 @@ export default function ProductPurchasePanel({
           text-align: left;
         }
 
-        /* TABLE BODY */
-
-        .krve-size-chart-table
-          td {
+        .krve-size-chart-table td {
           padding:
             27px 22px;
 
@@ -1493,11 +1486,8 @@ export default function ProductPurchasePanel({
         .krve-size-chart-table
           tr:last-child
           td {
-          border-bottom:
-            none;
+          border-bottom: none;
         }
-
-        /* SIZE COLUMN */
 
         .krve-size-chart-table
           td:first-child {
@@ -1511,11 +1501,7 @@ export default function ProductPurchasePanel({
           font-size: 22px;
         }
 
-        /* ROW HOVER */
-
-        .krve-size-chart-table
-          tbody
-          tr {
+        .krve-size-chart-table tbody tr {
           transition:
             background
             0.2s ease;
@@ -1532,10 +1518,6 @@ export default function ProductPurchasePanel({
               0.035
             );
         }
-
-        /* ===============================================
-           MOBILE
-        =============================================== */
 
         @media (
           max-width: 700px
@@ -1580,33 +1562,34 @@ export default function ProductPurchasePanel({
               25px 22px;
           }
 
-          .krve-size-chart-header
-            h2 {
-            font-size:
-              31px;
+          .krve-size-chart-header h2 {
+            font-size: 31px;
           }
 
-          .krve-size-chart-header
-            p {
+          .krve-size-chart-header p {
             font-size: 8px;
           }
 
           .krve-size-chart-close {
             width: 42px;
-
             height: 42px;
-
-            flex-basis:
-              42px;
+            flex-basis: 42px;
           }
 
           .krve-size-chart-unit {
+            align-items:
+              flex-start;
+
+            flex-direction:
+              column;
+
+            gap: 7px;
+
             padding:
               16px 22px;
           }
 
-          .krve-size-chart-unit
-            strong {
+          .krve-size-chart-unit strong {
             font-size: 8px;
           }
 
@@ -1621,16 +1604,14 @@ export default function ProductPurchasePanel({
               650px;
           }
 
-          .krve-size-chart-table
-            th {
+          .krve-size-chart-table th {
             padding:
               18px 15px;
 
             font-size: 9px;
           }
 
-          .krve-size-chart-table
-            td {
+          .krve-size-chart-table td {
             padding:
               20px 15px;
 
