@@ -12,69 +12,72 @@ export default function ContactPage() {
   }
 
   return (
-    <main className="contactPage">
+    <main className="krveContact-page">
       {/* HERO */}
-      <section className="hero">
-        <div className="glow glowOne" />
-        <div className="glow glowTwo" />
+      <section className="krveContact-hero">
+        <div className="krveContact-glow" />
 
-        <div className="container heroInner">
-          <Link href="/" className="back">
+        <div className="krveContact-container">
+          <Link href="/" className="krveContact-back">
             ← BACK TO KRVÉ
           </Link>
 
-          <div className="eyebrow">
-            <span />
-            CUSTOMER CARE
+          <div className="krveContact-heroContent">
+            <div className="krveContact-eyebrow">
+              <span />
+              CUSTOMER CARE
+            </div>
+
+            <h1 className="krveContact-title">
+              We&apos;re Here
+              <br />
+              <em>For You.</em>
+            </h1>
+
+            <p className="krveContact-heroText">
+              Questions about your order, delivery, return, payment or KRVÉ
+              experience? Our customer care team is here to help.
+            </p>
           </div>
-
-          <h1>
-            We&apos;re Here
-            <br />
-            <em>For You.</em>
-          </h1>
-
-          <p className="heroText">
-            Questions about your order, delivery, return, payment or KRVÉ
-            experience? Our customer care team is here to help.
-          </p>
         </div>
       </section>
 
       {/* CONTACT OPTIONS */}
-      <section className="contactOptions">
-        <div className="container">
-          <div className="optionGrid">
-            <article className="option">
-              <div className="optionNumber">01</div>
-              <div className="icon">✉</div>
+      <section className="krveContact-options">
+        <div className="krveContact-container">
+          <div className="krveContact-optionGrid">
+            <article className="krveContact-optionCard">
+              <span className="krveContact-cardNumber">01</span>
 
-              <span className="label">EMAIL US</span>
+              <div className="krveContact-cardIcon">✉</div>
+
+              <p className="krveContact-smallLabel">EMAIL SUPPORT</p>
 
               <h2>Customer Support</h2>
 
-              <p>
-                For orders, products, returns, refunds, payments and general
-                customer support.
+              <p className="krveContact-cardText">
+                Get assistance with products, payments, orders, returns,
+                refunds and general customer enquiries.
               </p>
 
               <a href="mailto:support@krvefashionstudio.in">
-                support@krvefashionstudio.in
+                EMAIL KRVÉ
                 <span>→</span>
               </a>
             </article>
 
-            <article className="option">
-              <div className="optionNumber">02</div>
-              <div className="icon">◇</div>
+            <article className="krveContact-optionCard">
+              <span className="krveContact-cardNumber">02</span>
 
-              <span className="label">ORDER SUPPORT</span>
+              <div className="krveContact-cardIcon">◇</div>
+
+              <p className="krveContact-smallLabel">ORDER SUPPORT</p>
 
               <h2>Track Your Order</h2>
 
-              <p>
-                Already placed an order? Use our order tracking experience to
-                check the latest available status.
+              <p className="krveContact-cardText">
+                Already placed an order? Check your latest available order and
+                delivery information.
               </p>
 
               <Link href="/track-order">
@@ -83,17 +86,18 @@ export default function ContactPage() {
               </Link>
             </article>
 
-            <article className="option">
-              <div className="optionNumber">03</div>
-              <div className="icon">↺</div>
+            <article className="krveContact-optionCard">
+              <span className="krveContact-cardNumber">03</span>
 
-              <span className="label">RETURNS</span>
+              <div className="krveContact-cardIcon">↺</div>
+
+              <p className="krveContact-smallLabel">AFTER-SALES SUPPORT</p>
 
               <h2>Returns & Refunds</h2>
 
-              <p>
-                Need help with a return, exchange or refund? Review our policy
-                before submitting your request.
+              <p className="krveContact-cardText">
+                Review return, exchange and refund information before
+                submitting your support request.
               </p>
 
               <Link href="/returns-refunds">
@@ -105,11 +109,11 @@ export default function ContactPage() {
         </div>
       </section>
 
-      {/* FORM */}
-      <section className="formSection">
-        <div className="container formGrid">
-          <div className="formIntro">
-            <div className="eyebrow">
+      {/* CONTACT FORM */}
+      <section className="krveContact-formSection">
+        <div className="krveContact-container krveContact-formGrid">
+          <div className="krveContact-formIntro">
+            <div className="krveContact-eyebrow">
               <span />
               SEND A MESSAGE
             </div>
@@ -121,59 +125,68 @@ export default function ContactPage() {
             </h2>
 
             <p>
-              Complete the form with your query and order information, where
-              applicable. Please provide accurate details so your request can
-              be handled efficiently.
+              Tell us what you need help with. If your query relates to an
+              existing order, include the Order ID so our team can identify
+              your request more easily.
             </p>
 
-            <div className="responseBox">
-              <span>RESPONSE</span>
-              <strong>Customer Care</strong>
+            <div className="krveContact-infoPanel">
+              <span>SUPPORT EMAIL</span>
+
+              <a href="mailto:support@krvefashionstudio.in">
+                support@krvefashionstudio.in
+              </a>
+
               <p>
-                Response times may vary depending on the nature and volume of
-                support requests.
+                Customer support response times may vary depending on the
+                nature and volume of enquiries.
               </p>
             </div>
           </div>
 
-          <div className="formCard">
+          <div className="krveContact-formCard">
             {submitted ? (
-              <div className="success">
-                <div className="successIcon">✓</div>
+              <div className="krveContact-success">
+                <div className="krveContact-successIcon">✓</div>
 
-                <span>MESSAGE RECEIVED</span>
+                <p className="krveContact-smallLabel">MESSAGE RECEIVED</p>
 
                 <h3>Thank You.</h3>
 
                 <p>
-                  Your enquiry has been recorded on this page. For immediate
-                  email support, please contact us at{" "}
+                  Your message has been entered successfully on this form.
+                  You can also contact us directly at{" "}
                   <a href="mailto:support@krvefashionstudio.in">
                     support@krvefashionstudio.in
                   </a>
                   .
                 </p>
 
-                <button type="button" onClick={() => setSubmitted(false)}>
+                <button
+                  type="button"
+                  onClick={() => setSubmitted(false)}
+                >
                   SEND ANOTHER MESSAGE
                 </button>
               </div>
             ) : (
               <form onSubmit={handleSubmit}>
-                <div className="row">
-                  <div className="field">
+                <div className="krveContact-row">
+                  <div className="krveContact-field">
                     <label htmlFor="name">FULL NAME *</label>
+
                     <input
                       id="name"
                       name="name"
                       type="text"
-                      placeholder="Your full name"
+                      placeholder="Enter your full name"
                       required
                     />
                   </div>
 
-                  <div className="field">
+                  <div className="krveContact-field">
                     <label htmlFor="email">EMAIL ADDRESS *</label>
+
                     <input
                       id="email"
                       name="email"
@@ -184,9 +197,10 @@ export default function ContactPage() {
                   </div>
                 </div>
 
-                <div className="row">
-                  <div className="field">
-                    <label htmlFor="phone">PHONE NUMBER</label>
+                <div className="krveContact-row">
+                  <div className="krveContact-field">
+                    <label htmlFor="phone">MOBILE NUMBER</label>
+
                     <input
                       id="phone"
                       name="phone"
@@ -195,61 +209,102 @@ export default function ContactPage() {
                     />
                   </div>
 
-                  <div className="field">
-                    <label htmlFor="order">ORDER ID</label>
+                  <div className="krveContact-field">
+                    <label htmlFor="orderId">ORDER ID</label>
+
                     <input
-                      id="order"
-                      name="order"
+                      id="orderId"
+                      name="orderId"
                       type="text"
                       placeholder="If applicable"
                     />
                   </div>
                 </div>
 
-                <div className="field">
-                  <label htmlFor="subject">HOW CAN WE HELP? *</label>
+                <div className="krveContact-field">
+                  <label htmlFor="subject">SUBJECT *</label>
 
-                  <select id="subject" name="subject" required defaultValue="">
+                  <select
+                    id="subject"
+                    name="subject"
+                    defaultValue=""
+                    required
+                  >
                     <option value="" disabled>
                       Select a subject
                     </option>
 
-                    <option value="order">Order Related Query</option>
-                    <option value="delivery">Shipping & Delivery</option>
-                    <option value="return">Return / Exchange</option>
-                    <option value="refund">Refund</option>
-                    <option value="payment">Payment Issue</option>
-                    <option value="product">Product Information</option>
-                    <option value="account">Account Support</option>
-                    <option value="ai">AI Stylist / Virtual Try-On</option>
-                    <option value="career">Careers / Live Projects</option>
-                    <option value="other">Other</option>
+                    <option value="order">
+                      Order Related Query
+                    </option>
+
+                    <option value="shipping">
+                      Shipping & Delivery
+                    </option>
+
+                    <option value="return">
+                      Return / Exchange
+                    </option>
+
+                    <option value="refund">
+                      Refund
+                    </option>
+
+                    <option value="payment">
+                      Payment Issue
+                    </option>
+
+                    <option value="product">
+                      Product Information
+                    </option>
+
+                    <option value="account">
+                      Account Support
+                    </option>
+
+                    <option value="ai">
+                      AI Stylist / Virtual Try-On
+                    </option>
+
+                    <option value="career">
+                      Careers / Live Projects
+                    </option>
+
+                    <option value="other">
+                      Other
+                    </option>
                   </select>
                 </div>
 
-                <div className="field">
+                <div className="krveContact-field">
                   <label htmlFor="message">MESSAGE *</label>
 
                   <textarea
                     id="message"
                     name="message"
-                    rows={7}
+                    rows={6}
                     placeholder="Tell us how we can help..."
                     required
                   />
                 </div>
 
-                <label className="checkbox">
+                <label className="krveContact-consent">
                   <input type="checkbox" required />
 
                   <span>
                     I confirm that the information provided is accurate and I
                     agree to the{" "}
-                    <Link href="/privacy-policy">Privacy Policy</Link>.
+                    <Link href="/privacy-policy">
+                      Privacy Policy
+                    </Link>
+                    .
                   </span>
                 </label>
 
-                <button className="submit" type="submit">
+                <button
+                  type="submit"
+                  className="krveContact-submit"
+                >
                   <span>SEND MESSAGE</span>
                   <strong>→</strong>
                 </button>
@@ -259,53 +314,56 @@ export default function ContactPage() {
         </div>
       </section>
 
-      {/* HELP */}
-      <section className="help">
-        <div className="container">
-          <div className="helpHeader">
+      {/* QUICK HELP */}
+      <section className="krveContact-help">
+        <div className="krveContact-container">
+          <div className="krveContact-helpHeading">
             <div>
-              <span className="small">BEFORE YOU CONTACT US</span>
+              <p className="krveContact-smallLabel">
+                CUSTOMER CARE
+              </p>
+
               <h2>Quick Help</h2>
             </div>
 
             <p>
-              You may find the information you need in one of our customer care
-              pages.
+              Find useful information about common KRVÉ customer service
+              topics.
             </p>
           </div>
 
-          <div className="helpGrid">
-            <Link href="/track-order" className="helpItem">
+          <div className="krveContact-helpGrid">
+            <Link href="/track-order">
               <span>01</span>
               <strong>Track Order</strong>
               <b>→</b>
             </Link>
 
-            <Link href="/returns-refunds" className="helpItem">
+            <Link href="/returns-refunds">
               <span>02</span>
               <strong>Returns & Refunds</strong>
               <b>→</b>
             </Link>
 
-            <Link href="/shipping-policy" className="helpItem">
+            <Link href="/shipping-policy">
               <span>03</span>
               <strong>Shipping Policy</strong>
               <b>→</b>
             </Link>
 
-            <Link href="/privacy-policy" className="helpItem">
+            <Link href="/privacy-policy">
               <span>04</span>
               <strong>Privacy Policy</strong>
               <b>→</b>
             </Link>
 
-            <Link href="/terms" className="helpItem">
+            <Link href="/terms">
               <span>05</span>
               <strong>Terms & Conditions</strong>
               <b>→</b>
             </Link>
 
-            <Link href="/about" className="helpItem">
+            <Link href="/about">
               <span>06</span>
               <strong>About KRVÉ</strong>
               <b>→</b>
@@ -314,709 +372,551 @@ export default function ContactPage() {
         </div>
       </section>
 
-      {/* FOOTER */}
-      <footer>
-        <div className="container footerTop">
-          <div className="brand">
-            <strong>KRVÉ</strong>
-            <span>THE FASHION STUDIO</span>
-
-            <p>
-              Contemporary fashion, elevated essentials and technology-led
-              shopping experiences designed for a new generation.
-            </p>
-
-            <a href="mailto:support@krvefashionstudio.in">
-              support@krvefashionstudio.in
-            </a>
-
-            <p className="india">India</p>
-          </div>
-
-          <div className="footerColumn">
-            <h3>SHOP</h3>
-            <Link href="/collections">Collections</Link>
-            <Link href="/collections?category=men">Men</Link>
-            <Link href="/collections?category=women">Women</Link>
-            <Link href="/collections?category=kids">Kids</Link>
-            <Link href="/collections?category=accessories">Accessories</Link>
-          </div>
-
-          <div className="footerColumn">
-            <h3>CUSTOMER CARE</h3>
-            <Link href="/contact">Contact Us</Link>
-            <Link href="/track-order">Track Order</Link>
-            <Link href="/returns-refunds">Returns & Refunds</Link>
-            <Link href="/shipping-policy">Shipping Policy</Link>
-          </div>
-
-          <div className="footerColumn">
-            <h3>COMPANY</h3>
-            <Link href="/about">About KRVÉ</Link>
-            <Link href="/careers">Careers</Link>
-            <Link href="/privacy-policy">Privacy Policy</Link>
-            <Link href="/terms">Terms & Conditions</Link>
-          </div>
-        </div>
-
-        <div className="container bottom">
-          <span>© 2026 KRVÉ – The Fashion Studio. All rights reserved.</span>
-
-          <div>
-            <span>SECURE SHOPPING</span>
-            <span>MADE FOR INDIA</span>
-            <strong>MOVE INTO STYLE.</strong>
-          </div>
-        </div>
-      </footer>
-
       <style>{`
-        * {
-          box-sizing: border-box;
-        }
-
-        .contactPage {
+        .krveContact-page {
           min-height: 100vh;
-          background: #050505;
-          color: #f5f0e7;
+          background: #040404;
+          color: #f4f0e8;
         }
 
-        .container {
-          width: min(1400px, calc(100% - 80px));
+        .krveContact-container {
+          width: min(1360px, calc(100% - 80px));
           margin: 0 auto;
         }
 
-        .hero {
-          min-height: 610px;
+        /* HERO */
+
+        .krveContact-hero {
           position: relative;
+          min-height: 480px;
           overflow: hidden;
-          border-bottom: 1px solid rgba(218, 166, 24, 0.3);
+          border-bottom: 1px solid rgba(218, 166, 29, 0.28);
           background:
             radial-gradient(
-              circle at 82% 40%,
-              rgba(217, 164, 25, 0.09),
-              transparent 25%
+              circle at 85% 40%,
+              rgba(219, 168, 27, 0.1),
+              transparent 32%
             ),
-            linear-gradient(135deg, #050505, #090806);
+            #050505;
         }
 
-        .glow {
+        .krveContact-glow {
           position: absolute;
+          right: -180px;
+          top: -200px;
+          width: 600px;
+          height: 600px;
           border-radius: 50%;
-          filter: blur(100px);
-          pointer-events: none;
+          background: rgba(215, 160, 22, 0.07);
+          filter: blur(90px);
         }
 
-        .glowOne {
-          width: 500px;
-          height: 500px;
-          right: -100px;
-          top: -100px;
-          background: rgba(218, 166, 24, 0.07);
-        }
-
-        .glowTwo {
-          width: 350px;
-          height: 350px;
-          left: -150px;
-          bottom: -150px;
-          background: rgba(218, 166, 24, 0.04);
-        }
-
-        .heroInner {
+        .krveContact-hero .krveContact-container {
           position: relative;
-          padding: 65px 0 90px;
+          padding-top: 65px;
+          padding-bottom: 72px;
         }
 
-        .back {
-          color: #918b80;
-          text-decoration: none;
+        .krveContact-back {
+          color: #99938a;
           font-size: 11px;
-          font-weight: 800;
-          letter-spacing: 0.18em;
+          font-weight: 700;
+          letter-spacing: 0.15em;
+          text-decoration: none;
+          transition: 0.2s ease;
         }
 
-        .back:hover {
-          color: #e1ad22;
+        .krveContact-back:hover {
+          color: #dda81c;
         }
 
-        .eyebrow {
+        .krveContact-heroContent {
+          margin-top: 65px;
+        }
+
+        .krveContact-eyebrow {
           display: flex;
           align-items: center;
           gap: 14px;
+          margin-bottom: 20px;
           color: #dda91e;
-          font-size: 11px;
+          font-size: 10px;
           font-weight: 800;
-          letter-spacing: 0.23em;
-          margin-top: 80px;
-          margin-bottom: 25px;
+          letter-spacing: 0.22em;
         }
 
-        .eyebrow span {
-          width: 42px;
+        .krveContact-eyebrow span {
+          display: block;
+          width: 38px;
           height: 1px;
           background: #dda91e;
         }
 
-        .hero h1 {
-          font-family: Georgia, "Times New Roman", serif;
-          font-size: clamp(68px, 8vw, 125px);
-          font-weight: 400;
-          line-height: 0.87;
-          letter-spacing: -0.055em;
+        .krveContact-title {
+          max-width: 720px;
           margin: 0;
+          font-family: Georgia, "Times New Roman", serif;
+          font-size: clamp(48px, 5.8vw, 78px);
+          font-weight: 400;
+          line-height: 0.95;
+          letter-spacing: -0.045em;
         }
 
-        .hero h1 em,
-        .formIntro h2 em {
+        .krveContact-title em {
           color: #dda91e;
           font-weight: 400;
         }
 
-        .heroText {
-          max-width: 680px;
-          color: #a39e95;
-          line-height: 1.9;
-          font-size: 17px;
-          margin-top: 42px;
+        .krveContact-heroText {
+          max-width: 650px;
+          margin: 27px 0 0;
+          color: #a09b92;
+          font-size: 15px;
+          line-height: 1.8;
         }
 
-        .contactOptions {
-          border-bottom: 1px solid #202020;
+        /* OPTIONS */
+
+        .krveContact-options {
+          border-bottom: 1px solid #222;
         }
 
-        .optionGrid {
+        .krveContact-optionGrid {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
         }
 
-        .option {
+        .krveContact-optionCard {
           position: relative;
-          min-height: 390px;
-          padding: 50px;
+          min-height: 325px;
+          padding: 40px;
           border-right: 1px solid #242424;
         }
 
-        .option:first-child {
+        .krveContact-optionCard:first-child {
           border-left: 1px solid #242424;
         }
 
-        .optionNumber {
+        .krveContact-cardNumber {
           position: absolute;
-          right: 30px;
-          top: 28px;
-          color: #4e4b45;
-          font-family: Georgia, serif;
-          font-size: 14px;
+          right: 27px;
+          top: 25px;
+          color: #555149;
+          font-size: 11px;
         }
 
-        .icon {
+        .krveContact-cardIcon {
+          margin-bottom: 30px;
           color: #dda91e;
-          font-size: 32px;
-          margin-bottom: 45px;
+          font-size: 25px;
         }
 
-        .label,
-        .small {
+        .krveContact-smallLabel {
+          margin: 0;
           color: #dda91e;
+          font-size: 9px;
+          font-weight: 800;
+          letter-spacing: 0.2em;
+        }
+
+        .krveContact-optionCard h2 {
+          margin: 12px 0 14px;
+          font-family: Georgia, "Times New Roman", serif;
+          font-size: 25px;
+          font-weight: 400;
+        }
+
+        .krveContact-cardText {
+          min-height: 75px;
+          margin: 0 0 24px;
+          color: #8f8a82;
+          font-size: 13px;
+          line-height: 1.75;
+        }
+
+        .krveContact-optionCard > a {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding-top: 18px;
+          border-top: 1px solid #282828;
+          color: #e8e3d9;
+          text-decoration: none;
           font-size: 10px;
           font-weight: 800;
-          letter-spacing: 0.2em;
+          letter-spacing: 0.12em;
         }
 
-        .option h2 {
-          font-family: Georgia, serif;
-          font-weight: 400;
-          font-size: 30px;
-          margin: 13px 0 17px;
-        }
-
-        .option p {
-          min-height: 90px;
-          color: #8d8981;
-          line-height: 1.75;
-          font-size: 14px;
-        }
-
-        .option a {
-          border-top: 1px solid #272727;
-          padding-top: 22px;
-          display: flex;
-          justify-content: space-between;
-          color: #e3ded4;
-          text-decoration: none;
-          font-size: 12px;
-          font-weight: 700;
-          letter-spacing: 0.08em;
-        }
-
-        .option a span {
+        .krveContact-optionCard > a span {
           color: #dda91e;
         }
 
-        .formSection {
-          padding: 120px 0;
-          background:
-            radial-gradient(
-              circle at 10% 40%,
-              rgba(219, 169, 30, 0.04),
-              transparent 28%
-            ),
-            #080808;
+        /* FORM */
+
+        .krveContact-formSection {
+          padding: 95px 0;
+          background: #070707;
         }
 
-        .formGrid {
+        .krveContact-formGrid {
           display: grid;
           grid-template-columns: 0.8fr 1.2fr;
-          gap: 110px;
+          gap: 90px;
+          align-items: start;
         }
 
-        .formIntro .eyebrow {
-          margin-top: 0;
+        .krveContact-formIntro .krveContact-eyebrow {
+          margin-top: 10px;
         }
 
-        .formIntro h2 {
-          font-family: Georgia, serif;
-          font-size: clamp(50px, 5vw, 76px);
-          font-weight: 400;
-          line-height: 0.98;
+        .krveContact-formIntro h2 {
           margin: 0;
+          font-family: Georgia, "Times New Roman", serif;
+          font-size: clamp(42px, 4.5vw, 62px);
+          font-weight: 400;
+          line-height: 1;
         }
 
-        .formIntro > p {
-          color: #959087;
-          line-height: 1.9;
-          max-width: 500px;
-          margin-top: 35px;
-        }
-
-        .responseBox {
-          margin-top: 50px;
-          padding: 25px 0;
-          border-top: 1px solid #2b2925;
-          border-bottom: 1px solid #2b2925;
-        }
-
-        .responseBox span {
-          display: block;
-          color: #6f6b64;
-          font-size: 9px;
-          letter-spacing: 0.2em;
-          font-weight: 800;
-          margin-bottom: 8px;
-        }
-
-        .responseBox strong {
-          font-family: Georgia, serif;
-          font-size: 21px;
+        .krveContact-formIntro h2 em {
+          color: #dda91e;
           font-weight: 400;
         }
 
-        .responseBox p {
-          color: #77736c;
-          font-size: 12px;
-          line-height: 1.7;
-          margin-bottom: 0;
+        .krveContact-formIntro > p {
+          max-width: 470px;
+          margin: 28px 0 0;
+          color: #99948b;
+          font-size: 14px;
+          line-height: 1.85;
         }
 
-        .formCard {
-          padding: 50px;
-          border: 1px solid rgba(217, 164, 25, 0.25);
-          background: #050505;
+        .krveContact-infoPanel {
+          margin-top: 40px;
+          padding: 24px 0;
+          border-top: 1px solid #292929;
+          border-bottom: 1px solid #292929;
         }
 
-        .row {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 22px;
-        }
-
-        .field {
-          margin-bottom: 25px;
-        }
-
-        .field label {
+        .krveContact-infoPanel > span {
           display: block;
-          color: #b4afa6;
+          margin-bottom: 10px;
+          color: #68645d;
           font-size: 9px;
           font-weight: 800;
           letter-spacing: 0.18em;
-          margin-bottom: 12px;
         }
 
-        input,
-        select,
-        textarea {
+        .krveContact-infoPanel > a {
+          color: #dda91e;
+          font-size: 14px;
+          text-decoration: none;
+        }
+
+        .krveContact-infoPanel > p {
+          margin: 14px 0 0;
+          color: #77736c;
+          font-size: 12px;
+          line-height: 1.7;
+        }
+
+        .krveContact-formCard {
+          padding: 38px;
+          border: 1px solid rgba(218, 166, 27, 0.25);
+          background: #050505;
+        }
+
+        .krveContact-row {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 20px;
+        }
+
+        .krveContact-field {
+          margin-bottom: 21px;
+        }
+
+        .krveContact-field label {
+          display: block;
+          margin-bottom: 9px;
+          color: #aaa59c;
+          font-size: 9px;
+          font-weight: 800;
+          letter-spacing: 0.16em;
+        }
+
+        .krveContact-field input,
+        .krveContact-field select,
+        .krveContact-field textarea {
           width: 100%;
           border: 1px solid #302e2a;
-          outline: none;
-          background: #0a0a0a;
-          color: #f0eadf;
-          padding: 17px 18px;
-          font: inherit;
           border-radius: 0;
+          outline: none;
+          background: #090909;
+          color: #eee8dc;
+          padding: 15px 16px;
+          font-family: inherit;
+          font-size: 13px;
           transition: 0.2s ease;
         }
 
-        input:focus,
-        select:focus,
-        textarea:focus {
-          border-color: #c79617;
+        .krveContact-field input:focus,
+        .krveContact-field select:focus,
+        .krveContact-field textarea:focus {
+          border-color: #c9971d;
           background: #0d0c09;
         }
 
-        input::placeholder,
-        textarea::placeholder {
-          color: #56534e;
+        .krveContact-field input::placeholder,
+        .krveContact-field textarea::placeholder {
+          color: #595650;
         }
 
-        select {
-          cursor: pointer;
-        }
-
-        textarea {
+        .krveContact-field textarea {
+          min-height: 135px;
           resize: vertical;
-          min-height: 160px;
         }
 
-        .checkbox {
+        .krveContact-consent {
           display: flex;
           align-items: flex-start;
-          gap: 12px;
-          color: #817d75;
-          font-size: 12px;
-          line-height: 1.7;
-          margin: 5px 0 30px;
+          gap: 10px;
+          margin: 2px 0 25px;
+          color: #827e76;
+          font-size: 11px;
+          line-height: 1.65;
         }
 
-        .checkbox input {
-          width: 16px;
-          height: 16px;
+        .krveContact-consent input {
+          width: 15px;
+          height: 15px;
           margin-top: 2px;
-          accent-color: #dca91f;
+          accent-color: #dda91e;
         }
 
-        .checkbox a {
-          color: #dca91f;
+        .krveContact-consent a {
+          color: #dda91e;
         }
 
-        .submit,
-        .success button {
-          width: 100%;
-          border: 1px solid #e1ad22;
-          background: #dca91f;
-          color: #080808;
-          padding: 19px 22px;
-          font-weight: 900;
-          letter-spacing: 0.13em;
-          cursor: pointer;
+        .krveContact-submit {
           display: flex;
+          width: 100%;
+          min-height: 53px;
           align-items: center;
           justify-content: space-between;
+          padding: 0 20px;
+          border: 1px solid #dda91e;
+          background: #dda91e;
+          color: #050505;
+          cursor: pointer;
+          font-size: 10px;
+          font-weight: 900;
+          letter-spacing: 0.14em;
         }
 
-        .submit:hover,
-        .success button:hover {
-          background: #edbb31;
+        .krveContact-submit:hover {
+          background: #efbc31;
         }
 
-        .submit strong {
+        .krveContact-submit strong {
+          font-size: 17px;
+        }
+
+        /* SUCCESS */
+
+        .krveContact-success {
+          display: flex;
+          min-height: 430px;
+          flex-direction: column;
+          justify-content: center;
+        }
+
+        .krveContact-successIcon {
+          display: grid;
+          width: 50px;
+          height: 50px;
+          margin-bottom: 25px;
+          place-items: center;
+          border: 1px solid #dda91e;
+          color: #dda91e;
           font-size: 20px;
         }
 
-        .success {
-          min-height: 520px;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          align-items: flex-start;
-        }
-
-        .successIcon {
-          width: 60px;
-          height: 60px;
-          border: 1px solid #dda91e;
-          display: grid;
-          place-items: center;
-          color: #dda91e;
-          font-size: 25px;
-          margin-bottom: 30px;
-        }
-
-        .success > span {
-          color: #dda91e;
-          font-size: 10px;
-          font-weight: 800;
-          letter-spacing: 0.2em;
-        }
-
-        .success h3 {
+        .krveContact-success h3 {
+          margin: 12px 0;
           font-family: Georgia, serif;
-          font-size: 55px;
+          font-size: 40px;
           font-weight: 400;
-          margin: 13px 0 15px;
         }
 
-        .success p {
+        .krveContact-success > p:not(.krveContact-smallLabel) {
+          max-width: 570px;
           color: #918c83;
+          font-size: 13px;
           line-height: 1.8;
+        }
+
+        .krveContact-success a {
+          color: #dda91e;
+        }
+
+        .krveContact-success button {
+          width: fit-content;
+          margin-top: 22px;
+          padding: 16px 22px;
+          border: 1px solid #dda91e;
+          background: #dda91e;
+          color: #050505;
+          cursor: pointer;
+          font-size: 9px;
+          font-weight: 900;
+          letter-spacing: 0.12em;
+        }
+
+        /* QUICK HELP */
+
+        .krveContact-help {
+          padding: 80px 0 100px;
+        }
+
+        .krveContact-helpHeading {
+          display: flex;
+          align-items: flex-end;
+          justify-content: space-between;
+          gap: 50px;
           margin-bottom: 35px;
         }
 
-        .success a {
-          color: #dda91e;
-        }
-
-        .success button {
-          max-width: 300px;
-          justify-content: center;
-        }
-
-        .help {
-          padding: 100px 0;
-          border-top: 1px solid #202020;
-        }
-
-        .helpHeader {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-end;
-          gap: 50px;
-          margin-bottom: 50px;
-        }
-
-        .helpHeader h2 {
+        .krveContact-helpHeading h2 {
+          margin: 10px 0 0;
           font-family: Georgia, serif;
-          font-size: 48px;
+          font-size: 40px;
           font-weight: 400;
-          margin: 12px 0 0;
         }
 
-        .helpHeader > p {
-          color: #858078;
-          max-width: 420px;
+        .krveContact-helpHeading > p {
+          max-width: 410px;
+          margin: 0;
+          color: #817d75;
+          font-size: 13px;
           line-height: 1.7;
         }
 
-        .helpGrid {
+        .krveContact-helpGrid {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
-          border-top: 1px solid #292929;
-          border-left: 1px solid #292929;
+          border-top: 1px solid #282828;
+          border-left: 1px solid #282828;
         }
 
-        .helpItem {
-          min-height: 130px;
-          padding: 28px;
-          border-right: 1px solid #292929;
-          border-bottom: 1px solid #292929;
-          text-decoration: none;
-          color: #f0eae0;
+        .krveContact-helpGrid > a {
           display: grid;
-          grid-template-columns: 45px 1fr auto;
+          min-height: 105px;
+          grid-template-columns: 40px 1fr auto;
           align-items: center;
+          padding: 24px;
+          border-right: 1px solid #282828;
+          border-bottom: 1px solid #282828;
+          color: #eee8df;
+          text-decoration: none;
           transition: 0.2s ease;
         }
 
-        .helpItem:hover {
-          background: rgba(219, 169, 30, 0.045);
+        .krveContact-helpGrid > a:hover {
+          background: rgba(218, 166, 27, 0.05);
         }
 
-        .helpItem span {
-          color: #706c65;
-          font-size: 11px;
+        .krveContact-helpGrid span {
+          color: #6c6861;
+          font-size: 10px;
         }
 
-        .helpItem strong {
+        .krveContact-helpGrid strong {
           font-family: Georgia, serif;
-          font-size: 20px;
+          font-size: 17px;
           font-weight: 400;
         }
 
-        .helpItem b {
+        .krveContact-helpGrid b {
           color: #dda91e;
-          font-size: 19px;
-        }
-
-        footer {
-          background: #020202;
-          border-top: 1px solid rgba(218, 166, 24, 0.28);
-          padding: 80px 0 30px;
-        }
-
-        .footerTop {
-          display: grid;
-          grid-template-columns: 1.7fr repeat(3, 1fr);
-          gap: 70px;
-        }
-
-        .brand strong {
-          display: block;
-          font-family: Georgia, serif;
-          font-size: 45px;
-          letter-spacing: 0.1em;
-        }
-
-        .brand > span {
-          display: block;
-          color: #dda91e;
-          font-size: 10px;
-          letter-spacing: 0.25em;
-          font-weight: 800;
-          margin: 8px 0 35px;
-        }
-
-        .brand p {
-          color: #8c887f;
-          max-width: 390px;
-          line-height: 1.9;
-        }
-
-        .brand a {
-          color: #aaa59c;
-          text-decoration: none;
-        }
-
-        .brand .india {
-          margin-top: 15px;
-        }
-
-        .footerColumn {
-          display: flex;
-          flex-direction: column;
-          gap: 18px;
-        }
-
-        .footerColumn h3 {
-          font-size: 13px;
-          letter-spacing: 0.16em;
-          margin: 0 0 18px;
-          padding-bottom: 18px;
-          border-bottom: 1px solid #29261e;
-        }
-
-        .footerColumn a {
-          color: #8e8a82;
-          text-decoration: none;
-          font-size: 14px;
-        }
-
-        .footerColumn a:hover {
-          color: #dda91e;
-        }
-
-        .bottom {
-          border-top: 1px solid #1d1d1d;
-          margin-top: 70px;
-          padding-top: 28px;
-          display: flex;
-          justify-content: space-between;
-          gap: 30px;
-          color: #5e5b55;
-          font-size: 11px;
-        }
-
-        .bottom div {
-          display: flex;
-          gap: 30px;
-        }
-
-        .bottom strong {
-          color: #dda91e;
-          font-weight: 500;
+          font-size: 16px;
         }
 
         @media (max-width: 1000px) {
-          .container {
-            width: min(100% - 40px, 1400px);
+          .krveContact-container {
+            width: min(100% - 42px, 1000px);
           }
 
-          .optionGrid {
+          .krveContact-optionGrid {
             grid-template-columns: 1fr;
           }
 
-          .option {
+          .krveContact-optionCard {
             min-height: auto;
             border-left: 1px solid #242424;
             border-bottom: 1px solid #242424;
           }
 
-          .option p {
+          .krveContact-cardText {
             min-height: auto;
           }
 
-          .formGrid {
+          .krveContact-formGrid {
             grid-template-columns: 1fr;
-            gap: 65px;
-          }
-
-          .helpGrid {
-            grid-template-columns: 1fr 1fr;
-          }
-
-          .footerTop {
-            grid-template-columns: 1fr 1fr;
+            gap: 55px;
           }
         }
 
-        @media (max-width: 650px) {
-          .container {
-            width: calc(100% - 30px);
+        @media (max-width: 700px) {
+          .krveContact-container {
+            width: calc(100% - 32px);
           }
 
-          .hero {
+          .krveContact-hero {
             min-height: auto;
           }
 
-          .heroInner {
-            padding: 40px 0 65px;
+          .krveContact-hero .krveContact-container {
+            padding-top: 35px;
+            padding-bottom: 55px;
           }
 
-          .eyebrow {
-            margin-top: 60px;
+          .krveContact-heroContent {
+            margin-top: 45px;
           }
 
-          .hero h1 {
-            font-size: 58px;
+          .krveContact-title {
+            font-size: 46px;
           }
 
-          .option {
-            padding: 35px 25px;
+          .krveContact-optionCard {
+            padding: 30px 24px;
           }
 
-          .formSection {
-            padding: 75px 0;
+          .krveContact-formSection {
+            padding: 65px 0;
           }
 
-          .formCard {
-            padding: 25px 20px;
+          .krveContact-formIntro h2 {
+            font-size: 40px;
           }
 
-          .row {
+          .krveContact-formCard {
+            padding: 24px 18px;
+          }
+
+          .krveContact-row {
             grid-template-columns: 1fr;
             gap: 0;
           }
 
-          .helpHeader {
+          .krveContact-helpHeading {
             align-items: flex-start;
             flex-direction: column;
+            gap: 16px;
           }
 
-          .helpGrid {
+          .krveContact-helpGrid {
             grid-template-columns: 1fr;
-          }
-
-          .footerTop {
-            grid-template-columns: 1fr;
-          }
-
-          .bottom {
-            flex-direction: column;
-          }
-
-          .bottom div {
-            flex-direction: column;
-            gap: 10px;
           }
         }
       `}</style>
