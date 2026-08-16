@@ -1,13 +1,12 @@
 "use client";
 
+import Link from "next/link";
 import {
   FormEvent,
   useEffect,
   useMemo,
   useState,
 } from "react";
-
-import Link from "next/link";
 
 import {
   Award,
@@ -29,6 +28,7 @@ import {
   Target,
   UserRound,
   X,
+  type LucideIcon,
 } from "lucide-react";
 
 /* =========================================================
@@ -62,8 +62,10 @@ type StudentProfile = {
   assignedDepartment?: string | null;
   projectTitle?: string | null;
   coordinatorName?: string | null;
+
   startDate?: string | null;
   endDate?: string | null;
+
   referralCode?: string | null;
 
   evaluation?: StudentEvaluation | null;
@@ -75,11 +77,15 @@ type StudentProfile = {
 type StudentTask = {
   id: string;
   applicationId: string;
+
   weekNumber: number;
+
   title: string;
   description?: string | null;
+
   priority?: string | null;
   dueDate?: string | null;
+
   status: string;
 
   score?: number | null;
@@ -122,10 +128,6 @@ type ApiResponse = {
   student?: StudentProfile;
   tasks?: StudentTask[];
   summary?: StudentPortalSummary;
-
-  submitted?: boolean;
-  status?: string;
-  submittedAt?: string;
 };
 
 type PortalTab =
@@ -136,6 +138,12 @@ type PortalTab =
   | "performance"
   | "certificate";
 
+type PortalTabItem = {
+  id: PortalTab;
+  label: string;
+  icon: LucideIcon;
+};
+
 /* =========================================================
    CONSTANTS
 ========================================================= */
@@ -143,11 +151,7 @@ type PortalTab =
 const STORAGE_KEY =
   "krve-live-project-student-session";
 
-const tabs: Array<{
-  id: PortalTab;
-  label: string;
-  icon: React.ElementType;
-}> = [
+const portalTabs: PortalTabItem[] = [
   {
     id: "overview",
     label: "Overview",
@@ -215,71 +219,84 @@ function formatDate(
 function statusLabel(
   value?: string | null,
 ) {
-  const status =
-    String(
-      value || "",
-    )
-      .replace(
-        /_/g,
-        " ",
-      )
+  const text =
+    String(value || "")
+      .replace(/_/g, " ")
       .trim();
 
-  if (!status) {
+  if (!text) {
     return "Pending";
   }
 
-  return status.replace(
+  return text.replace(
     /\b\w/g,
-    (letter) =>
-      letter.toUpperCase(),
+    (character) =>
+      character.toUpperCase(),
   );
 }
 
 function getStatusClass(
-  status?: string | null,
+  value?: string | null,
 ) {
-  switch (
-    String(
-      status || "",
-    ).toLowerCase()
+  const status =
+    String(value || "")
+      .trim()
+      .toLowerCase();
+
+  if (
+    [
+      "approved",
+      "completed",
+      "active",
+    ].includes(status)
   ) {
-    case "approved":
-    case "completed":
-    case "active":
-      return "success";
-
-    case "submitted":
-    case "under_review":
-      return "review";
-
-    case "revision_requested":
-      return "warning";
-
-    case "rejected":
-      return "danger";
-
-    default:
-      return "neutral";
+    return "success";
   }
+
+  if (
+    [
+      "submitted",
+      "under_review",
+    ].includes(status)
+  ) {
+    return "review";
+  }
+
+  if (
+    status ===
+    "revision_requested"
+  ) {
+    return "warning";
+  }
+
+  if (
+    status ===
+    "rejected"
+  ) {
+    return "danger";
+  }
+
+  return "neutral";
 }
 
 function getPriorityClass(
-  priority?: string | null,
+  value?: string | null,
 ) {
-  const value =
-    String(
-      priority || "",
-    ).toLowerCase();
+  const priority =
+    String(value || "")
+      .trim()
+      .toLowerCase();
 
   if (
-    value === "high"
+    priority ===
+    "high"
   ) {
     return "high";
   }
 
   if (
-    value === "low"
+    priority ===
+    "low"
   ) {
     return "low";
   }
@@ -304,10 +321,8 @@ function extractPortalData(
     return {
       student:
         response.student,
-
       tasks:
         response.tasks,
-
       summary:
         response.summary,
     };
@@ -320,8 +335,7 @@ function calculateProgress(
   summary: StudentPortalSummary,
 ) {
   if (
-    summary.assignedTasks <=
-    0
+    summary.assignedTasks <= 0
   ) {
     return 0;
   }
@@ -337,7 +351,157 @@ function calculateProgress(
 }
 
 /* =========================================================
-   PAGE
+   SMALL COMPONENTS
+========================================================= */
+
+function InfoBlock({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="info-block">
+      <span>{label}</span>
+      <strong>{value}</strong>
+    </div>
+  );
+}
+
+function EmptyState({
+  icon: Icon,
+  title,
+  text,
+}: {
+  icon: LucideIcon;
+  title: string;
+  text: string;
+}) {
+  return (
+    <div className="empty-state">
+      <div className="empty-icon">
+        <Icon size={24} />
+      </div>
+
+      <h3>
+        {title}
+      </h3>
+
+      <p>
+        {text}
+      </p>
+    </div>
+  );
+}
+
+function PerformanceCard({
+  label,
+  value,
+  max,
+}: {
+  label: string;
+  value?: number | null;
+  max: number;
+}) {
+  const score =
+    Number(value ?? 0);
+
+  const percentage =
+    Math.max(
+      0,
+      Math.min(
+        100,
+        (score / max) * 100,
+      ),
+    );
+
+  return (
+    <article className="performance-card">
+      <div className="performance-card-head">
+        <span>
+          {label}
+        </span>
+
+        <strong>
+          {value ===
+            null ||
+          value ===
+            undefined
+            ? "—"
+            : `${score}/${max}`}
+        </strong>
+      </div>
+
+      <div className="performance-track">
+        <div
+          style={{
+            width: `${percentage}%`,
+          }}
+        />
+      </div>
+    </article>
+  );
+}
+
+function TaskRow({
+  task,
+  onOpen,
+}: {
+  task: StudentTask;
+  onOpen: (
+    task: StudentTask,
+  ) => void;
+}) {
+  return (
+    <div className="task-row">
+      <div className="task-week-box">
+        {task.weekNumber}
+      </div>
+
+      <div className="task-row-main">
+        <strong>
+          {task.title}
+        </strong>
+
+        <span>
+          Due{" "}
+          {formatDate(
+            task.dueDate,
+          )}
+        </span>
+      </div>
+
+      <span
+        className={`status-badge ${getStatusClass(
+          task.status,
+        )}`}
+      >
+        {statusLabel(
+          task.status,
+        )}
+      </span>
+
+      {task.status !==
+        "approved" && (
+        <button
+          type="button"
+          className="small-action"
+          onClick={() =>
+            onOpen(task)
+          }
+        >
+          {task.submissionUrl
+            ? "UPDATE"
+            : "SUBMIT"}
+        </button>
+      )}
+    </div>
+  );
+}
+
+/* =========================================================
+   MAIN PAGE
 ========================================================= */
 
 export default function LiveProjectStudentPage() {
@@ -346,8 +510,7 @@ export default function LiveProjectStudentPage() {
     setCredentials,
   ] =
     useState<LoginCredentials>({
-      applicationNumber:
-        "",
+      applicationNumber: "",
       email: "",
       phone: "",
     });
@@ -369,16 +532,22 @@ export default function LiveProjectStudentPage() {
     );
 
   const [
+    portalLoading,
+    setPortalLoading,
+  ] =
+    useState(true);
+
+  const [
     loginLoading,
     setLoginLoading,
   ] =
     useState(false);
 
   const [
-    portalLoading,
-    setPortalLoading,
+    mobileMenuOpen,
+    setMobileMenuOpen,
   ] =
-    useState(true);
+    useState(false);
 
   const [
     error,
@@ -387,10 +556,10 @@ export default function LiveProjectStudentPage() {
     useState("");
 
   const [
-    mobileMenuOpen,
-    setMobileMenuOpen,
+    successMessage,
+    setSuccessMessage,
   ] =
-    useState(false);
+    useState("");
 
   const [
     submissionTask,
@@ -424,73 +593,8 @@ export default function LiveProjectStudentPage() {
   ] =
     useState(false);
 
-  const [
-    successMessage,
-    setSuccessMessage,
-  ] =
-    useState("");
-
   /* =======================================================
-     AUTO RESTORE SESSION
-  ======================================================= */
-
-  useEffect(() => {
-    async function restoreSession() {
-      try {
-        const saved =
-          window.localStorage.getItem(
-            STORAGE_KEY,
-          );
-
-        if (!saved) {
-          setPortalLoading(
-            false,
-          );
-
-          return;
-        }
-
-        const parsed =
-          JSON.parse(
-            saved,
-          ) as LoginCredentials;
-
-        if (
-          !parsed.applicationNumber ||
-          !parsed.email ||
-          !parsed.phone
-        ) {
-          setPortalLoading(
-            false,
-          );
-
-          return;
-        }
-
-        setCredentials(
-          parsed,
-        );
-
-        await loadPortal(
-          parsed,
-          false,
-        );
-      } catch {
-        window.localStorage.removeItem(
-          STORAGE_KEY,
-        );
-      } finally {
-        setPortalLoading(
-          false,
-        );
-      }
-    }
-
-    restoreSession();
-  }, []);
-
-  /* =======================================================
-     PORTAL LOAD
+     LOAD STUDENT PORTAL
   ======================================================= */
 
   async function loadPortal(
@@ -504,8 +608,7 @@ export default function LiveProjectStudentPage() {
       await fetch(
         "/api/live-project/student",
         {
-          method:
-            "POST",
+          method: "POST",
 
           headers: {
             "Content-Type":
@@ -535,9 +638,7 @@ export default function LiveProjectStudentPage() {
     const data =
       (await response.json()) as ApiResponse;
 
-    if (
-      !response.ok
-    ) {
+    if (!response.ok) {
       throw new Error(
         data.message ||
           "Unable to open your Live Project portal.",
@@ -562,12 +663,65 @@ export default function LiveProjectStudentPage() {
     if (saveSession) {
       window.localStorage.setItem(
         STORAGE_KEY,
-        JSON.stringify(
-          login,
-        ),
+        JSON.stringify(login),
       );
     }
   }
+
+  /* =======================================================
+     RESTORE SESSION
+  ======================================================= */
+
+  useEffect(() => {
+    async function restoreSession() {
+      try {
+        const stored =
+          window.localStorage.getItem(
+            STORAGE_KEY,
+          );
+
+        if (!stored) {
+          return;
+        }
+
+        const savedCredentials =
+          JSON.parse(
+            stored,
+          ) as LoginCredentials;
+
+        if (
+          !savedCredentials.applicationNumber ||
+          !savedCredentials.email ||
+          !savedCredentials.phone
+        ) {
+          window.localStorage.removeItem(
+            STORAGE_KEY,
+          );
+
+          return;
+        }
+
+        setCredentials(
+          savedCredentials,
+        );
+
+        await loadPortal(
+          savedCredentials,
+          false,
+        );
+      } catch {
+        window.localStorage.removeItem(
+          STORAGE_KEY,
+        );
+      } finally {
+        setPortalLoading(
+          false,
+        );
+      }
+    }
+
+    restoreSession();
+  }, []);
 
   /* =======================================================
      LOGIN
@@ -591,8 +745,7 @@ export default function LiveProjectStudentPage() {
       );
     } catch (loginError) {
       setError(
-        loginError instanceof
-          Error
+        loginError instanceof Error
           ? loginError.message
           : "Unable to sign in.",
       );
@@ -617,8 +770,7 @@ export default function LiveProjectStudentPage() {
     );
 
     setCredentials({
-      applicationNumber:
-        "",
+      applicationNumber: "",
       email: "",
       phone: "",
     });
@@ -630,6 +782,8 @@ export default function LiveProjectStudentPage() {
     setMobileMenuOpen(
       false,
     );
+
+    setError("");
   }
 
   /* =======================================================
@@ -658,13 +812,8 @@ export default function LiveProjectStudentPage() {
         "",
     );
 
-    setSuccessMessage(
-      "",
-    );
-
-    setError(
-      "",
-    );
+    setError("");
+    setSuccessMessage("");
   }
 
   /* =======================================================
@@ -689,17 +838,14 @@ export default function LiveProjectStudentPage() {
     );
 
     setError("");
-    setSuccessMessage(
-      "",
-    );
+    setSuccessMessage("");
 
     try {
       const response =
         await fetch(
           "/api/live-project/student",
           {
-            method:
-              "POST",
+            method: "POST",
 
             headers: {
               "Content-Type":
@@ -743,7 +889,7 @@ export default function LiveProjectStudentPage() {
       }
 
       setSuccessMessage(
-        "Your work has been submitted successfully and is now available for review.",
+        "Your work has been submitted successfully. It is now waiting for evaluation.",
       );
 
       await loadPortal(
@@ -761,13 +907,12 @@ export default function LiveProjectStudentPage() {
             "",
           );
         },
-        1600,
+        1500,
       );
-    } catch (submissionError) {
+    } catch (submitError) {
       setError(
-        submissionError instanceof
-          Error
-          ? submissionError.message
+        submitError instanceof Error
+          ? submitError.message
           : "Unable to submit work.",
       );
     } finally {
@@ -804,7 +949,9 @@ export default function LiveProjectStudentPage() {
             "submitted",
             "under_review",
           ].includes(
-            task.status,
+            String(
+              task.status,
+            ).toLowerCase(),
           ),
       );
     }, [portal]);
@@ -821,25 +968,27 @@ export default function LiveProjectStudentPage() {
             task.reviewerComment,
           ) ||
           task.score !==
-            null,
+            null &&
+            task.score !==
+              undefined,
       );
     }, [portal]);
 
   /* =======================================================
-     LOADING SCREEN
+     LOADING PAGE
   ======================================================= */
 
   if (portalLoading) {
     return (
-      <main className="krve-student-loading">
+      <main className="initial-loading">
         <div>
-          <div className="krve-loading-logo">
+          <div className="initial-logo">
             KRVÉ
           </div>
 
           <Loader2
-            size={28}
-            className="krve-spin"
+            size={30}
+            className="spin"
           />
 
           <p>
@@ -849,63 +998,47 @@ export default function LiveProjectStudentPage() {
         </div>
 
         <style jsx global>{`
+          html,
           body {
             margin: 0;
             background: #f5f7fb;
+            font-family:
+              Arial,
+              sans-serif;
           }
 
-          .krve-student-loading {
+          .initial-loading {
             display: grid;
             min-height: 100vh;
             place-items: center;
-            background:
-              radial-gradient(
-                circle at
-                  50% 20%,
-                rgba(
-                  39,
-                  82,
-                  255,
-                  0.08
-                ),
-                transparent
-                  30%
-              ),
-              #f7f9fc;
-            color: #0b1220;
+            color: #13244c;
           }
 
-          .krve-student-loading
-            > div {
+          .initial-loading > div {
             display: flex;
             align-items: center;
             flex-direction: column;
             gap: 18px;
           }
 
-          .krve-loading-logo {
-            color: #0e2a6b;
+          .initial-logo {
             font-size: 25px;
             font-weight: 900;
-            letter-spacing:
-              0.18em;
+            letter-spacing: 0.17em;
           }
 
-          .krve-student-loading
-            p {
-            margin: 0;
-            color: #77839a;
-            font-size: 13px;
+          .initial-loading p {
+            color: #8390a5;
+            font-size: 12px;
           }
 
-          .krve-spin {
+          .spin {
             animation:
-              krve-spin
-              0.85s linear
+              spin 0.8s linear
               infinite;
           }
 
-          @keyframes krve-spin {
+          @keyframes spin {
             to {
               transform:
                 rotate(360deg);
@@ -917,15 +1050,15 @@ export default function LiveProjectStudentPage() {
   }
 
   /* =======================================================
-     LOGIN SCREEN
+     LOGIN PAGE
   ======================================================= */
 
   if (!portal) {
     return (
-      <main className="krve-login-page">
-        <div className="krve-login-left">
-          <div className="krve-login-brand">
-            <div className="krve-brand-mark">
+      <main className="login-page">
+        <section className="login-brand-side">
+          <div className="brand">
+            <div className="brand-logo">
               K
             </div>
 
@@ -940,38 +1073,40 @@ export default function LiveProjectStudentPage() {
             </div>
           </div>
 
-          <div className="krve-login-copy">
-            <p className="krve-kicker">
+          <div className="login-intro">
+            <p>
               STUDENT WORKSPACE
             </p>
 
             <h1>
-              Turn assignments
+              Your work.
               <br />
-              into{" "}
+
+              Your progress.
+              <br />
+
               <em>
-                real business
-                work.
+                Your impact.
               </em>
             </h1>
 
-            <p>
-              Access your
-              assigned project,
-              weekly tasks,
+            <span>
+              Access your KRVÉ
+              Live Business
+              Project,
+              assignments,
               submissions,
-              feedback,
-              performance and
+              evaluations and
               certificate from
               one professional
               workspace.
-            </p>
+            </span>
           </div>
 
-          <div className="krve-login-feature-grid">
+          <div className="login-feature-grid">
             <article>
               <ClipboardList
-                size={20}
+                size={21}
               />
 
               <strong>
@@ -979,16 +1114,17 @@ export default function LiveProjectStudentPage() {
               </strong>
 
               <span>
-                View work
-                assigned by the
-                KRVE project
-                team.
+                Receive project
+                assignments
+                directly from
+                your
+                coordinator.
               </span>
             </article>
 
             <article>
               <Send
-                size={20}
+                size={21}
               />
 
               <strong>
@@ -996,216 +1132,193 @@ export default function LiveProjectStudentPage() {
               </strong>
 
               <span>
-                Share your
-                project evidence
-                for evaluation.
+                Submit project
+                evidence for
+                review and
+                evaluation.
               </span>
             </article>
 
             <article>
               <BarChart3
-                size={20}
+                size={21}
               />
 
               <strong>
-                Performance
+                Evaluation
               </strong>
 
               <span>
-                Track scores,
-                feedback and
-                project
-                progress.
+                Track feedback,
+                scores and
+                overall
+                performance.
               </span>
             </article>
           </div>
+        </section>
 
-          <p className="krve-login-footer">
-            KRVÉ — The Fashion
-            Studio · Live
-            Business Project
-            Program
-          </p>
-        </div>
-
-        <div className="krve-login-right">
-          <div className="krve-login-card">
-            <div className="krve-login-card-head">
-              <div className="krve-login-icon">
-                <GraduationCap
-                  size={23}
-                />
-              </div>
-
-              <p>
-                STUDENT PORTAL
-              </p>
-
-              <h2>
-                Welcome back.
-              </h2>
-
-              <span>
-                Sign in using
-                the details
-                submitted in
-                your Live
-                Project
-                application.
-              </span>
+        <section className="login-form-side">
+          <form
+            className="login-card"
+            onSubmit={
+              handleLogin
+            }
+          >
+            <div className="login-icon">
+              <GraduationCap
+                size={23}
+              />
             </div>
 
-            <form
-              onSubmit={
-                handleLogin
+            <p className="eyebrow">
+              STUDENT PORTAL
+            </p>
+
+            <h2>
+              Welcome back.
+            </h2>
+
+            <p className="login-description">
+              Enter the same
+              details used in
+              your Live Project
+              application.
+            </p>
+
+            <label>
+              APPLICATION
+              NUMBER
+            </label>
+
+            <input
+              type="text"
+              value={
+                credentials.applicationNumber
+              }
+              onChange={(
+                event,
+              ) =>
+                setCredentials(
+                  (
+                    current,
+                  ) => ({
+                    ...current,
+                    applicationNumber:
+                      event
+                        .target
+                        .value,
+                  }),
+                )
+              }
+              placeholder="KRVE-LP-APP-..."
+              required
+            />
+
+            <label>
+              REGISTERED EMAIL
+            </label>
+
+            <input
+              type="email"
+              value={
+                credentials.email
+              }
+              onChange={(
+                event,
+              ) =>
+                setCredentials(
+                  (
+                    current,
+                  ) => ({
+                    ...current,
+                    email:
+                      event
+                        .target
+                        .value,
+                  }),
+                )
+              }
+              placeholder="you@example.com"
+              required
+            />
+
+            <label>
+              REGISTERED MOBILE
+              NUMBER
+            </label>
+
+            <input
+              type="tel"
+              value={
+                credentials.phone
+              }
+              onChange={(
+                event,
+              ) =>
+                setCredentials(
+                  (
+                    current,
+                  ) => ({
+                    ...current,
+                    phone:
+                      event
+                        .target
+                        .value,
+                  }),
+                )
+              }
+              placeholder="+91"
+              required
+            />
+
+            {error && (
+              <div className="error-box">
+                {error}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              className="primary-button"
+              disabled={
+                loginLoading
               }
             >
-              <div className="krve-field">
-                <label>
-                  APPLICATION
-                  NUMBER
-                </label>
+              {loginLoading ? (
+                <>
+                  <Loader2
+                    size={18}
+                    className="spin"
+                  />
 
-                <input
-                  type="text"
-                  value={
-                    credentials.applicationNumber
-                  }
-                  onChange={(
-                    event,
-                  ) =>
-                    setCredentials(
-                      (
-                        current,
-                      ) => ({
-                        ...current,
-                        applicationNumber:
-                          event
-                            .target
-                            .value,
-                      }),
-                    )
-                  }
-                  placeholder="KRVE-LP-APP-..."
-                  required
-                />
-              </div>
+                  VERIFYING...
+                </>
+              ) : (
+                <>
+                  ENTER MY
+                  WORKSPACE
 
-              <div className="krve-field">
-                <label>
-                  REGISTERED
-                  EMAIL
-                </label>
-
-                <input
-                  type="email"
-                  value={
-                    credentials.email
-                  }
-                  onChange={(
-                    event,
-                  ) =>
-                    setCredentials(
-                      (
-                        current,
-                      ) => ({
-                        ...current,
-                        email:
-                          event
-                            .target
-                            .value,
-                      }),
-                    )
-                  }
-                  placeholder="you@example.com"
-                  required
-                />
-              </div>
-
-              <div className="krve-field">
-                <label>
-                  REGISTERED
-                  MOBILE
-                  NUMBER
-                </label>
-
-                <input
-                  type="tel"
-                  value={
-                    credentials.phone
-                  }
-                  onChange={(
-                    event,
-                  ) =>
-                    setCredentials(
-                      (
-                        current,
-                      ) => ({
-                        ...current,
-                        phone:
-                          event
-                            .target
-                            .value,
-                      }),
-                    )
-                  }
-                  placeholder="+91"
-                  required
-                />
-              </div>
-
-              {error && (
-                <div className="krve-login-error">
-                  {error}
-                </div>
+                  <ChevronRight
+                    size={18}
+                  />
+                </>
               )}
+            </button>
 
-              <button
-                type="submit"
-                className="krve-login-button"
-                disabled={
-                  loginLoading
-                }
-              >
-                {loginLoading ? (
-                  <>
-                    <Loader2
-                      size={18}
-                      className="krve-spin"
-                    />
-
-                    VERIFYING...
-                  </>
-                ) : (
-                  <>
-                    ENTER MY
-                    WORKSPACE
-
-                    <ChevronRight
-                      size={18}
-                    />
-                  </>
-                )}
-              </button>
-            </form>
-
-            <div className="krve-login-help">
-              <span>
-                Need help?
-              </span>
-
+            <p className="support-line">
+              Need help?{" "}
               <Link href="/contact">
                 Contact KRVÉ
                 Support
               </Link>
-            </div>
-          </div>
-        </div>
+            </p>
+          </form>
+        </section>
 
         <style jsx global>{`
           * {
-            box-sizing:
-              border-box;
+            box-sizing: border-box;
           }
 
           html,
@@ -1213,7 +1326,6 @@ export default function LiveProjectStudentPage() {
             margin: 0;
             min-height: 100%;
             font-family:
-              Inter,
               Arial,
               sans-serif;
             background: #f6f8fc;
@@ -1225,82 +1337,66 @@ export default function LiveProjectStudentPage() {
             font: inherit;
           }
 
-          .krve-login-page {
+          .login-page {
             display: grid;
             min-height: 100vh;
             grid-template-columns:
-              minmax(
-                0,
-                1.1fr
-              )
-              minmax(
-                420px,
-                0.9fr
-              );
+              1.1fr 0.9fr;
           }
 
-          .krve-login-left {
+          .login-brand-side {
             display: flex;
-            min-height: 100vh;
-            flex-direction:
-              column;
+            flex-direction: column;
             justify-content:
               space-between;
-            padding:
-              46px 58px;
+            padding: 48px 58px;
+            color: #fff;
             background:
               radial-gradient(
-                circle at
-                  80% 15%,
+                circle at 85%
+                  15%,
                 rgba(
-                  53,
-                  102,
+                  76,
+                  123,
                   255,
-                  0.3
+                  0.36
                 ),
                 transparent
                   28%
               ),
               linear-gradient(
                 145deg,
-                #071735,
-                #0a2563 56%,
-                #133e9e
+                #06142f,
+                #0a2767 58%,
+                #1747a8
               );
-            color: white;
           }
 
-          .krve-login-brand {
+          .brand {
             display: flex;
-            align-items:
-              center;
+            align-items: center;
             gap: 13px;
           }
 
-          .krve-brand-mark {
+          .brand-logo {
             display: grid;
             width: 48px;
             height: 48px;
-            place-items:
-              center;
-            border-radius:
-              14px;
+            place-items: center;
+            border-radius: 14px;
             background: #fff;
-            color: #0c2c73;
-            font-size: 18px;
+            color: #0b2c72;
             font-weight: 900;
           }
 
-          .krve-login-brand
-            strong {
+          .brand strong {
             display: block;
             font-size: 18px;
             letter-spacing:
               0.08em;
           }
 
-          .krve-login-brand
-            span {
+          .brand span {
             display: block;
             margin-top: 4px;
             color:
@@ -1311,58 +1407,48 @@ export default function LiveProjectStudentPage() {
                 0.6
               );
             font-size: 9px;
-            font-weight: 800;
+            letter-spacing:
+              0.18em;
+          }
+
+          .login-intro {
+            margin: 80px 0
+              55px;
+          }
+
+          .login-intro > p,
+          .eyebrow {
+            margin: 0;
+            color: #9db9ff;
+            font-size: 10px;
+            font-weight: 900;
             letter-spacing:
               0.2em;
           }
 
-          .krve-login-copy {
-            max-width:
-              740px;
-            margin:
-              90px 0
-              60px;
-          }
-
-          .krve-kicker {
-            margin: 0 0
-              24px;
-            color: #9ebcff;
-            font-size: 10px;
-            font-weight: 900;
-            letter-spacing:
-              0.25em;
-          }
-
-          .krve-login-copy
-            h1 {
-            margin: 0;
+          .login-intro h1 {
+            margin: 20px 0 0;
             font-size:
               clamp(
-                48px,
+                50px,
                 5vw,
-                78px
+                76px
               );
-            font-weight: 750;
-            line-height: 1;
+            line-height: 0.98;
             letter-spacing:
               -0.05em;
           }
 
-          .krve-login-copy
-            h1 em {
+          .login-intro h1 em {
             color: #a9c3ff;
-            font-style:
-              normal;
+            font-style: normal;
             font-weight: 500;
           }
 
-          .krve-login-copy
-            > p:last-child {
-            max-width:
-              650px;
-            margin:
-              30px 0 0;
+          .login-intro > span {
+            display: block;
+            max-width: 660px;
+            margin-top: 28px;
             color:
               rgba(
                 255,
@@ -1370,11 +1456,11 @@ export default function LiveProjectStudentPage() {
                 255,
                 0.68
               );
-            font-size: 15px;
+            font-size: 14px;
             line-height: 1.8;
           }
 
-          .krve-login-feature-grid {
+          .login-feature-grid {
             display: grid;
             grid-template-columns:
               repeat(
@@ -1384,21 +1470,18 @@ export default function LiveProjectStudentPage() {
             gap: 14px;
           }
 
-          .krve-login-feature-grid
-            article {
-            min-height:
-              155px;
-            padding: 23px;
+          .login-feature-grid article {
+            min-height: 150px;
+            padding: 22px;
             border:
               1px solid
               rgba(
                 255,
                 255,
                 255,
-                0.12
+                0.13
               );
-            border-radius:
-              18px;
+            border-radius: 17px;
             background:
               rgba(
                 255,
@@ -1406,25 +1489,19 @@ export default function LiveProjectStudentPage() {
                 255,
                 0.055
               );
-            backdrop-filter:
-              blur(10px);
           }
 
-          .krve-login-feature-grid
-            svg {
-            margin-bottom:
-              22px;
-            color: #9fbaff;
+          .login-feature-grid svg {
+            margin-bottom: 20px;
+            color: #a5bdff;
           }
 
-          .krve-login-feature-grid
-            strong {
+          .login-feature-grid strong {
             display: block;
             font-size: 13px;
           }
 
-          .krve-login-feature-grid
-            span {
+          .login-feature-grid span {
             display: block;
             margin-top: 7px;
             color:
@@ -1432,232 +1509,167 @@ export default function LiveProjectStudentPage() {
                 255,
                 255,
                 255,
-                0.58
+                0.55
               );
             font-size: 11px;
             line-height: 1.6;
           }
 
-          .krve-login-footer {
-            margin:
-              38px 0 0;
-            color:
-              rgba(
-                255,
-                255,
-                255,
-                0.42
-              );
-            font-size: 10px;
-            letter-spacing:
-              0.08em;
-          }
-
-          .krve-login-right {
+          .login-form-side {
             display: grid;
-            min-height:
-              100vh;
-            place-items:
-              center;
-            padding: 45px;
-            background:
-              #f7f9fd;
+            place-items: center;
+            padding: 40px;
           }
 
-          .krve-login-card {
+          .login-card {
             width: min(
               100%,
-              500px
+              490px
             );
-            padding:
-              42px;
+            padding: 40px;
             border:
               1px solid
-              #e2e8f2;
-            border-radius:
-              24px;
+              #e0e6f0;
+            border-radius: 24px;
             background: #fff;
             box-shadow:
-              0 26px
-              80px
+              0 25px 80px
               rgba(
-                16,
+                14,
                 42,
-                98,
+                91,
                 0.12
               );
           }
 
-          .krve-login-icon {
+          .login-icon {
             display: grid;
             width: 48px;
             height: 48px;
-            margin-bottom:
-              25px;
-            place-items:
-              center;
-            border-radius:
-              14px;
-            background:
-              #eef3ff;
-            color: #1b4ed8;
+            margin-bottom: 24px;
+            place-items: center;
+            border-radius: 14px;
+            background: #edf3ff;
+            color: #2056d7;
           }
 
-          .krve-login-card-head
-            > p {
-            margin: 0;
-            color: #2759e8;
-            font-size: 9px;
-            font-weight: 900;
-            letter-spacing:
-              0.2em;
+          .login-card .eyebrow {
+            color: #285bdd;
           }
 
-          .krve-login-card-head
-            h2 {
+          .login-card h2 {
+            margin: 9px 0 7px;
+            color: #101b31;
+            font-size: 30px;
+          }
+
+          .login-description {
             margin:
-              10px 0 7px;
-            color: #0a1730;
-            font-size: 31px;
-            letter-spacing:
-              -0.035em;
+              0 0 27px;
+            color: #7d899c;
+            font-size: 12px;
+            line-height: 1.6;
           }
 
-          .krve-login-card-head
-            > span {
+          .login-card label {
             display: block;
-            margin-bottom:
-              32px;
-            color: #77849a;
-            font-size: 13px;
-            line-height: 1.7;
-          }
-
-          .krve-field {
-            margin-bottom:
-              19px;
-          }
-
-          .krve-field label {
-            display: block;
-            margin-bottom:
-              8px;
-            color: #52627d;
+            margin:
+              18px 0 7px;
+            color: #52617b;
             font-size: 9px;
             font-weight: 900;
             letter-spacing:
-              0.12em;
+              0.1em;
           }
 
-          .krve-field input {
+          .login-card input {
             width: 100%;
-            height: 54px;
-            padding:
-              0 16px;
+            height: 53px;
+            padding: 0 15px;
             border:
               1px solid
-              #dbe2ee;
-            border-radius:
-              13px;
+              #dce3ee;
+            border-radius: 12px;
             outline: none;
-            background:
-              #fbfcff;
-            color: #101b31;
-            transition:
-              0.2s ease;
+            background: #fbfcff;
           }
 
-          .krve-field input:focus {
-            border-color:
-              #3970ff;
+          .login-card input:focus {
+            border-color: #376bff;
             box-shadow:
-              0 0 0
-              4px
+              0 0 0 4px
               rgba(
-                57,
-                112,
+                55,
+                107,
                 255,
                 0.08
               );
           }
 
-          .krve-login-error {
-            margin:
-              4px 0
-              18px;
-            padding:
-              13px 14px;
+          .error-box {
+            margin-top: 18px;
+            padding: 12px 14px;
             border:
               1px solid
-              #ffd0d3;
-            border-radius:
-              11px;
-            background:
-              #fff5f5;
-            color: #b4232f;
-            font-size: 12px;
-            line-height: 1.5;
+              #ffd2d5;
+            border-radius: 10px;
+            background: #fff5f5;
+            color: #b62e39;
+            font-size: 11px;
           }
 
-          .krve-login-button {
+          .primary-button {
             display: flex;
             width: 100%;
-            height: 56px;
-            align-items:
-              center;
+            height: 55px;
+            align-items: center;
             justify-content:
               center;
             gap: 10px;
+            margin-top: 22px;
             border: 0;
-            border-radius:
-              13px;
+            border-radius: 12px;
             background:
               linear-gradient(
                 135deg,
-                #103fa9,
-                #2159ec
+                #123f9f,
+                #245de5
               );
-            color: white;
-            cursor: pointer;
-            font-size: 11px;
+            color: #fff;
+            font-size: 10px;
             font-weight: 900;
             letter-spacing:
-              0.12em;
+              0.1em;
+            cursor: pointer;
           }
 
-          .krve-login-button:disabled {
+          .primary-button:disabled {
+            opacity: 0.65;
             cursor:
               not-allowed;
-            opacity: 0.7;
           }
 
-          .krve-login-help {
-            display: flex;
-            justify-content:
-              center;
-            gap: 5px;
-            margin-top:
-              23px;
-            color: #8a96aa;
+          .support-line {
+            margin:
+              20px 0 0;
+            color: #8a96a9;
             font-size: 11px;
+            text-align: center;
           }
 
-          .krve-login-help
-            a {
-            color: #1f54d7;
+          .support-line a {
+            color: #2054d0;
             font-weight: 700;
-            text-decoration:
-              none;
+            text-decoration: none;
           }
 
-          .krve-spin {
+          .spin {
             animation:
-              krve-spin
-              0.85s linear
+              spin 0.8s linear
               infinite;
           }
 
-          @keyframes krve-spin {
+          @keyframes spin {
             to {
               transform:
                 rotate(360deg);
@@ -1665,60 +1677,39 @@ export default function LiveProjectStudentPage() {
           }
 
           @media (
-            max-width:
-              980px
+            max-width: 950px
           ) {
-            .krve-login-page {
+            .login-page {
               grid-template-columns:
                 1fr;
             }
 
-            .krve-login-left {
-              min-height:
-                auto;
+            .login-brand-side {
               padding:
-                35px 28px
+                35px 26px
                 45px;
             }
 
-            .krve-login-copy {
-              margin:
-                70px 0
-                45px;
-            }
-
-            .krve-login-feature-grid {
+            .login-feature-grid {
               grid-template-columns:
                 1fr;
             }
 
-            .krve-login-feature-grid
-              article {
-              min-height:
-                auto;
-            }
-
-            .krve-login-right {
-              min-height:
-                auto;
+            .login-form-side {
               padding:
-                50px 20px;
+                45px 20px;
             }
           }
 
           @media (
-            max-width:
-              560px
+            max-width: 560px
           ) {
-            .krve-login-copy
-              h1 {
-              font-size:
-                45px;
+            .login-intro h1 {
+              font-size: 45px;
             }
 
-            .krve-login-card {
-              padding:
-                28px 20px;
+            .login-card {
+              padding: 28px 20px;
             }
           }
         `}</style>
@@ -1727,7 +1718,7 @@ export default function LiveProjectStudentPage() {
   }
 
   /* =======================================================
-     MAIN PORTAL
+     PORTAL VARIABLES
   ======================================================= */
 
   const {
@@ -1736,14 +1727,16 @@ export default function LiveProjectStudentPage() {
     summary,
   } = portal;
 
-  return (
-    <main className="krve-portal">
-      {/* MOBILE HEADER */}
+  /* =======================================================
+     MAIN PORTAL
+  ======================================================= */
 
-      <header className="krve-mobile-topbar">
-        <div className="krve-mobile-brand">
+  return (
+    <main className="portal-page">
+      <header className="mobile-header">
+        <strong>
           KRVÉ
-        </div>
+        </strong>
 
         <button
           type="button"
@@ -1753,21 +1746,19 @@ export default function LiveProjectStudentPage() {
             )
           }
         >
-          <Menu size={22} />
+          <Menu size={21} />
         </button>
       </header>
 
-      {/* SIDEBAR */}
-
       <aside
-        className={`krve-sidebar ${
+        className={`sidebar ${
           mobileMenuOpen
-            ? "mobile-open"
+            ? "open"
             : ""
         }`}
       >
-        <div className="krve-sidebar-brand">
-          <div className="krve-sidebar-logo">
+        <div className="sidebar-brand">
+          <div className="sidebar-brand-icon">
             K
           </div>
 
@@ -1783,19 +1774,19 @@ export default function LiveProjectStudentPage() {
 
           <button
             type="button"
-            className="krve-mobile-close"
+            className="mobile-close"
             onClick={() =>
               setMobileMenuOpen(
                 false,
               )
             }
           >
-            <X size={20} />
+            <X size={19} />
           </button>
         </div>
 
-        <div className="krve-student-mini">
-          <div className="krve-student-avatar">
+        <div className="student-mini">
+          <div className="student-avatar">
             {student.fullName
               .charAt(0)
               .toUpperCase()}
@@ -1813,8 +1804,8 @@ export default function LiveProjectStudentPage() {
           </div>
         </div>
 
-        <nav className="krve-sidebar-nav">
-          {tabs.map(
+        <nav>
+          {portalTabs.map(
             (tab) => {
               const Icon =
                 tab.icon;
@@ -1843,6 +1834,9 @@ export default function LiveProjectStudentPage() {
                 >
                   <Icon
                     size={18}
+                    strokeWidth={
+                      2
+                    }
                   />
 
                   <span>
@@ -1856,18 +1850,16 @@ export default function LiveProjectStudentPage() {
           )}
         </nav>
 
-        <div className="krve-sidebar-footer">
-          <div>
-            <span>
-              Application ID
-            </span>
+        <div className="sidebar-bottom">
+          <span>
+            APPLICATION ID
+          </span>
 
-            <strong>
-              {
-                student.applicationNumber
-              }
-            </strong>
-          </div>
+          <strong>
+            {
+              student.applicationNumber
+            }
+          </strong>
 
           <button
             type="button"
@@ -1887,23 +1879,22 @@ export default function LiveProjectStudentPage() {
       {mobileMenuOpen && (
         <button
           type="button"
-          className="krve-mobile-overlay"
+          className="mobile-backdrop"
           onClick={() =>
             setMobileMenuOpen(
               false,
             )
           }
+          aria-label="Close menu"
         />
       )}
 
-      {/* CONTENT */}
-
-      <section className="krve-main-content">
-        <header className="krve-portal-header">
+      <section className="portal-content">
+        <header className="portal-heading">
           <div>
             <p>
-              KRVE LIVE
-              BUSINESS PROJECT
+              KRVÉ LIVE BUSINESS
+              PROJECT
             </p>
 
             <h1>
@@ -1933,10 +1924,10 @@ export default function LiveProjectStudentPage() {
             </h1>
           </div>
 
-          <div className="krve-header-user">
+          <div className="heading-user">
             <div>
               <span>
-                Logged in as
+                LOGGED IN AS
               </span>
 
               <strong>
@@ -1946,7 +1937,7 @@ export default function LiveProjectStudentPage() {
               </strong>
             </div>
 
-            <div className="krve-header-avatar">
+            <div className="header-avatar">
               {student.fullName
                 .charAt(0)
                 .toUpperCase()}
@@ -1961,7 +1952,7 @@ export default function LiveProjectStudentPage() {
         {activeTab ===
           "overview" && (
           <>
-            <section className="krve-welcome-card">
+            <section className="welcome-panel">
               <div>
                 <p>
                   WELCOME BACK
@@ -1977,15 +1968,17 @@ export default function LiveProjectStudentPage() {
 
                 <span>
                   Continue your
-                  Live Project
-                  journey and
-                  stay on top of
-                  your assigned
-                  work.
+                  KRVÉ Live
+                  Project and
+                  complete your
+                  assigned work
+                  within the
+                  project
+                  timeline.
                 </span>
               </div>
 
-              <div className="krve-project-status-card">
+              <div className="project-state">
                 <span>
                   PROJECT STATUS
                 </span>
@@ -2003,13 +1996,11 @@ export default function LiveProjectStudentPage() {
               </div>
             </section>
 
-            <section className="krve-stat-grid">
+            <section className="stats">
               <article>
-                <div className="krve-stat-icon blue">
-                  <ClipboardList
-                    size={20}
-                  />
-                </div>
+                <ClipboardList
+                  size={21}
+                />
 
                 <span>
                   Assigned Tasks
@@ -2023,11 +2014,9 @@ export default function LiveProjectStudentPage() {
               </article>
 
               <article>
-                <div className="krve-stat-icon violet">
-                  <Send
-                    size={20}
-                  />
-                </div>
+                <Send
+                  size={21}
+                />
 
                 <span>
                   Submitted
@@ -2041,11 +2030,9 @@ export default function LiveProjectStudentPage() {
               </article>
 
               <article>
-                <div className="krve-stat-icon green">
-                  <CheckCircle2
-                    size={20}
-                  />
-                </div>
+                <CheckCircle2
+                  size={21}
+                />
 
                 <span>
                   Approved
@@ -2059,11 +2046,9 @@ export default function LiveProjectStudentPage() {
               </article>
 
               <article>
-                <div className="krve-stat-icon orange">
-                  <Target
-                    size={20}
-                  />
-                </div>
+                <Target
+                  size={21}
+                />
 
                 <span>
                   Overall Score
@@ -2077,9 +2062,9 @@ export default function LiveProjectStudentPage() {
               </article>
             </section>
 
-            <section className="krve-overview-grid">
-              <article className="krve-panel">
-                <div className="krve-panel-heading">
+            <section className="two-columns">
+              <article className="panel">
+                <div className="panel-heading">
                   <div>
                     <p>
                       PROJECT
@@ -2097,7 +2082,7 @@ export default function LiveProjectStudentPage() {
                   </strong>
                 </div>
 
-                <div className="krve-progress-track">
+                <div className="progress-track">
                   <div
                     style={{
                       width: `${progress}%`,
@@ -2105,7 +2090,7 @@ export default function LiveProjectStudentPage() {
                   />
                 </div>
 
-                <div className="krve-progress-meta">
+                <div className="progress-meta">
                   <span>
                     {
                       summary.approvedTasks
@@ -2122,16 +2107,17 @@ export default function LiveProjectStudentPage() {
                 </div>
               </article>
 
-              <article className="krve-panel">
-                <div className="krve-panel-heading">
+              <article className="panel">
+                <div className="panel-heading">
                   <div>
                     <p>
+                      CURRENT
                       PROJECT
                     </p>
 
                     <h3>
-                      Current
-                      assignment
+                      Project
+                      allocation
                     </h3>
                   </div>
 
@@ -2140,48 +2126,47 @@ export default function LiveProjectStudentPage() {
                   />
                 </div>
 
-                <div className="krve-project-mini-details">
-                  <div>
-                    <span>
-                      Department
-                    </span>
+                <div className="mini-project-grid">
+                  <InfoBlock
+                    label="Department"
+                    value={
+                      student.assignedDepartment ||
+                      "Pending"
+                    }
+                  />
 
-                    <strong>
-                      {student.assignedDepartment ||
-                        "Pending allocation"}
-                    </strong>
-                  </div>
+                  <InfoBlock
+                    label="Project"
+                    value={
+                      student.projectTitle ||
+                      "Pending"
+                    }
+                  />
 
-                  <div>
-                    <span>
-                      Project
-                    </span>
+                  <InfoBlock
+                    label="Coordinator"
+                    value={
+                      student.coordinatorName ||
+                      "Not assigned"
+                    }
+                  />
 
-                    <strong>
-                      {student.projectTitle ||
-                        "Pending allocation"}
-                    </strong>
-                  </div>
-
-                  <div>
-                    <span>
-                      Coordinator
-                    </span>
-
-                    <strong>
-                      {student.coordinatorName ||
-                        "Not assigned"}
-                    </strong>
-                  </div>
+                  <InfoBlock
+                    label="Project Code"
+                    value={
+                      student.projectCode ||
+                      "Pending"
+                    }
+                  />
                 </div>
               </article>
             </section>
 
-            <section className="krve-panel krve-recent-panel">
-              <div className="krve-panel-heading">
+            <section className="panel recent-panel">
+              <div className="panel-heading">
                 <div>
                   <p>
-                    TASKS
+                    WEEKLY TASKS
                   </p>
 
                   <h3>
@@ -2192,6 +2177,7 @@ export default function LiveProjectStudentPage() {
 
                 <button
                   type="button"
+                  className="text-action"
                   onClick={() =>
                     setActiveTab(
                       "tasks",
@@ -2212,10 +2198,10 @@ export default function LiveProjectStudentPage() {
                     ClipboardList
                   }
                   title="No tasks assigned yet"
-                  text="Your assigned weekly tasks will appear here once your project coordinator publishes them."
+                  text="Your weekly project tasks will appear here once your coordinator assigns them."
                 />
               ) : (
-                <div className="krve-task-list">
+                <div className="task-list">
                   {tasks
                     .slice(0, 4)
                     .map(
@@ -2241,7 +2227,7 @@ export default function LiveProjectStudentPage() {
 
             {pendingReviewTasks.length >
               0 && (
-              <section className="krve-review-note">
+              <section className="review-notice">
                 <Sparkles
                   size={19}
                 />
@@ -2256,17 +2242,15 @@ export default function LiveProjectStudentPage() {
                     1
                       ? "s are"
                       : " is"}{" "}
-                    currently
-                    awaiting
-                    review.
+                    awaiting review.
                   </strong>
 
                   <span>
-                    Evaluation
-                    and comments
-                    will appear
-                    automatically
-                    after review.
+                    Your score
+                    and evaluator
+                    comments will
+                    appear after
+                    review.
                   </span>
                 </div>
               </section>
@@ -2275,41 +2259,41 @@ export default function LiveProjectStudentPage() {
         )}
 
         {/* =================================================
-            MY PROJECT
+            PROJECT
         ================================================= */}
 
         {activeTab ===
           "project" && (
-          <section className="krve-project-layout">
-            <article className="krve-panel krve-project-main-card">
-              <p className="krve-section-kicker">
+          <section className="project-layout">
+            <article className="panel project-main">
+              <p className="blue-label">
                 PROJECT
                 ALLOCATION
               </p>
 
               <h2>
                 {student.projectTitle ||
-                  "Your project is awaiting allocation."}
+                  "Project allocation pending"}
               </h2>
 
-              <p className="krve-project-description">
-                This workspace
-                contains your
+              <p className="project-description">
+                This is your
                 official KRVÉ
                 Live Business
                 Project
-                allocation.
-                Complete all
-                assigned tasks
-                within the
-                project
-                timeline and
-                submit evidence
-                through the My
-                Tasks section.
+                workspace.
+                Complete the
+                assigned tasks,
+                submit supporting
+                evidence and
+                maintain
+                professional
+                communication
+                throughout the
+                project.
               </p>
 
-              <div className="krve-project-info-grid">
+              <div className="project-details">
                 <InfoBlock
                   label="Project Code"
                   value={
@@ -2335,7 +2319,7 @@ export default function LiveProjectStudentPage() {
                 />
 
                 <InfoBlock
-                  label="Project Status"
+                  label="Status"
                   value={statusLabel(
                     student.status,
                   )}
@@ -2364,7 +2348,7 @@ export default function LiveProjectStudentPage() {
                 />
 
                 <InfoBlock
-                  label="College / Institute"
+                  label="Institute"
                   value={
                     student.college ||
                     "—"
@@ -2373,9 +2357,9 @@ export default function LiveProjectStudentPage() {
               </div>
             </article>
 
-            <article className="krve-panel krve-project-side-card">
+            <article className="panel profile-card">
               <UserRound
-                size={23}
+                size={25}
               />
 
               <p>
@@ -2388,52 +2372,35 @@ export default function LiveProjectStudentPage() {
                 }
               </h3>
 
-              <div>
-                <span>
-                  Application
-                </span>
+              <InfoBlock
+                label="Application"
+                value={
+                  student.applicationNumber
+                }
+              />
 
-                <strong>
-                  {
-                    student.applicationNumber
-                  }
-                </strong>
-              </div>
+              <InfoBlock
+                label="Course"
+                value={
+                  student.course ||
+                  "—"
+                }
+              />
 
-              <div>
-                <span>
-                  Course
-                </span>
+              <InfoBlock
+                label="Semester / Year"
+                value={
+                  student.yearSemester ||
+                  "—"
+                }
+              />
 
-                <strong>
-                  {student.course ||
-                    "—"}
-                </strong>
-              </div>
-
-              <div>
-                <span>
-                  Semester /
-                  Year
-                </span>
-
-                <strong>
-                  {student.yearSemester ||
-                    "—"}
-                </strong>
-              </div>
-
-              <div>
-                <span>
-                  Email
-                </span>
-
-                <strong>
-                  {
-                    student.email
-                  }
-                </strong>
-              </div>
+              <InfoBlock
+                label="Email"
+                value={
+                  student.email
+                }
+              />
             </article>
           </section>
         )}
@@ -2444,8 +2411,8 @@ export default function LiveProjectStudentPage() {
 
         {activeTab ===
           "tasks" && (
-          <section className="krve-panel">
-            <div className="krve-panel-heading">
+          <section className="panel page-panel">
+            <div className="panel-heading">
               <div>
                 <p>
                   WEEKLY WORK
@@ -2457,13 +2424,13 @@ export default function LiveProjectStudentPage() {
 
                 <span>
                   Open a task to
-                  submit or
-                  update your
-                  project work.
+                  submit your
+                  work for
+                  evaluation.
                 </span>
               </div>
 
-              <div className="krve-task-count">
+              <strong className="task-total">
                 {
                   tasks.length
                 }{" "}
@@ -2472,7 +2439,7 @@ export default function LiveProjectStudentPage() {
                 1
                   ? "S"
                   : ""}
-              </div>
+              </strong>
             </div>
 
             {tasks.length ===
@@ -2482,19 +2449,19 @@ export default function LiveProjectStudentPage() {
                   ClipboardList
                 }
                 title="No tasks assigned"
-                text="Your project coordinator has not assigned any tasks yet."
+                text="Your coordinator has not assigned any tasks yet."
               />
             ) : (
-              <div className="krve-full-task-list">
+              <div className="full-task-list">
                 {tasks.map(
                   (task) => (
                     <article
+                      className="task-card"
                       key={
                         task.id
                       }
-                      className="krve-task-card"
                     >
-                      <div className="krve-task-week">
+                      <div className="task-card-week">
                         <span>
                           WEEK
                         </span>
@@ -2506,12 +2473,12 @@ export default function LiveProjectStudentPage() {
                         </strong>
                       </div>
 
-                      <div className="krve-task-card-main">
-                        <div className="krve-task-card-top">
+                      <div className="task-card-body">
+                        <div className="task-card-head">
                           <div>
-                            <div className="krve-task-badges">
+                            <div className="badges">
                               <span
-                                className={`krve-status ${getStatusClass(
+                                className={`status-badge ${getStatusClass(
                                   task.status,
                                 )}`}
                               >
@@ -2521,15 +2488,14 @@ export default function LiveProjectStudentPage() {
                               </span>
 
                               <span
-                                className={`krve-priority ${getPriorityClass(
+                                className={`priority-badge ${getPriorityClass(
                                   task.priority,
                                 )}`}
                               >
                                 {statusLabel(
                                   task.priority ||
                                     "Medium",
-                                )}{" "}
-                                Priority
+                                )}
                               </span>
                             </div>
 
@@ -2544,7 +2510,7 @@ export default function LiveProjectStudentPage() {
                             null &&
                             task.score !==
                               undefined && (
-                            <div className="krve-task-score">
+                            <div className="score-box">
                               <span>
                                 SCORE
                               </span>
@@ -2559,43 +2525,35 @@ export default function LiveProjectStudentPage() {
                         </div>
 
                         {task.description && (
-                          <p className="krve-task-description">
+                          <p className="task-description">
                             {
                               task.description
                             }
                           </p>
                         )}
 
-                        <div className="krve-task-meta">
-                          <div>
-                            <span>
-                              Due Date
-                            </span>
+                        <div className="task-meta">
+                          <InfoBlock
+                            label="Due Date"
+                            value={formatDate(
+                              task.dueDate,
+                            )}
+                          />
 
-                            <strong>
-                              {formatDate(
-                                task.dueDate,
-                              )}
-                            </strong>
-                          </div>
-
-                          <div>
-                            <span>
-                              Submission
-                            </span>
-
-                            <strong>
-                              {task.submittedAt
+                          <InfoBlock
+                            label="Submission"
+                            value={
+                              task.submittedAt
                                 ? formatDate(
                                     task.submittedAt,
                                   )
-                                : "Not submitted"}
-                            </strong>
-                          </div>
+                                : "Not submitted"
+                            }
+                          />
                         </div>
 
                         {task.reviewerComment && (
-                          <div className="krve-inline-feedback">
+                          <div className="reviewer-feedback">
                             <strong>
                               Reviewer
                               Feedback
@@ -2609,7 +2567,7 @@ export default function LiveProjectStudentPage() {
                           </div>
                         )}
 
-                        <div className="krve-task-actions">
+                        <div className="task-actions">
                           {task.submissionUrl && (
                             <a
                               href={
@@ -2655,7 +2613,7 @@ export default function LiveProjectStudentPage() {
                           ) : (
                             task.status ===
                               "approved" && (
-                              <span className="krve-approved-lock">
+                              <span className="approved-label">
                                 <Check
                                   size={
                                     15
@@ -2682,23 +2640,22 @@ export default function LiveProjectStudentPage() {
 
         {activeTab ===
           "feedback" && (
-          <section className="krve-panel">
-            <div className="krve-panel-heading">
+          <section className="panel page-panel">
+            <div className="panel-heading">
               <div>
                 <p>
-                  REVIEWS
+                  EVALUATION
                 </p>
 
                 <h3>
                   Feedback &
-                  Task Scores
+                  Scores
                 </h3>
 
                 <span>
-                  Comments and
-                  scores issued
-                  by your
-                  evaluator will
+                  Reviewer
+                  comments and
+                  task scores
                   appear here.
                 </span>
               </div>
@@ -2707,14 +2664,12 @@ export default function LiveProjectStudentPage() {
             {feedbackTasks.length ===
             0 ? (
               <EmptyState
-                icon={
-                  FileText
-                }
+                icon={FileText}
                 title="No feedback yet"
-                text="Once your submitted tasks are reviewed, scores and comments will be displayed here."
+                text="Feedback will appear after your submitted tasks are reviewed."
               />
             ) : (
-              <div className="krve-feedback-list">
+              <div className="feedback-list">
                 {feedbackTasks.map(
                   (task) => (
                     <article
@@ -2722,13 +2677,13 @@ export default function LiveProjectStudentPage() {
                         task.id
                       }
                     >
-                      <div className="krve-feedback-number">
+                      <div className="feedback-week">
                         {
                           task.weekNumber
                         }
                       </div>
 
-                      <div className="krve-feedback-main">
+                      <div>
                         <span>
                           WEEK{" "}
                           {
@@ -2748,7 +2703,7 @@ export default function LiveProjectStudentPage() {
                         </p>
                       </div>
 
-                      <div className="krve-feedback-score">
+                      <div className="feedback-score">
                         <span>
                           SCORE
                         </span>
@@ -2773,7 +2728,7 @@ export default function LiveProjectStudentPage() {
         {activeTab ===
           "performance" && (
           <>
-            <section className="krve-performance-hero">
+            <section className="performance-hero">
               <div>
                 <p>
                   OVERALL
@@ -2784,6 +2739,7 @@ export default function LiveProjectStudentPage() {
                   {student.evaluation
                     ?.totalScore ??
                     "—"}
+
                   <span>
                     /100
                   </span>
@@ -2799,7 +2755,7 @@ export default function LiveProjectStudentPage() {
 
               <div>
                 <span>
-                  Evaluated by
+                  EVALUATED BY
                 </span>
 
                 <strong>
@@ -2811,12 +2767,12 @@ export default function LiveProjectStudentPage() {
                 <p>
                   {student.evaluation
                     ?.remarks ||
-                    "Your final evaluation will be published here once reviewed by the KRVÉ project team."}
+                    "Your final evaluation will be published here after review by the KRVÉ project team."}
                 </p>
               </div>
             </section>
 
-            <section className="krve-performance-grid">
+            <section className="performance-grid">
               <PerformanceCard
                 label="Task Quality"
                 value={
@@ -2880,16 +2836,16 @@ export default function LiveProjectStudentPage() {
 
         {activeTab ===
           "certificate" && (
-          <section className="krve-certificate-wrap">
+          <section className="certificate-section">
             {student.certificateId ? (
-              <article className="krve-certificate-card">
-                <div className="krve-certificate-top">
-                  <div className="krve-certificate-brand">
+              <article className="certificate-card">
+                <div className="certificate-top">
+                  <strong>
                     KRVÉ
-                  </div>
+                  </strong>
 
                   <Award
-                    size={43}
+                    size={44}
                   />
                 </div>
 
@@ -2914,56 +2870,39 @@ export default function LiveProjectStudentPage() {
                   Program.
                 </span>
 
-                <div className="krve-certificate-details">
-                  <div>
-                    <span>
-                      Project
-                    </span>
+                <div className="certificate-grid">
+                  <InfoBlock
+                    label="Project"
+                    value={
+                      student.projectTitle ||
+                      "KRVÉ Live Business Project"
+                    }
+                  />
 
-                    <strong>
-                      {student.projectTitle ||
-                        "KRVÉ Live Business Project"}
-                    </strong>
-                  </div>
+                  <InfoBlock
+                    label="Department"
+                    value={
+                      student.assignedDepartment ||
+                      "General"
+                    }
+                  />
 
-                  <div>
-                    <span>
-                      Department
-                    </span>
+                  <InfoBlock
+                    label="Certificate ID"
+                    value={
+                      student.certificateId
+                    }
+                  />
 
-                    <strong>
-                      {student.assignedDepartment ||
-                        "General"}
-                    </strong>
-                  </div>
-
-                  <div>
-                    <span>
-                      Certificate
-                      ID
-                    </span>
-
-                    <strong>
-                      {
-                        student.certificateId
-                      }
-                    </strong>
-                  </div>
-
-                  <div>
-                    <span>
-                      Issue Date
-                    </span>
-
-                    <strong>
-                      {formatDate(
-                        student.certificateIssueDate,
-                      )}
-                    </strong>
-                  </div>
+                  <InfoBlock
+                    label="Issue Date"
+                    value={formatDate(
+                      student.certificateIssueDate,
+                    )}
+                  />
                 </div>
 
-                <div className="krve-certificate-verified">
+                <div className="verified-label">
                   <CheckCircle2
                     size={17}
                   />
@@ -2973,11 +2912,11 @@ export default function LiveProjectStudentPage() {
                 </div>
               </article>
             ) : (
-              <article className="krve-panel">
+              <article className="panel page-panel">
                 <EmptyState
                   icon={Award}
                   title="Certificate not issued yet"
-                  text="Your certificate will be made available here after successful project completion and final evaluation."
+                  text="Your certificate will appear here after successful project completion and final evaluation."
                 />
               </article>
             )}
@@ -2986,24 +2925,24 @@ export default function LiveProjectStudentPage() {
       </section>
 
       {/* ===================================================
-          SUBMISSION MODAL
+          SUBMISSION DRAWER
       =================================================== */}
 
       {submissionTask && (
-        <div className="krve-submit-layer">
+        <div className="submission-layer">
           <button
             type="button"
-            className="krve-submit-backdrop"
+            className="submission-backdrop"
             onClick={() =>
               setSubmissionTask(
                 null,
               )
             }
-            aria-label="Close submission form"
+            aria-label="Close submission"
           />
 
-          <aside className="krve-submit-panel">
-            <div className="krve-submit-head">
+          <aside className="submission-panel">
+            <header>
               <div>
                 <p>
                   WEEK{" "}
@@ -3034,16 +2973,16 @@ export default function LiveProjectStudentPage() {
               >
                 <X size={21} />
               </button>
-            </div>
+            </header>
 
             <form
               onSubmit={
                 handleTaskSubmission
               }
             >
-              <div className="krve-submit-task-note">
+              <div className="instruction-box">
                 <ClipboardList
-                  size={18}
+                  size={19}
                 />
 
                 <div>
@@ -3054,97 +2993,88 @@ export default function LiveProjectStudentPage() {
 
                   <p>
                     {submissionTask.description ||
-                      "Complete the assigned task and submit your work evidence below."}
+                      "Complete the assigned task and submit your supporting work below."}
                   </p>
                 </div>
               </div>
 
-              <div className="krve-submit-field">
-                <label>
-                  WORK /
-                  SUBMISSION LINK *
-                </label>
+              <label>
+                WORK /
+                SUBMISSION LINK *
+              </label>
 
-                <input
-                  type="url"
-                  value={
-                    submissionUrl
-                  }
-                  onChange={(
-                    event,
-                  ) =>
-                    setSubmissionUrl(
-                      event
-                        .target
-                        .value,
-                    )
-                  }
-                  placeholder="https://drive.google.com/... or Canva / GitHub / Docs link"
-                  required
-                />
+              <input
+                type="url"
+                value={
+                  submissionUrl
+                }
+                onChange={(
+                  event,
+                ) =>
+                  setSubmissionUrl(
+                    event.target
+                      .value,
+                  )
+                }
+                placeholder="Google Drive / Docs / Canva / GitHub link"
+                required
+              />
 
-                <small>
-                  Make sure the
-                  link is
-                  accessible to
-                  the evaluator.
-                </small>
-              </div>
+              <small>
+                Make sure the
+                evaluator has
+                permission to
+                open the link.
+              </small>
 
-              <div className="krve-submit-field">
-                <label>
-                  WORK SUMMARY
-                </label>
+              <label>
+                WORK SUMMARY
+              </label>
 
-                <textarea
-                  rows={6}
-                  value={
-                    submissionSummary
-                  }
-                  onChange={(
-                    event,
-                  ) =>
-                    setSubmissionSummary(
-                      event
-                        .target
-                        .value,
-                    )
-                  }
-                  placeholder="Explain what you completed, your approach, key findings and business outcome..."
-                />
-              </div>
+              <textarea
+                rows={7}
+                value={
+                  submissionSummary
+                }
+                onChange={(
+                  event,
+                ) =>
+                  setSubmissionSummary(
+                    event.target
+                      .value,
+                  )
+                }
+                placeholder="Explain what you completed, your methodology, findings and business outcome..."
+              />
 
-              <div className="krve-submit-field">
-                <label>
-                  STUDENT REMARKS
-                </label>
+              <label>
+                STUDENT REMARKS
+              </label>
 
-                <textarea
-                  rows={4}
-                  value={
-                    studentRemarks
-                  }
-                  onChange={(
-                    event,
-                  ) =>
-                    setStudentRemarks(
-                      event
-                        .target
-                        .value,
-                    )
-                  }
-                  placeholder="Optional notes for your evaluator..."
-                />
-              </div>
+              <textarea
+                rows={4}
+                value={
+                  studentRemarks
+                }
+                onChange={(
+                  event,
+                ) =>
+                  setStudentRemarks(
+                    event.target
+                      .value,
+                  )
+                }
+                placeholder="Optional remarks for your evaluator..."
+              />
 
               {error && (
-                <div className="krve-submit-error">
+                <div className="submission-error">
                   {error}
                 </div>
               )}
 
               {successMessage && (
-                <div className="krve-submit-success">
+                <div className="submission-success">
                   <CheckCircle2
                     size={18}
                   />
@@ -3157,7 +3087,7 @@ export default function LiveProjectStudentPage() {
 
               <button
                 type="submit"
-                className="krve-final-submit"
+                className="submit-button"
                 disabled={
                   submissionLoading
                 }
@@ -3166,7 +3096,7 @@ export default function LiveProjectStudentPage() {
                   <>
                     <Loader2
                       size={17}
-                      className="krve-spin"
+                      className="spin"
                     />
 
                     SUBMITTING...
@@ -3189,25 +3119,23 @@ export default function LiveProjectStudentPage() {
       )}
 
       {/* ===================================================
-          GLOBAL CSS
+          PORTAL CSS
       =================================================== */}
 
       <style jsx global>{`
         * {
-          box-sizing:
-            border-box;
+          box-sizing: border-box;
         }
 
         html,
         body {
           margin: 0;
           min-height: 100%;
-          background: #f4f7fb;
+          background: #f5f7fb;
+          color: #142039;
           font-family:
-            Inter,
             Arial,
             sans-serif;
-          color: #101a2d;
         }
 
         button,
@@ -3220,19 +3148,13 @@ export default function LiveProjectStudentPage() {
           cursor: pointer;
         }
 
-        .krve-portal {
-          min-height:
-            100vh;
-          background:
-            #f5f7fb;
+        .portal-page {
+          min-height: 100vh;
         }
 
-        /* SIDEBAR */
-
-        .krve-sidebar {
+        .sidebar {
           position: fixed;
-          inset:
-            0 auto 0 0;
+          inset: 0 auto 0 0;
           z-index: 300;
           display: flex;
           width: 260px;
@@ -3240,404 +3162,296 @@ export default function LiveProjectStudentPage() {
             column;
           border-right:
             1px solid
-            #dde4ef;
+            #dfe5ef;
           background: #fff;
         }
 
-        .krve-sidebar-brand {
+        .sidebar-brand {
           display: flex;
-          height: 86px;
-          align-items:
-            center;
+          height: 84px;
+          align-items: center;
           gap: 12px;
-          padding:
-            0 24px;
+          padding: 0 22px;
           border-bottom:
             1px solid
             #edf1f6;
         }
 
-        .krve-sidebar-logo {
+        .sidebar-brand-icon {
           display: grid;
-          width: 45px;
-          height: 45px;
-          place-items:
-            center;
-          border-radius:
-            13px;
+          width: 44px;
+          height: 44px;
+          place-items: center;
+          border-radius: 12px;
           background:
             linear-gradient(
               135deg,
               #071a40,
-              #123a8e
+              #164393
             );
           color: #fff;
           font-weight: 900;
         }
 
-        .krve-sidebar-brand
-          strong {
+        .sidebar-brand strong {
           display: block;
           font-size: 16px;
           letter-spacing:
-            0.07em;
+            0.08em;
         }
 
-        .krve-sidebar-brand
-          span {
+        .sidebar-brand span {
           display: block;
           margin-top: 3px;
-          color: #8a97ab;
+          color: #8d99ab;
           font-size: 8px;
           font-weight: 800;
           letter-spacing:
             0.16em;
         }
 
-        .krve-mobile-close {
+        .mobile-close {
           display: none;
-          margin-left:
-            auto;
+          margin-left: auto;
           border: 0;
           background:
             transparent;
-          color: #42516a;
         }
 
-        .krve-student-mini {
+        .student-mini {
           display: flex;
-          align-items:
-            center;
+          align-items: center;
           gap: 11px;
-          margin:
-            18px;
-          padding: 14px;
+          margin: 17px;
+          padding: 13px;
           border:
             1px solid
-            #e5ebf4;
-          border-radius:
-            14px;
-          background:
-            #f8faff;
+            #e4eaf3;
+          border-radius: 13px;
+          background: #f8faff;
         }
 
-        .krve-student-avatar,
-        .krve-header-avatar {
+        .student-avatar,
+        .header-avatar {
           display: grid;
           width: 38px;
           height: 38px;
-          flex: 0 0
-            38px;
-          place-items:
-            center;
-          border-radius:
-            11px;
-          background:
-            #0c2c72;
-          color: white;
+          flex: 0 0 38px;
+          place-items: center;
+          border-radius: 10px;
+          background: #0c2d71;
+          color: #fff;
           font-size: 13px;
           font-weight: 900;
         }
 
-        .krve-student-mini
-          strong {
+        .student-mini strong {
           display: block;
-          max-width:
-            150px;
-          overflow:
-            hidden;
-          color: #172138;
+          max-width: 150px;
+          overflow: hidden;
           font-size: 11px;
           text-overflow:
             ellipsis;
-          white-space:
-            nowrap;
+          white-space: nowrap;
         }
 
-        .krve-student-mini
-          span {
+        .student-mini span {
           display: block;
           margin-top: 4px;
-          color: #8c98aa;
+          color: #8995a8;
           font-size: 9px;
         }
 
-        .krve-sidebar-nav {
+        .sidebar nav {
           display: flex;
           flex: 1;
           flex-direction:
             column;
           gap: 5px;
-          padding:
-            2px 15px;
+          padding: 0 14px;
         }
 
-        .krve-sidebar-nav
-          button {
+        .sidebar nav button {
           display: flex;
           width: 100%;
-          height: 48px;
-          align-items:
-            center;
+          height: 47px;
+          align-items: center;
           gap: 12px;
-          padding:
-            0 15px;
+          padding: 0 14px;
           border: 0;
-          border-radius:
-            12px;
+          border-radius: 11px;
           background:
             transparent;
-          color: #5d6c83;
+          color: #607087;
           font-size: 11px;
           font-weight: 700;
           text-align: left;
-          transition:
-            0.18s ease;
         }
 
-        .krve-sidebar-nav
-          button:hover {
-          background:
-            #f4f7fc;
-          color: #1b3267;
+        .sidebar nav button:hover {
+          background: #f4f7fc;
         }
 
-        .krve-sidebar-nav
-          button.active {
-          background:
-            #0a1835;
+        .sidebar nav button.active {
+          background: #09172f;
           color: #fff;
-          box-shadow:
-            0 7px
-            22px
-            rgba(
-              11,
-              39,
-              94,
-              0.18
-            );
         }
 
-        .krve-sidebar-footer {
-          padding:
-            18px;
+        .sidebar-bottom {
+          padding: 17px;
           border-top:
             1px solid
             #edf1f6;
         }
 
-        .krve-sidebar-footer
-          > div {
-          margin-bottom:
-            14px;
-        }
-
-        .krve-sidebar-footer
-          span {
+        .sidebar-bottom > span {
           display: block;
-          color: #99a4b5;
+          color: #98a3b4;
           font-size: 8px;
           font-weight: 800;
-          letter-spacing:
-            0.1em;
         }
 
-        .krve-sidebar-footer
-          strong {
+        .sidebar-bottom > strong {
           display: block;
-          margin-top: 5px;
-          overflow:
-            hidden;
-          color: #30405b;
+          margin: 5px 0 13px;
+          overflow: hidden;
+          color: #44536b;
           font-size: 9px;
           text-overflow:
             ellipsis;
-          white-space:
-            nowrap;
+          white-space: nowrap;
         }
 
-        .krve-sidebar-footer
-          button {
+        .sidebar-bottom button {
           display: flex;
           width: 100%;
-          height: 42px;
-          align-items:
-            center;
-          gap: 10px;
-          padding:
-            0 13px;
+          height: 40px;
+          align-items: center;
+          gap: 9px;
+          padding: 0 12px;
           border:
             1px solid
-            #e1e7f0;
-          border-radius:
-            10px;
+            #dfe5ee;
+          border-radius: 9px;
           background: #fff;
-          color: #66758d;
+          color: #627188;
           font-size: 10px;
-          font-weight: 700;
         }
 
-        /* MAIN */
-
-        .krve-main-content {
-          min-height:
-            100vh;
-          margin-left:
-            260px;
-          padding:
-            0 38px
-            55px;
+        .portal-content {
+          min-height: 100vh;
+          margin-left: 260px;
+          padding: 0 38px 50px;
         }
 
-        .krve-portal-header {
+        .portal-heading {
           display: flex;
-          min-height:
-            108px;
-          align-items:
-            center;
+          min-height: 105px;
+          align-items: center;
           justify-content:
             space-between;
-          gap: 25px;
+          gap: 20px;
           border-bottom:
             1px solid
-            #e2e8f1;
+            #e1e7ef;
         }
 
-        .krve-portal-header
-          p,
-        .krve-section-kicker {
+        .portal-heading p,
+        .panel-heading p,
+        .blue-label {
           margin: 0;
-          color: #2759db;
-          font-size: 9px;
+          color: #2658d3;
+          font-size: 8px;
           font-weight: 900;
           letter-spacing:
-            0.18em;
+            0.17em;
         }
 
-        .krve-portal-header
-          h1 {
-          margin:
-            7px 0 0;
-          color: #101a2d;
+        .portal-heading h1 {
+          margin: 7px 0 0;
           font-size: 25px;
-          letter-spacing:
-            -0.025em;
         }
 
-        .krve-header-user {
+        .heading-user {
           display: flex;
-          align-items:
-            center;
-          gap: 12px;
+          align-items: center;
+          gap: 11px;
         }
 
-        .krve-header-user
-          > div:first-child {
-          text-align:
-            right;
+        .heading-user > div:first-child {
+          text-align: right;
         }
 
-        .krve-header-user
-          span {
-          display: block;
-          color: #9aa6b7;
+        .heading-user span {
+          color: #99a4b5;
           font-size: 8px;
         }
 
-        .krve-header-user
-          strong {
+        .heading-user strong {
           display: block;
           margin-top: 3px;
-          color: #34435c;
           font-size: 11px;
         }
 
-        /* WELCOME */
-
-        .krve-welcome-card {
+        .welcome-panel {
           display: flex;
-          min-height:
-            210px;
-          align-items:
-            center;
+          min-height: 200px;
+          align-items: center;
           justify-content:
             space-between;
-          gap: 40px;
-          margin-top:
-            30px;
-          padding:
-            38px 42px;
-          overflow:
-            hidden;
-          border-radius:
-            22px;
+          gap: 30px;
+          margin-top: 28px;
+          padding: 35px 40px;
+          border-radius: 20px;
+          color: #fff;
           background:
             radial-gradient(
-              circle at
-                85% 25%,
+              circle at 85%
+                20%,
               rgba(
-                88,
-                136,
+                92,
+                139,
                 255,
-                0.5
+                0.48
               ),
               transparent
                 25%
             ),
             linear-gradient(
               135deg,
-              #071a3f,
-              #0b317f
-            );
-          color: white;
-          box-shadow:
-            0 18px
-            50px
-            rgba(
-              12,
-              42,
-              98,
-              0.17
+              #071a3e,
+              #0c347f
             );
         }
 
-        .krve-welcome-card
-          > div:first-child
-          p {
+        .welcome-panel p {
           margin: 0;
           color: #9fbaff;
           font-size: 9px;
           font-weight: 900;
           letter-spacing:
-            0.19em;
+            0.18em;
         }
 
-        .krve-welcome-card
-          h2 {
-          margin:
-            10px 0 8px;
-          font-size: 31px;
-          letter-spacing:
-            -0.035em;
+        .welcome-panel h2 {
+          margin: 10px 0 8px;
+          font-size: 30px;
         }
 
-        .krve-welcome-card
-          > div:first-child
-          span {
+        .welcome-panel > div:first-child > span {
           color:
             rgba(
               255,
               255,
               255,
-              0.66
+              0.67
             );
           font-size: 12px;
         }
 
-        .krve-project-status-card {
-          min-width:
-            235px;
-          padding: 24px;
+        .project-state {
+          min-width: 225px;
+          padding: 22px;
           border:
             1px solid
             rgba(
@@ -3646,8 +3460,7 @@ export default function LiveProjectStudentPage() {
               255,
               0.14
             );
-          border-radius:
-            16px;
+          border-radius: 15px;
           background:
             rgba(
               255,
@@ -3655,967 +3468,636 @@ export default function LiveProjectStudentPage() {
               255,
               0.08
             );
-          backdrop-filter:
-            blur(12px);
         }
 
-        .krve-project-status-card
-          span {
-          display: block;
-          color: #a9c0f2;
+        .project-state span {
+          color: #a9bee9;
           font-size: 8px;
           font-weight: 800;
           letter-spacing:
-            0.14em;
+            0.12em;
         }
 
-        .krve-project-status-card
-          strong {
+        .project-state strong {
           display: block;
-          margin:
-            8px 0 7px;
-          font-size: 19px;
+          margin: 8px 0 6px;
+          font-size: 18px;
         }
 
-        .krve-project-status-card
-          small {
+        .project-state small {
           color:
             rgba(
               255,
               255,
               255,
-              0.54
+              0.55
             );
           font-size: 9px;
         }
 
-        /* STATS */
-
-        .krve-stat-grid {
+        .stats {
           display: grid;
           grid-template-columns:
             repeat(
               4,
               1fr
             );
-          gap: 16px;
-          margin-top:
-            20px;
+          gap: 15px;
+          margin-top: 18px;
         }
 
-        .krve-stat-grid
-          article {
-          position:
-            relative;
-          min-height:
-            145px;
-          padding:
-            21px;
+        .stats article {
+          min-height: 140px;
+          padding: 21px;
           border:
             1px solid
             #e0e6ef;
-          border-radius:
-            17px;
+          border-radius: 16px;
           background: #fff;
-          box-shadow:
-            0 8px
-            28px
-            rgba(
-              18,
-              47,
-              94,
-              0.05
-            );
         }
 
-        .krve-stat-grid
-          article
-          > span {
+        .stats svg {
+          color: #2559d5;
+        }
+
+        .stats span {
           display: block;
-          margin-top:
-            17px;
-          color: #7e8ba0;
+          margin-top: 17px;
+          color: #7e8a9c;
           font-size: 10px;
-          font-weight: 700;
         }
 
-        .krve-stat-grid
-          article
-          > strong {
+        .stats strong {
           display: block;
           margin-top: 5px;
-          color: #111c30;
-          font-size: 27px;
+          font-size: 26px;
         }
 
-        .krve-stat-icon {
-          display: grid;
-          width: 40px;
-          height: 40px;
-          place-items:
-            center;
-          border-radius:
-            11px;
-        }
-
-        .krve-stat-icon.blue {
-          background:
-            #edf3ff;
-          color: #3466e5;
-        }
-
-        .krve-stat-icon.violet {
-          background:
-            #f2edff;
-          color: #6d49d9;
-        }
-
-        .krve-stat-icon.green {
-          background:
-            #eaf9f1;
-          color: #24935a;
-        }
-
-        .krve-stat-icon.orange {
-          background:
-            #fff3e6;
-          color: #d87818;
-        }
-
-        /* PANELS */
-
-        .krve-overview-grid {
+        .two-columns {
           display: grid;
           grid-template-columns:
             1fr 1fr;
-          gap: 18px;
-          margin-top:
-            20px;
+          gap: 17px;
+          margin-top: 18px;
         }
 
-        .krve-panel {
+        .panel {
           border:
             1px solid
-            #e0e6ef;
-          border-radius:
-            18px;
+            #dfe5ee;
+          border-radius: 17px;
           background: #fff;
           box-shadow:
-            0 7px
-            24px
+            0 6px 22px
             rgba(
-              18,
-              47,
-              94,
+              15,
+              43,
+              90,
               0.045
             );
         }
 
-        .krve-overview-grid
-          .krve-panel {
-          padding:
-            25px;
+        .two-columns .panel,
+        .page-panel,
+        .recent-panel {
+          padding: 25px;
         }
 
-        .krve-panel-heading {
+        .panel-heading {
           display: flex;
           align-items:
             flex-start;
           justify-content:
             space-between;
-          gap: 25px;
+          gap: 20px;
         }
 
-        .krve-panel-heading
-          p {
-          margin: 0;
-          color: #3261d6;
-          font-size: 8px;
-          font-weight: 900;
-          letter-spacing:
-            0.15em;
-        }
-
-        .krve-panel-heading
-          h3 {
-          margin:
-            7px 0 0;
-          color: #162238;
+        .panel-heading h3 {
+          margin: 7px 0 0;
           font-size: 18px;
         }
 
-        .krve-panel-heading
-          > div
-          > span {
+        .panel-heading > div > span {
           display: block;
-          margin-top: 7px;
+          margin-top: 6px;
           color: #8a96a9;
           font-size: 10px;
         }
 
-        .krve-panel-heading
-          > strong {
-          color: #2057da;
-          font-size: 25px;
+        .panel-heading > strong {
+          color: #2358d6;
+          font-size: 24px;
         }
 
-        .krve-panel-heading
-          > button {
+        .progress-track {
+          height: 8px;
+          margin-top: 28px;
+          overflow: hidden;
+          border-radius: 50px;
+          background: #edf1f6;
+        }
+
+        .progress-track div {
+          height: 100%;
+          border-radius: inherit;
+          background:
+            linear-gradient(
+              90deg,
+              #1951d2,
+              #638cff
+            );
+        }
+
+        .progress-meta {
           display: flex;
-          align-items:
-            center;
+          justify-content:
+            space-between;
+          margin-top: 10px;
+          color: #7d899c;
+          font-size: 9px;
+        }
+
+        .mini-project-grid,
+        .project-details {
+          display: grid;
+          grid-template-columns:
+            1fr 1fr;
+          gap: 12px;
+          margin-top: 20px;
+        }
+
+        .info-block {
+          padding: 13px;
+          border:
+            1px solid
+            #e8ecf2;
+          border-radius: 10px;
+          background: #fafcff;
+        }
+
+        .info-block span {
+          display: block;
+          color: #96a2b4;
+          font-size: 8px;
+          font-weight: 800;
+          text-transform:
+            uppercase;
+        }
+
+        .info-block strong {
+          display: block;
+          margin-top: 5px;
+          color: #394960;
+          font-size: 10px;
+          word-break:
+            break-word;
+        }
+
+        .recent-panel {
+          margin-top: 18px;
+        }
+
+        .text-action {
+          display: flex;
+          align-items: center;
           gap: 5px;
           border: 0;
           background:
             transparent;
-          color: #2458d3;
+          color: #2459d0;
           font-size: 10px;
           font-weight: 800;
         }
 
-        .krve-progress-track {
-          height: 9px;
-          margin-top:
-            30px;
-          overflow:
-            hidden;
-          border-radius:
-            50px;
-          background:
-            #edf1f7;
+        .task-list {
+          margin-top: 18px;
         }
 
-        .krve-progress-track
-          > div {
-          height: 100%;
-          border-radius:
-            inherit;
-          background:
-            linear-gradient(
-              90deg,
-              #174fd5,
-              #5d87ff
-            );
-        }
-
-        .krve-progress-meta {
-          display: flex;
-          justify-content:
-            space-between;
-          margin-top:
-            11px;
-          color: #7f8a9c;
-          font-size: 9px;
-        }
-
-        .krve-project-mini-details {
+        .task-row {
           display: grid;
           grid-template-columns:
-            1fr 1fr;
-          gap: 14px;
-          margin-top:
-            22px;
-        }
-
-        .krve-project-mini-details
-          > div {
-          padding:
-            13px;
-          border-radius:
-            11px;
-          background:
-            #f8faff;
-        }
-
-        .krve-project-mini-details
-          span,
-        .krve-project-info-grid
-          span,
-        .krve-project-side-card
-          span {
-          display: block;
-          color: #99a4b5;
-          font-size: 8px;
-          font-weight: 800;
-          letter-spacing:
-            0.07em;
-          text-transform:
-            uppercase;
-        }
-
-        .krve-project-mini-details
-          strong {
-          display: block;
-          margin-top: 5px;
-          color: #374760;
-          font-size: 10px;
-        }
-
-        .krve-recent-panel {
-          margin-top:
-            20px;
-          padding:
-            25px;
-        }
-
-        /* TASK ROW */
-
-        .krve-task-list {
-          margin-top:
-            20px;
-        }
-
-        .krve-task-row {
-          display: grid;
-          grid-template-columns:
-            58px
+            52px
             minmax(
               0,
               1fr
             )
-            auto
-            auto;
-          align-items:
-            center;
-          gap: 18px;
-          padding:
-            17px 0;
+            auto auto;
+          align-items: center;
+          gap: 15px;
+          padding: 15px 0;
           border-top:
             1px solid
             #edf0f5;
         }
 
-        .krve-task-row-week {
+        .task-week-box {
           display: grid;
-          width: 46px;
-          height: 46px;
-          place-items:
-            center;
-          border-radius:
-            12px;
-          background:
-            #eff4ff;
-          color: #2c5dd7;
-          font-size: 12px;
+          width: 44px;
+          height: 44px;
+          place-items: center;
+          border-radius: 11px;
+          background: #eff4ff;
+          color: #295bd2;
           font-weight: 900;
         }
 
-        .krve-task-row-main
-          strong {
+        .task-row-main strong {
           display: block;
-          color: #26344c;
           font-size: 11px;
         }
 
-        .krve-task-row-main
-          span {
+        .task-row-main span {
           display: block;
-          margin-top: 5px;
-          color: #939eaf;
+          margin-top: 4px;
+          color: #929daf;
           font-size: 9px;
         }
 
-        .krve-task-row
-          > button {
-          padding:
-            9px 13px;
-          border:
-            1px solid
-            #d9e1ef;
-          border-radius:
-            9px;
-          background: #fff;
-          color: #2d5cd2;
-          font-size: 9px;
-          font-weight: 800;
-        }
-
-        /* STATUS */
-
-        .krve-status,
-        .krve-priority {
-          display: inline-flex;
-          align-items:
-            center;
+        .status-badge,
+        .priority-badge {
+          display:
+            inline-flex;
           width: fit-content;
-          border-radius:
-            50px;
+          align-items: center;
+          padding: 6px 9px;
+          border-radius: 50px;
           font-size: 8px;
           font-weight: 900;
-          letter-spacing:
-            0.05em;
           text-transform:
             uppercase;
         }
 
-        .krve-status {
-          padding:
-            6px 9px;
+        .status-badge.success {
+          background: #e8f8ef;
+          color: #17854a;
         }
 
-        .krve-status.success {
-          background:
-            #e9f8ef;
-          color: #178549;
+        .status-badge.review {
+          background: #eaf1ff;
+          color: #255bd1;
         }
 
-        .krve-status.review {
-          background:
-            #eaf1ff;
-          color: #2459d1;
+        .status-badge.warning {
+          background: #fff3dd;
+          color: #b97013;
         }
 
-        .krve-status.warning {
-          background:
-            #fff3dd;
-          color: #bd7015;
+        .status-badge.danger {
+          background: #fff0f1;
+          color: #c13c47;
         }
 
-        .krve-status.danger {
-          background:
-            #fff0f0;
-          color: #c23843;
+        .status-badge.neutral {
+          background: #f0f3f7;
+          color: #69768a;
         }
 
-        .krve-status.neutral {
-          background:
-            #f0f3f7;
-          color: #69788d;
+        .priority-badge.high {
+          background: #fff0f0;
+          color: #c23d48;
         }
 
-        .krve-priority {
-          padding:
-            6px 9px;
+        .priority-badge.medium {
+          background: #fff3df;
+          color: #b8721a;
         }
 
-        .krve-priority.high {
-          background:
-            #fff0f0;
-          color: #c2404a;
+        .priority-badge.low {
+          background: #eaf8f0;
+          color: #278357;
         }
 
-        .krve-priority.medium {
-          background:
-            #fff4e3;
-          color: #b8731d;
-        }
-
-        .krve-priority.low {
-          background:
-            #ebf8f1;
-          color: #27855a;
-        }
-
-        /* REVIEW NOTE */
-
-        .krve-review-note {
-          display: flex;
-          align-items:
-            flex-start;
-          gap: 12px;
-          margin-top:
-            20px;
-          padding:
-            17px 19px;
+        .small-action {
+          padding: 9px 12px;
           border:
             1px solid
-            #d7e4ff;
-          border-radius:
-            14px;
-          background:
-            #f1f6ff;
-          color: #2553bb;
+            #dce3ed;
+          border-radius: 8px;
+          background: #fff;
+          color: #2858c8;
+          font-size: 8px;
+          font-weight: 900;
         }
 
-        .krve-review-note
-          strong {
+        .review-notice {
+          display: flex;
+          gap: 11px;
+          margin-top: 18px;
+          padding: 16px 18px;
+          border:
+            1px solid
+            #d8e5ff;
+          border-radius: 13px;
+          background: #f2f6ff;
+          color: #2453bb;
+        }
+
+        .review-notice strong {
           display: block;
           font-size: 10px;
         }
 
-        .krve-review-note
-          span {
+        .review-notice span {
           display: block;
           margin-top: 4px;
-          color: #6480b6;
+          color: #6680b4;
           font-size: 9px;
         }
 
-        /* PROJECT */
-
-        .krve-project-layout {
+        .project-layout {
           display: grid;
           grid-template-columns:
-            minmax(
-              0,
-              1.5fr
-            )
-            minmax(
-              280px,
-              0.5fr
-            );
-          gap: 20px;
-          margin-top:
-            30px;
+            1.5fr 0.5fr;
+          gap: 18px;
+          margin-top: 28px;
         }
 
-        .krve-project-main-card {
-          padding:
-            34px;
+        .project-main {
+          padding: 32px;
         }
 
-        .krve-project-main-card
-          h2 {
-          max-width:
-            760px;
-          margin:
-            14px 0 0;
-          color: #13203a;
-          font-size: 31px;
-          letter-spacing:
-            -0.035em;
+        .project-main h2 {
+          margin: 13px 0 0;
+          font-size: 29px;
         }
 
-        .krve-project-description {
-          max-width:
-            800px;
-          margin:
-            18px 0 0;
-          color: #778398;
-          font-size: 12px;
+        .project-description {
+          margin-top: 18px;
+          color: #758297;
+          font-size: 11px;
           line-height: 1.8;
         }
 
-        .krve-project-info-grid {
-          display: grid;
-          grid-template-columns:
-            repeat(
-              2,
-              1fr
-            );
-          gap: 13px;
-          margin-top:
-            30px;
+        .profile-card {
+          padding: 27px;
         }
 
-        .krve-project-info-grid
-          > div {
-          padding:
-            17px;
-          border:
-            1px solid
-            #e6ebf3;
-          border-radius:
-            12px;
-          background:
-            #fafcff;
+        .profile-card > svg {
+          color: #2558d0;
         }
 
-        .krve-project-info-grid
-          strong,
-        .krve-project-side-card
-          strong {
-          display: block;
-          margin-top: 6px;
-          color: #34435a;
-          font-size: 11px;
-        }
-
-        .krve-project-side-card {
-          padding:
-            28px;
-        }
-
-        .krve-project-side-card
-          > svg {
-          color: #245bd8;
-        }
-
-        .krve-project-side-card
-          > p {
-          margin:
-            23px 0 7px;
-          color: #2b5bd0;
+        .profile-card > p {
+          margin: 21px 0 7px;
+          color: #2959d0;
           font-size: 8px;
           font-weight: 900;
           letter-spacing:
-            0.15em;
+            0.14em;
         }
 
-        .krve-project-side-card
-          h3 {
-          margin:
-            0 0 24px;
-          font-size: 21px;
+        .profile-card > h3 {
+          margin: 0 0 20px;
+          font-size: 20px;
         }
 
-        .krve-project-side-card
-          > div {
-          padding:
-            14px 0;
-          border-top:
-            1px solid
-            #edf0f5;
+        .profile-card .info-block {
+          margin-top: 9px;
         }
 
-        /* FULL TASKS */
-
-        .krve-main-content
-          > .krve-panel {
-          margin-top:
-            30px;
-          padding:
-            28px;
+        .page-panel {
+          margin-top: 28px;
         }
 
-        .krve-task-count {
-          padding:
-            8px 11px;
-          border-radius:
-            9px;
-          background:
-            #f0f4fb;
-          color: #5d6e88;
-          font-size: 8px;
-          font-weight: 900;
+        .task-total {
+          padding: 8px 11px;
+          border-radius: 8px;
+          background: #f0f4fa;
+          color: #637189 !important;
+          font-size: 8px !important;
         }
 
-        .krve-full-task-list {
+        .full-task-list {
           display: flex;
           flex-direction:
             column;
-          gap: 14px;
-          margin-top:
-            25px;
+          gap: 13px;
+          margin-top: 23px;
         }
 
-        .krve-task-card {
+        .task-card {
           display: grid;
           grid-template-columns:
-            100px
-            minmax(
-              0,
-              1fr
-            );
-          overflow:
-            hidden;
+            95px 1fr;
+          overflow: hidden;
           border:
             1px solid
-            #e2e8f0;
-          border-radius:
-            15px;
-          background: #fff;
+            #e1e7ef;
+          border-radius: 14px;
         }
 
-        .krve-task-week {
+        .task-card-week {
           display: flex;
-          align-items:
-            center;
+          align-items: center;
           justify-content:
             center;
           flex-direction:
             column;
-          background:
-            #f4f7fd;
+          background: #f4f7fd;
         }
 
-        .krve-task-week
-          span {
-          color: #8491a5;
+        .task-card-week span {
+          color: #8591a4;
           font-size: 8px;
           font-weight: 900;
-          letter-spacing:
-            0.13em;
         }
 
-        .krve-task-week
-          strong {
+        .task-card-week strong {
           margin-top: 4px;
-          color: #2254cd;
-          font-size: 28px;
+          color: #2458d0;
+          font-size: 27px;
         }
 
-        .krve-task-card-main {
-          padding:
-            22px;
+        .task-card-body {
+          padding: 21px;
         }
 
-        .krve-task-card-top {
+        .task-card-head {
           display: flex;
           justify-content:
             space-between;
           gap: 20px;
         }
 
-        .krve-task-badges {
+        .badges {
           display: flex;
-          flex-wrap:
-            wrap;
+          flex-wrap: wrap;
           gap: 7px;
         }
 
-        .krve-task-card-top
-          h3 {
-          margin:
-            12px 0 0;
-          color: #1a2941;
+        .task-card-head h3 {
+          margin: 11px 0 0;
           font-size: 16px;
         }
 
-        .krve-task-score {
-          min-width:
-            60px;
-          text-align:
-            right;
+        .score-box {
+          text-align: right;
         }
 
-        .krve-task-score
-          span {
-          display: block;
-          color: #9ba5b5;
+        .score-box span {
+          color: #96a1b2;
           font-size: 8px;
         }
 
-        .krve-task-score
-          strong {
+        .score-box strong {
           display: block;
           margin-top: 4px;
-          color: #1556d2;
-          font-size: 24px;
+          color: #1f55cd;
+          font-size: 23px;
         }
 
-        .krve-task-description {
-          max-width:
-            880px;
-          margin:
-            14px 0 0;
-          color: #778397;
+        .task-description {
+          margin: 14px 0 0;
+          color: #758296;
           font-size: 11px;
-          line-height: 1.75;
+          line-height: 1.7;
         }
 
-        .krve-task-meta {
-          display: flex;
-          gap: 35px;
-          margin-top:
-            18px;
-          padding:
-            14px 0;
-          border-top:
-            1px solid
-            #edf1f6;
-          border-bottom:
-            1px solid
-            #edf1f6;
+        .task-meta {
+          display: grid;
+          grid-template-columns:
+            1fr 1fr;
+          gap: 12px;
+          margin-top: 15px;
         }
 
-        .krve-task-meta
-          span {
-          display: block;
-          color: #99a4b5;
-          font-size: 8px;
-          font-weight: 700;
+        .reviewer-feedback {
+          margin-top: 14px;
+          padding: 14px;
+          border-radius: 10px;
+          background: #f5f7fb;
         }
 
-        .krve-task-meta
-          strong {
-          display: block;
-          margin-top: 4px;
-          color: #42516a;
+        .reviewer-feedback strong {
           font-size: 9px;
         }
 
-        .krve-inline-feedback {
-          margin-top:
-            16px;
-          padding:
-            14px;
-          border-radius:
-            10px;
-          background:
-            #f6f8fc;
-        }
-
-        .krve-inline-feedback
-          strong {
-          font-size: 9px;
-        }
-
-        .krve-inline-feedback
-          p {
-          margin:
-            5px 0 0;
-          color: #707e93;
+        .reviewer-feedback p {
+          margin: 5px 0 0;
+          color: #738095;
           font-size: 10px;
           line-height: 1.6;
         }
 
-        .krve-task-actions {
+        .task-actions {
           display: flex;
-          flex-wrap:
-            wrap;
+          flex-wrap: wrap;
           justify-content:
             flex-end;
-          gap: 9px;
-          margin-top:
-            17px;
+          gap: 8px;
+          margin-top: 15px;
         }
 
-        .krve-task-actions
-          a,
-        .krve-task-actions
-          button,
-        .krve-approved-lock {
+        .task-actions a,
+        .task-actions button,
+        .approved-label {
           display: inline-flex;
-          min-height:
-            38px;
-          align-items:
-            center;
-          justify-content:
-            center;
+          min-height: 37px;
+          align-items: center;
           gap: 7px;
-          padding:
-            0 14px;
-          border-radius:
-            9px;
+          padding: 0 13px;
+          border-radius: 8px;
           font-size: 9px;
           font-weight: 800;
-          text-decoration:
-            none;
+          text-decoration: none;
         }
 
-        .krve-task-actions
-          a {
+        .task-actions a {
           border:
             1px solid
-            #dce3ee;
-          background: #fff;
-          color: #53657e;
+            #dce3ec;
+          color: #596b83;
         }
 
-        .krve-task-actions
-          button {
-          border:
-            1px solid
-            #174ec5;
-          background:
-            #174ec5;
-          color: white;
+        .task-actions button {
+          border: 0;
+          background: #174ec3;
+          color: #fff;
         }
 
-        .krve-approved-lock {
-          background:
-            #eaf8f0;
-          color: #208050;
+        .approved-label {
+          background: #eaf8f0;
+          color: #1e7f4f;
         }
 
-        /* FEEDBACK */
-
-        .krve-feedback-list {
-          display: flex;
-          flex-direction:
-            column;
-          margin-top:
-            25px;
+        .feedback-list {
+          margin-top: 22px;
         }
 
-        .krve-feedback-list
-          article {
+        .feedback-list article {
           display: grid;
           grid-template-columns:
-            48px
-            1fr
-            70px;
-          gap: 16px;
-          padding:
-            20px 0;
+            45px 1fr
+            65px;
+          gap: 15px;
+          padding: 18px 0;
           border-top:
             1px solid
             #edf0f5;
         }
 
-        .krve-feedback-number {
+        .feedback-week {
           display: grid;
-          width: 42px;
-          height: 42px;
-          place-items:
-            center;
-          border-radius:
-            11px;
-          background:
-            #edf3ff;
-          color: #2860dd;
+          width: 40px;
+          height: 40px;
+          place-items: center;
+          border-radius: 10px;
+          background: #edf3ff;
+          color: #2860dc;
           font-weight: 900;
         }
 
-        .krve-feedback-main
-          > span {
-          color: #7790bf;
+        .feedback-list article > div:nth-child(2) > span {
+          color: #7890bc;
           font-size: 8px;
           font-weight: 900;
-          letter-spacing:
-            0.11em;
         }
 
-        .krve-feedback-main
-          h3 {
-          margin:
-            5px 0 7px;
+        .feedback-list h3 {
+          margin: 5px 0;
           font-size: 13px;
         }
 
-        .krve-feedback-main
-          p {
+        .feedback-list p {
           margin: 0;
-          color: #768397;
+          color: #758296;
           font-size: 10px;
-          line-height: 1.65;
+          line-height: 1.6;
         }
 
-        .krve-feedback-score {
-          text-align:
-            right;
+        .feedback-score {
+          text-align: right;
         }
 
-        .krve-feedback-score
-          span {
-          display: block;
-          color: #99a5b6;
+        .feedback-score span {
+          color: #98a3b4;
           font-size: 8px;
         }
 
-        .krve-feedback-score
-          strong {
+        .feedback-score strong {
           display: block;
-          margin-top: 5px;
-          color: #1e57d2;
-          font-size: 23px;
+          margin-top: 4px;
+          color: #1f58d0;
+          font-size: 22px;
         }
 
-        /* PERFORMANCE */
-
-        .krve-performance-hero {
+        .performance-hero {
           display: grid;
           grid-template-columns:
             0.7fr 1.3fr;
-          gap: 40px;
-          margin-top:
-            30px;
-          padding:
-            35px;
-          border-radius:
-            19px;
+          gap: 35px;
+          margin-top: 28px;
+          padding: 33px;
+          border-radius: 18px;
           background:
             linear-gradient(
               135deg,
-              #071b42,
-              #0e367f
+              #071a3f,
+              #0d357d
             );
-          color: white;
+          color: #fff;
         }
 
-        .krve-performance-hero
-          p {
+        .performance-hero p {
           color:
             rgba(
               255,
@@ -4627,328 +4109,222 @@ export default function LiveProjectStudentPage() {
           line-height: 1.6;
         }
 
-        .krve-performance-hero
-          > div:first-child
-          > p {
+        .performance-hero > div:first-child > p {
           margin: 0;
-          color: #9cb8f7;
+          color: #9fb8ef;
           font-weight: 900;
           letter-spacing:
             0.15em;
         }
 
-        .krve-performance-hero
-          h2 {
-          margin:
-            10px 0 4px;
-          font-size: 55px;
-          letter-spacing:
-            -0.05em;
+        .performance-hero h2 {
+          margin: 9px 0 4px;
+          font-size: 52px;
         }
 
-        .krve-performance-hero
-          h2
-          span {
-          color: #87a5e8;
-          font-size: 22px;
-          font-weight: 500;
+        .performance-hero h2 span {
+          color: #8aa6e4;
+          font-size: 21px;
         }
 
-        .krve-performance-hero
-          > div:last-child {
-          align-self:
-            center;
-          padding-left:
-            35px;
+        .performance-hero > div:last-child {
+          align-self: center;
+          padding-left: 30px;
           border-left:
             1px solid
             rgba(
               255,
               255,
               255,
-              0.16
+              0.15
             );
         }
 
-        .krve-performance-hero
-          > div:last-child
-          span {
-          display: block;
-          color: #8fa9df;
+        .performance-hero > div:last-child > span {
+          color: #91a8da;
           font-size: 8px;
         }
 
-        .krve-performance-hero
-          > div:last-child
-          strong {
+        .performance-hero > div:last-child > strong {
           display: block;
-          margin-top: 5px;
+          margin-top: 4px;
           font-size: 13px;
         }
 
-        .krve-performance-grid {
+        .performance-grid {
           display: grid;
           grid-template-columns:
             repeat(
               3,
               1fr
             );
-          gap: 15px;
-          margin-top:
-            20px;
+          gap: 14px;
+          margin-top: 18px;
         }
 
-        .krve-performance-card {
-          padding:
-            23px;
+        .performance-card {
+          padding: 22px;
           border:
             1px solid
-            #e1e7f0;
-          border-radius:
-            15px;
-          background: white;
+            #e0e6ef;
+          border-radius: 14px;
+          background: #fff;
         }
 
-        .krve-performance-card
-          > div:first-child {
+        .performance-card-head {
           display: flex;
           justify-content:
             space-between;
-          gap: 15px;
+          gap: 12px;
         }
 
-        .krve-performance-card
-          span {
-          color: #7d899b;
+        .performance-card-head span {
+          color: #7c899b;
           font-size: 10px;
-          font-weight: 700;
         }
 
-        .krve-performance-card
-          strong {
-          color: #1d53ca;
-          font-size: 15px;
+        .performance-card-head strong {
+          color: #2257d0;
+          font-size: 14px;
         }
 
-        .krve-performance-bar {
+        .performance-track {
           height: 7px;
-          margin-top:
-            20px;
-          overflow:
-            hidden;
-          border-radius:
-            30px;
-          background:
-            #edf1f6;
+          margin-top: 18px;
+          overflow: hidden;
+          border-radius: 50px;
+          background: #edf1f6;
         }
 
-        .krve-performance-bar
-          div {
+        .performance-track div {
           height: 100%;
-          border-radius:
-            inherit;
           background:
             linear-gradient(
               90deg,
-              #2156d1,
-              #6f96ff
+              #2257d0,
+              #7499ff
             );
         }
 
-        /* CERTIFICATE */
-
-        .krve-certificate-wrap {
-          margin-top:
-            30px;
+        .certificate-section {
+          margin-top: 28px;
         }
 
-        .krve-certificate-card {
-          max-width:
-            920px;
+        .certificate-card {
+          max-width: 900px;
           margin: 0 auto;
-          padding:
-            55px;
+          padding: 50px;
           border:
             8px solid
             #f3f5f8;
           outline:
             1px solid
-            #dbe2ec;
-          background: white;
-          text-align:
-            center;
-          box-shadow:
-            0 20px
-            70px
-            rgba(
-              17,
-              44,
-              91,
-              0.08
-            );
+            #dbe2ea;
+          background: #fff;
+          text-align: center;
         }
 
-        .krve-certificate-top {
+        .certificate-top {
           display: flex;
-          align-items:
-            center;
           justify-content:
             space-between;
-          color: #174bbd;
+          color: #174bbc;
         }
 
-        .krve-certificate-brand {
-          font-size: 23px;
-          font-weight: 900;
+        .certificate-top strong {
+          font-size: 22px;
           letter-spacing:
-            0.14em;
+            0.13em;
         }
 
-        .krve-certificate-card
-          > p {
-          margin:
-            48px 0 0;
-          color: #3159ab;
+        .certificate-card > p {
+          margin: 42px 0 0;
+          color: #315aac;
           font-size: 9px;
           font-weight: 900;
           letter-spacing:
-            0.22em;
+            0.2em;
         }
 
-        .krve-certificate-card
-          > h2 {
-          margin:
-            13px 0;
+        .certificate-card > h2 {
+          margin: 12px 0;
           font-family:
             Georgia,
             serif;
-          font-size: 44px;
+          font-size: 42px;
           font-weight: 400;
-          color: #182338;
         }
 
-        .krve-certificate-card
-          > span {
-          color: #737f90;
+        .certificate-card > span {
+          color: #758092;
           font-size: 12px;
         }
 
-        .krve-certificate-details {
+        .certificate-grid {
           display: grid;
           grid-template-columns:
             1fr 1fr;
-          gap: 13px;
-          margin-top:
-            40px;
-          text-align:
-            left;
+          gap: 12px;
+          margin-top: 35px;
+          text-align: left;
         }
 
-        .krve-certificate-details
-          > div {
-          padding:
-            16px;
-          border:
-            1px solid
-            #e4e9f0;
-          background:
-            #fbfcfe;
-        }
-
-        .krve-certificate-details
-          span {
-          display: block;
-          color: #929cad;
-          font-size: 8px;
-          font-weight: 800;
-          text-transform:
-            uppercase;
-        }
-
-        .krve-certificate-details
-          strong {
-          display: block;
-          margin-top: 5px;
-          color: #34435b;
-          font-size: 10px;
-        }
-
-        .krve-certificate-verified {
-          display: inline-flex;
-          align-items:
-            center;
+        .verified-label {
+          display:
+            inline-flex;
+          align-items: center;
           gap: 6px;
-          margin-top:
-            35px;
-          padding:
-            9px 13px;
-          border-radius:
-            30px;
-          background:
-            #eaf8f0;
-          color: #227a4e;
+          margin-top: 30px;
+          padding: 9px 13px;
+          border-radius: 30px;
+          background: #eaf8f0;
+          color: #227a4d;
           font-size: 9px;
           font-weight: 800;
         }
 
-        /* EMPTY */
-
-        .krve-empty-state {
+        .empty-state {
           display: flex;
-          min-height:
-            250px;
-          align-items:
-            center;
+          min-height: 240px;
+          align-items: center;
           justify-content:
             center;
           flex-direction:
             column;
-          padding:
-            30px;
-          text-align:
-            center;
+          padding: 25px;
+          text-align: center;
         }
 
-        .krve-empty-state
-          > div {
+        .empty-icon {
           display: grid;
           width: 52px;
           height: 52px;
-          place-items:
-            center;
-          border-radius:
-            14px;
-          background:
-            #eff4fc;
-          color: #5471ab;
+          place-items: center;
+          border-radius: 13px;
+          background: #eff4fc;
+          color: #5471aa;
         }
 
-        .krve-empty-state
-          h3 {
-          margin:
-            15px 0 7px;
+        .empty-state h3 {
+          margin: 14px 0 6px;
           font-size: 14px;
         }
 
-        .krve-empty-state
-          p {
-          max-width:
-            460px;
+        .empty-state p {
+          max-width: 450px;
           margin: 0;
-          color: #8793a6;
+          color: #8793a5;
           font-size: 10px;
-          line-height: 1.7;
+          line-height: 1.6;
         }
 
-        /* SUBMISSION */
-
-        .krve-submit-layer {
+        .submission-layer {
           position: fixed;
           inset: 0;
           z-index: 9999;
         }
 
-        .krve-submit-backdrop {
+        .submission-backdrop {
           position: absolute;
           inset: 0;
           width: 100%;
@@ -4965,366 +4341,255 @@ export default function LiveProjectStudentPage() {
             blur(5px);
         }
 
-        .krve-submit-panel {
+        .submission-panel {
           position: absolute;
-          top: 0;
-          right: 0;
+          inset: 0 0 0 auto;
           width: min(
             610px,
-            94vw
+            95vw
           );
-          height: 100%;
-          overflow-y:
-            auto;
+          overflow-y: auto;
           background: #fff;
-          box-shadow:
-            -20px 0
-            60px
-            rgba(
-              7,
-              23,
-              52,
-              0.2
-            );
         }
 
-        .krve-submit-head {
+        .submission-panel header {
           display: flex;
           align-items:
             flex-start;
           justify-content:
             space-between;
           gap: 20px;
-          padding:
-            35px;
+          padding: 32px;
           border-bottom:
             1px solid
-            #e5eaf1;
+            #e4e9f0;
         }
 
-        .krve-submit-head
-          p {
+        .submission-panel header p {
           margin: 0;
-          color: #2d5bd1;
+          color: #2b59cf;
           font-size: 8px;
           font-weight: 900;
           letter-spacing:
             0.16em;
         }
 
-        .krve-submit-head
-          h2 {
-          margin:
-            8px 0 5px;
-          font-size: 26px;
+        .submission-panel header h2 {
+          margin: 7px 0 5px;
+          font-size: 25px;
         }
 
-        .krve-submit-head
-          span {
-          color: #8692a5;
+        .submission-panel header span {
+          color: #8793a5;
           font-size: 10px;
         }
 
-        .krve-submit-head
-          button {
+        .submission-panel header button {
           display: grid;
-          width: 42px;
-          height: 42px;
-          flex: 0 0
-            42px;
-          place-items:
-            center;
+          width: 41px;
+          height: 41px;
+          place-items: center;
           border:
             1px solid
-            #dde4ed;
-          border-radius:
-            12px;
+            #dce3ec;
+          border-radius: 10px;
           background: #fff;
-          color: #5d6b80;
         }
 
-        .krve-submit-panel
-          form {
+        .submission-panel form {
           padding:
-            30px 35px
+            28px 32px
             45px;
         }
 
-        .krve-submit-task-note {
+        .instruction-box {
           display: flex;
-          gap: 12px;
-          padding:
-            16px;
+          gap: 11px;
+          padding: 15px;
           border:
             1px solid
-            #dce7ff;
-          border-radius:
-            12px;
-          background:
-            #f4f7ff;
-          color: #2454c4;
+            #dbe6ff;
+          border-radius: 11px;
+          background: #f4f7ff;
+          color: #2553bf;
         }
 
-        .krve-submit-task-note
-          strong {
+        .instruction-box strong {
           font-size: 10px;
         }
 
-        .krve-submit-task-note
-          p {
-          margin:
-            5px 0 0;
-          color: #6980b0;
+        .instruction-box p {
+          margin: 5px 0 0;
+          color: #6a80ae;
           font-size: 10px;
-          line-height: 1.65;
+          line-height: 1.6;
         }
 
-        .krve-submit-field {
-          margin-top:
-            22px;
-        }
-
-        .krve-submit-field
-          label {
+        .submission-panel label {
           display: block;
-          margin-bottom:
-            8px;
+          margin: 21px 0 7px;
           color: #526078;
           font-size: 9px;
           font-weight: 900;
-          letter-spacing:
-            0.09em;
         }
 
-        .krve-submit-field
-          input,
-        .krve-submit-field
-          textarea {
+        .submission-panel input,
+        .submission-panel textarea {
           width: 100%;
-          padding:
-            14px 15px;
+          padding: 14px;
           border:
             1px solid
             #dbe2ec;
-          border-radius:
-            11px;
+          border-radius: 10px;
           outline: none;
-          background:
-            #fbfcfe;
-          color: #1a273d;
-          font-size: 11px;
-          resize:
-            vertical;
+          background: #fbfcfe;
+          resize: vertical;
         }
 
-        .krve-submit-field
-          input {
+        .submission-panel input {
           height: 50px;
         }
 
-        .krve-submit-field
-          input:focus,
-        .krve-submit-field
-          textarea:focus {
-          border-color:
-            #3464da;
-          box-shadow:
-            0 0 0
-            4px
-            rgba(
-              52,
-              100,
-              218,
-              0.08
-            );
-        }
-
-        .krve-submit-field
-          small {
+        .submission-panel small {
           display: block;
           margin-top: 6px;
-          color: #9aa4b3;
+          color: #98a3b4;
           font-size: 8px;
         }
 
-        .krve-submit-error,
-        .krve-submit-success {
-          margin-top:
-            18px;
-          padding:
-            12px 13px;
-          border-radius:
-            10px;
+        .submission-error,
+        .submission-success {
+          margin-top: 17px;
+          padding: 12px;
+          border-radius: 9px;
           font-size: 10px;
-          line-height: 1.55;
+          line-height: 1.5;
         }
 
-        .krve-submit-error {
-          border:
-            1px solid
-            #ffd0d4;
-          background:
-            #fff4f4;
-          color: #b32b36;
+        .submission-error {
+          background: #fff3f4;
+          color: #b42b37;
         }
 
-        .krve-submit-success {
+        .submission-success {
           display: flex;
-          align-items:
-            flex-start;
           gap: 8px;
-          border:
-            1px solid
-            #cdebd9;
-          background:
-            #effbf4;
+          background: #effbf4;
           color: #22794c;
         }
 
-        .krve-final-submit {
+        .submit-button {
           display: flex;
           width: 100%;
-          height: 53px;
-          align-items:
-            center;
+          height: 52px;
+          align-items: center;
           justify-content:
             center;
-          gap: 9px;
-          margin-top:
-            24px;
+          gap: 8px;
+          margin-top: 22px;
           border: 0;
-          border-radius:
-            11px;
+          border-radius: 10px;
           background:
             linear-gradient(
               135deg,
-              #123f9f,
-              #235de7
+              #123e9c,
+              #235de5
             );
-          color: white;
+          color: #fff;
           font-size: 10px;
           font-weight: 900;
-          letter-spacing:
-            0.1em;
         }
 
-        .krve-final-submit:disabled {
+        .submit-button:disabled {
           opacity: 0.7;
-          cursor:
-            not-allowed;
         }
 
-        .krve-mobile-topbar {
+        .mobile-header,
+        .mobile-backdrop {
           display: none;
         }
 
-        .krve-mobile-overlay {
-          display: none;
-        }
-
-        .krve-spin {
+        .spin {
           animation:
-            krve-spin
-            0.85s linear
+            spin 0.8s linear
             infinite;
         }
 
-        @keyframes krve-spin {
+        @keyframes spin {
           to {
             transform:
               rotate(360deg);
           }
         }
 
-        /* RESPONSIVE */
-
         @media (
-          max-width:
-            1100px
+          max-width: 1100px
         ) {
-          .krve-stat-grid {
+          .stats {
             grid-template-columns:
-              repeat(
-                2,
-                1fr
-              );
+              1fr 1fr;
           }
 
-          .krve-overview-grid {
+          .two-columns {
             grid-template-columns:
               1fr;
           }
 
-          .krve-performance-grid {
+          .performance-grid {
             grid-template-columns:
-              repeat(
-                2,
-                1fr
-              );
+              1fr 1fr;
           }
 
-          .krve-project-layout {
+          .project-layout {
             grid-template-columns:
               1fr;
           }
         }
 
         @media (
-          max-width:
-            820px
+          max-width: 820px
         ) {
-          .krve-mobile-topbar {
-            position:
-              sticky;
+          .mobile-header {
+            position: sticky;
             top: 0;
             z-index: 250;
             display: flex;
-            height: 65px;
-            align-items:
-              center;
+            height: 64px;
+            align-items: center;
             justify-content:
               space-between;
-            padding:
-              0 20px;
+            padding: 0 19px;
             border-bottom:
               1px solid
-              #e3e8f0;
+              #e2e7ef;
             background:
               rgba(
                 255,
                 255,
                 255,
-                0.94
+                0.95
               );
-            backdrop-filter:
-              blur(12px);
           }
 
-          .krve-mobile-brand {
-            color: #0a2d70;
-            font-size: 17px;
-            font-weight: 900;
+          .mobile-header strong {
+            color: #0b2c70;
             letter-spacing:
               0.1em;
           }
 
-          .krve-mobile-topbar
-            button {
+          .mobile-header button {
             display: grid;
-            width: 40px;
-            height: 40px;
-            place-items:
-              center;
+            width: 39px;
+            height: 39px;
+            place-items: center;
             border:
               1px solid
-              #dce3ed;
-            border-radius:
-              10px;
+              #dce2eb;
+            border-radius: 9px;
             background: #fff;
-            color: #34445e;
           }
 
-          .krve-sidebar {
+          .sidebar {
             z-index: 1001;
             width: 280px;
             transform:
@@ -5332,22 +4597,20 @@ export default function LiveProjectStudentPage() {
                 -100%
               );
             transition:
-              transform
-              0.28s ease;
+              0.25s ease;
           }
 
-          .krve-sidebar.mobile-open {
+          .sidebar.open {
             transform:
               translateX(0);
           }
 
-          .krve-mobile-close {
+          .mobile-close {
             display: grid;
-            place-items:
-              center;
+            place-items: center;
           }
 
-          .krve-mobile-overlay {
+          .mobile-backdrop {
             position: fixed;
             inset: 0;
             z-index: 1000;
@@ -5357,351 +4620,153 @@ export default function LiveProjectStudentPage() {
             border: 0;
             background:
               rgba(
-                9,
-                17,
-                32,
+                7,
+                15,
+                30,
                 0.5
               );
           }
 
-          .krve-main-content {
+          .portal-content {
             margin-left: 0;
             padding:
               0 18px
               40px;
           }
 
-          .krve-portal-header {
-            min-height:
-              90px;
-          }
-
-          .krve-header-user
-            > div:first-child {
+          .heading-user > div:first-child {
             display: none;
           }
 
-          .krve-welcome-card {
+          .welcome-panel {
             align-items:
               flex-start;
             flex-direction:
               column;
           }
 
-          .krve-project-status-card {
+          .project-state {
             width: 100%;
-            min-width: 0;
           }
 
-          .krve-task-row {
+          .task-row {
             grid-template-columns:
               50px 1fr;
           }
 
-          .krve-task-row
-            > .krve-status,
-          .krve-task-row
-            > button {
+          .task-row > .status-badge,
+          .task-row > .small-action {
             grid-column: 2;
             justify-self:
               flex-start;
           }
 
-          .krve-task-card {
+          .task-card {
             grid-template-columns:
               1fr;
           }
 
-          .krve-task-week {
-            min-height:
-              62px;
-            flex-direction:
-              row;
+          .task-card-week {
+            min-height: 60px;
+            flex-direction: row;
             gap: 7px;
           }
 
-          .krve-task-week
-            strong {
+          .task-card-week strong {
             font-size: 18px;
           }
 
-          .krve-performance-hero {
+          .performance-hero {
             grid-template-columns:
               1fr;
           }
 
-          .krve-performance-hero
-            > div:last-child {
+          .performance-hero > div:last-child {
             padding:
-              25px 0 0;
+              24px 0 0;
             border-top:
               1px solid
               rgba(
                 255,
                 255,
                 255,
-                0.16
+                0.15
               );
             border-left: 0;
           }
         }
 
         @media (
-          max-width:
-            560px
+          max-width: 560px
         ) {
-          .krve-stat-grid,
-          .krve-performance-grid,
-          .krve-project-info-grid,
-          .krve-certificate-details {
+          .stats,
+          .performance-grid,
+          .mini-project-grid,
+          .project-details,
+          .task-meta,
+          .certificate-grid {
             grid-template-columns:
               1fr;
           }
 
-          .krve-welcome-card {
-            padding:
-              27px 22px;
+          .welcome-panel {
+            padding: 26px 21px;
           }
 
-          .krve-welcome-card
-            h2 {
-            font-size: 25px;
-          }
-
-          .krve-panel {
-            border-radius:
-              14px;
-          }
-
-          .krve-main-content
-            > .krve-panel,
-          .krve-overview-grid
-            .krve-panel {
-            padding:
-              20px;
-          }
-
-          .krve-project-main-card {
-            padding:
-              22px;
-          }
-
-          .krve-project-main-card
-            h2 {
+          .welcome-panel h2 {
             font-size: 24px;
           }
 
-          .krve-task-meta {
-            flex-direction:
-              column;
-            gap: 11px;
+          .project-main,
+          .page-panel,
+          .recent-panel,
+          .two-columns .panel {
+            padding: 20px;
           }
 
-          .krve-task-actions {
+          .task-card-head {
+            flex-direction:
+              column;
+          }
+
+          .score-box {
+            text-align: left;
+          }
+
+          .task-actions {
             justify-content:
               flex-start;
           }
 
-          .krve-feedback-list
-            article {
+          .feedback-list article {
             grid-template-columns:
-              42px
-              1fr;
+              42px 1fr;
           }
 
-          .krve-feedback-score {
+          .feedback-score {
             grid-column: 2;
-            text-align:
-              left;
+            text-align: left;
           }
 
-          .krve-certificate-card {
-            padding:
-              30px 20px;
+          .certificate-card {
+            padding: 30px 20px;
           }
 
-          .krve-certificate-card
-            > h2 {
-            font-size: 32px;
+          .certificate-card > h2 {
+            font-size: 31px;
           }
 
-          .krve-submit-panel {
+          .submission-panel {
             width: 100%;
           }
 
-          .krve-submit-head {
-            padding:
-              26px 20px;
-          }
-
-          .krve-submit-panel
-            form {
-            padding:
-              24px 20px
-              35px;
+          .submission-panel header,
+          .submission-panel form {
+            padding-left: 20px;
+            padding-right: 20px;
           }
         }
       `}</style>
     </main>
-  );
-}
-
-/* =========================================================
-   SMALL COMPONENTS
-========================================================= */
-
-function InfoBlock({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
-  return (
-    <div>
-      <span>
-        {label}
-      </span>
-
-      <strong>
-        {value}
-      </strong>
-    </div>
-  );
-}
-
-function PerformanceCard({
-  label,
-  value,
-  max,
-}: {
-  label: string;
-  value?:
-    | number
-    | null;
-  max: number;
-}) {
-  const score =
-    Number(
-      value ?? 0,
-    );
-
-  const percentage =
-    Math.min(
-      100,
-      Math.max(
-        0,
-        (score / max) *
-          100,
-      ),
-    );
-
-  return (
-    <article className="krve-performance-card">
-      <div>
-        <span>
-          {label}
-        </span>
-
-        <strong>
-          {value ===
-            null ||
-          value ===
-            undefined
-            ? "—"
-            : `${score}/${max}`}
-        </strong>
-      </div>
-
-      <div className="krve-performance-bar">
-        <div
-          style={{
-            width: `${percentage}%`,
-          }}
-        />
-      </div>
-    </article>
-  );
-}
-
-function EmptyState({
-  icon: Icon,
-  title,
-  text,
-}: {
-  icon: React.ElementType;
-  title: string;
-  text: string;
-}) {
-  return (
-    <div className="krve-empty-state">
-      <div>
-        <Icon size={23} />
-      </div>
-
-      <h3>
-        {title}
-      </h3>
-
-      <p>
-        {text}
-      </p>
-    </div>
-  );
-}
-
-function TaskRow({
-  task,
-  onOpen,
-}: {
-  task: StudentTask;
-
-  onOpen: (
-    task: StudentTask,
-  ) => void;
-}) {
-  return (
-    <div className="krve-task-row">
-      <div className="krve-task-row-week">
-        {task.weekNumber}
-      </div>
-
-      <div className="krve-task-row-main">
-        <strong>
-          {task.title}
-        </strong>
-
-        <span>
-          Due{" "}
-          {formatDate(
-            task.dueDate,
-          )}
-        </span>
-      </div>
-
-      <span
-        className={`krve-status ${getStatusClass(
-          task.status,
-        )}`}
-      >
-        {statusLabel(
-          task.status,
-        )}
-      </span>
-
-      {task.status !==
-        "approved" && (
-        <button
-          type="button"
-          onClick={() =>
-            onOpen(task)
-          }
-        >
-          {task.submissionUrl
-            ? "UPDATE"
-            : "SUBMIT"}
-        </button>
-      )}
-    </div>
   );
 }
