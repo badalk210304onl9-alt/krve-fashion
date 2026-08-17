@@ -1,23 +1,14 @@
-import {
-  NextResponse,
-} from "next/server";
+import { NextResponse } from "next/server";
 
-export const runtime =
-  "nodejs";
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
-export const dynamic =
-  "force-dynamic";
-
-/* =========================================================
-   TYPES
-========================================================= */
-
-type StudentPortalAction =
+type PortalAction =
   | "login"
   | "submit";
 
-type StudentPortalRequestBody = {
-  action?: StudentPortalAction;
+type RequestBody = {
+  action?: PortalAction;
 
   applicationNumber?: string;
   email?: string;
@@ -29,52 +20,31 @@ type StudentPortalRequestBody = {
   studentRemarks?: string;
 };
 
-/* =========================================================
-   CONFIG
-========================================================= */
+function getApiBase() {
+  const value =
+    process.env.KRVE_CENTRAL_API_URL?.trim() ||
+    process.env.KRVE_API_URL?.trim() ||
+    process.env.NEXT_PUBLIC_KRVE_API_URL?.trim() ||
+    "";
 
-function getCentralApiConfig() {
-  const apiUrl =
-    (
-      process.env
-        .KRVE_API_URL ||
-      process.env
-        .NEXT_PUBLIC_KRVE_API_URL ||
-      ""
-    )
-      .trim()
-      .replace(
-        /\/+$/,
-        "",
-      );
-
-  if (!apiUrl) {
+  if (!value) {
     throw new Error(
-      "KRVE_API_URL or NEXT_PUBLIC_KRVE_API_URL is missing in Vercel Environment Variables.",
+      "KRVE Central API URL is missing in Vercel Environment Variables.",
     );
   }
 
-  return {
-    apiUrl,
-  };
+  return value.replace(/\/+$/, "");
 }
-
-/* =========================================================
-   HELPERS
-========================================================= */
 
 function normalizePhone(
   value: unknown,
 ) {
-  return String(
-    value ?? "",
-  ).replace(
-    /\D/g,
-    "",
-  );
+  return String(value ?? "")
+    .replace(/\D/g, "")
+    .slice(-10);
 }
 
-async function readResponseBody(
+async function readUpstream(
   response: Response,
 ) {
   const contentType =
@@ -87,7 +57,15 @@ async function readResponseBody(
       "application/json",
     )
   ) {
-    return response.json();
+    try {
+      return await response.json();
+    } catch {
+      return {
+        success: false,
+        message:
+          "KRVE Central API returned invalid JSON.",
+      };
+    }
   }
 
   const text =
@@ -97,28 +75,63 @@ async function readResponseBody(
     success: false,
     message:
       text ||
-      "Unexpected response from KRVE Central API.",
+      `KRVE Central API returned HTTP ${response.status}.`,
   };
 }
 
-/* =========================================================
-   POST
-========================================================= */
+async function callCentralApi(
+  endpoint: string,
+  body: unknown,
+) {
+  const response =
+    await fetch(
+      `${getApiBase()}${endpoint}`,
+      {
+        method: "POST",
 
-export async function POST(
+        headers: {
+          "Content-Type":
+            "application/json",
+
+          Accept:
+            "application/json",
+        },
+
+        body:
+          JSON.stringify(body),
+
+        cache:
+          "no-store",
+      },
+    );
+
+  const payload =
+    await readUpstream(
+      response,
+    );
+
+  return NextResponse.json(
+    payload,
+    {
+      status:
+        response.status,
+    },
+  );
+}
+
+async function handleRequest(
   request: Request,
+  forcedAction?:
+    PortalAction,
 ) {
   try {
     const body =
-      (await request.json()) as StudentPortalRequestBody;
+      (await request.json()) as RequestBody;
 
     const action =
-      String(
-        body.action ||
-          "login",
-      )
-        .trim()
-        .toLowerCase() as StudentPortalAction;
+      forcedAction ||
+      body.action ||
+      "login";
 
     const applicationNumber =
       String(
@@ -128,8 +141,7 @@ export async function POST(
 
     const email =
       String(
-        body.email ||
-          "",
+        body.email || "",
       )
         .trim()
         .toLowerCase();
@@ -142,14 +154,14 @@ export async function POST(
     if (
       !applicationNumber ||
       !email ||
-      phone.length < 10
+      phone.length !== 10
     ) {
       return NextResponse.json(
         {
           success: false,
 
           message:
-            "Application number, registered email and mobile number are required.",
+            "Application number, registered email and valid 10-digit mobile number are required.",
         },
         {
           status: 400,
@@ -157,71 +169,25 @@ export async function POST(
       );
     }
 
-    const {
-      apiUrl,
-    } =
-      getCentralApiConfig();
-
-    /* =====================================================
-       STUDENT LOGIN / PORTAL LOAD
-    ===================================================== */
-
     if (
-      action ===
-      "login"
+      action === "login"
     ) {
-      const response =
-        await fetch(
-          `${apiUrl}/live-projects/student`,
-          {
-            method:
-              "POST",
-
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
-
-            body:
-              JSON.stringify(
-                {
-                  applicationNumber,
-                  email,
-                  phone,
-                },
-              ),
-
-            cache:
-              "no-store",
-          },
-        );
-
-      const data =
-        await readResponseBody(
-          response,
-        );
-
-      return NextResponse.json(
-        data,
+      return callCentralApi(
+        "/live-projects/student",
         {
-          status:
-            response.status,
+          applicationNumber,
+          email,
+          phone,
         },
       );
     }
 
-    /* =====================================================
-       TASK SUBMISSION
-    ===================================================== */
-
     if (
-      action ===
-      "submit"
+      action === "submit"
     ) {
       const taskId =
         String(
-          body.taskId ||
-            "",
+          body.taskId || "",
         ).trim();
 
       const submissionUrl =
@@ -259,50 +225,59 @@ export async function POST(
         );
       }
 
-      const response =
-        await fetch(
-          `${apiUrl}/live-projects/student/submit`,
+      let parsedUrl: URL;
+
+      try {
+        parsedUrl =
+          new URL(
+            submissionUrl,
+          );
+      } catch {
+        return NextResponse.json(
           {
-            method:
-              "POST",
+            success: false,
 
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
-
-            body:
-              JSON.stringify(
-                {
-                  applicationNumber,
-                  email,
-                  phone,
-
-                  taskId,
-
-                  submissionUrl,
-
-                  submissionSummary,
-
-                  studentRemarks,
-                },
-              ),
-
-            cache:
-              "no-store",
+            message:
+              "Please enter a valid submission URL.",
+          },
+          {
+            status: 400,
           },
         );
+      }
 
-      const data =
-        await readResponseBody(
-          response,
+      if (
+        ![
+          "http:",
+          "https:",
+        ].includes(
+          parsedUrl.protocol,
+        )
+      ) {
+        return NextResponse.json(
+          {
+            success: false,
+
+            message:
+              "Submission URL must use http or https.",
+          },
+          {
+            status: 400,
+          },
         );
+      }
 
-      return NextResponse.json(
-        data,
+      return callCentralApi(
+        "/live-projects/student/submit",
         {
-          status:
-            response.status,
+          applicationNumber,
+          email,
+          phone,
+
+          taskId,
+          submissionUrl,
+          submissionSummary,
+          studentRemarks,
         },
       );
     }
@@ -320,7 +295,7 @@ export async function POST(
     );
   } catch (error) {
     console.error(
-      "KRVE_STUDENT_PORTAL_API_ERROR",
+      "KRVE_STUDENT_PORTAL_PROXY_ERROR",
       error,
     );
 
@@ -331,11 +306,40 @@ export async function POST(
         message:
           error instanceof Error
             ? error.message
-            : "Unable to connect to KRVE Live Project portal.",
+            : "Unable to connect to KRVE Live Project service.",
       },
       {
         status: 500,
       },
     );
   }
+}
+
+/*
+  POST now supports BOTH:
+  { action: "login", ... }
+  { action: "submit", ... }
+
+  This avoids 405 errors between the separate
+  Student Portal and the main KRVE website.
+*/
+export async function POST(
+  request: Request,
+) {
+  return handleRequest(
+    request,
+  );
+}
+
+/*
+  Keep PATCH for backward compatibility.
+  Older portal code can still submit using PATCH.
+*/
+export async function PATCH(
+  request: Request,
+) {
+  return handleRequest(
+    request,
+    "submit",
+  );
 }
