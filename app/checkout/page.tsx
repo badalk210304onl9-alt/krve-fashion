@@ -354,6 +354,54 @@ function loadCashfreeScript() {
   );
 }
 
+const REFERRAL_COOKIE =
+  "krve_referral_code";
+
+function getReferralCodeFromCookie() {
+  if (
+    typeof document ===
+    "undefined"
+  ) {
+    return "";
+  }
+
+  const cookie =
+    document.cookie
+      .split(";")
+      .map(
+        (entry) =>
+          entry.trim(),
+      )
+      .find(
+        (entry) =>
+          entry.startsWith(
+            `${REFERRAL_COOKIE}=`,
+          ),
+      );
+
+  if (!cookie) {
+    return "";
+  }
+
+  const rawValue =
+    cookie.slice(
+      REFERRAL_COOKIE.length +
+        1,
+    );
+
+  try {
+    return decodeURIComponent(
+      rawValue,
+    )
+      .trim()
+      .toUpperCase();
+  } catch {
+    return rawValue
+      .trim()
+      .toUpperCase();
+  }
+}
+
 export default function CheckoutPage() {
   const {
     cart,
@@ -404,6 +452,12 @@ export default function CheckoutPage() {
     setProcessing,
   ] =
     useState(false);
+
+  const [
+    referralCode,
+    setReferralCode,
+  ] =
+    useState("");
 
   const [
     appliedCouponCode,
@@ -461,6 +515,12 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     void loadCashfreeScript();
+  }, []);
+
+  useEffect(() => {
+    setReferralCode(
+      getReferralCodeFromCookie(),
+    );
   }, []);
 
   useEffect(() => {
@@ -707,6 +767,10 @@ export default function CheckoutPage() {
 
       couponCode:
         appliedCouponCode,
+
+      referralCode:
+        referralCode ||
+        null,
 
       shippingAddress: {
         recipientName,
@@ -1259,6 +1323,80 @@ export default function CheckoutPage() {
               securely.
             </span>
           </div>
+
+          {referralCode ? (
+            <div
+              style={{
+                margin:
+                  "0 0 24px",
+
+                padding:
+                  "14px 16px",
+
+                border:
+                  "1px solid rgba(190, 155, 82, 0.35)",
+
+                borderRadius:
+                  "14px",
+
+                background:
+                  "rgba(190, 155, 82, 0.08)",
+              }}
+            >
+              <p
+                style={{
+                  margin: 0,
+                  color:
+                    "#b99a5b",
+                  fontSize:
+                    "11px",
+                  fontWeight:
+                    800,
+                  letterSpacing:
+                    "0.12em",
+                }}
+              >
+                LIVE PROJECT REFERRAL ACTIVE
+              </p>
+
+              <strong
+                style={{
+                  display:
+                    "block",
+                  marginTop:
+                    "6px",
+                  color:
+                    "inherit",
+                  fontSize:
+                    "13px",
+                }}
+              >
+                {referralCode}
+              </strong>
+
+              <span
+                style={{
+                  display:
+                    "block",
+                  marginTop:
+                    "5px",
+                  opacity:
+                    0.65,
+                  fontSize:
+                    "11px",
+                  lineHeight:
+                    1.6,
+                }}
+              >
+                If this order is
+                completed, it will
+                be attributed to
+                this KRVE Live
+                Project referral
+                code.
+              </span>
+            </div>
+          ) : null}
 
           <form
             onSubmit={
