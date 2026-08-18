@@ -4,7 +4,6 @@ import {
 
 import {
   NextResponse,
-  type NextRequest,
 } from "next/server";
 
 const REFERRAL_COOKIE =
@@ -36,91 +35,94 @@ function cleanReferralCode(
   return code;
 }
 
-const clerkProxy =
-  clerkMiddleware(
-    async (
-      auth,
-      request,
-    ) => {
-      const referralCode =
-        cleanReferralCode(
-          request.nextUrl
-            .searchParams
-            .get("ref"),
-        );
-
-      /*
-        Normal visit:
-        Clerk works exactly as before.
-      */
-      if (!referralCode) {
-        return;
-      }
-
-      /*
-        Referral link example:
-        /?ref=KRVE-LP-FD8BEA
-
-        Save referral in a cookie.
-      */
-
-      const cleanUrl =
-        request.nextUrl.clone();
-
-      cleanUrl.searchParams.delete(
-        "ref",
+export default clerkMiddleware(
+  async (
+    auth,
+    request,
+  ) => {
+    const referralCode =
+      cleanReferralCode(
+        request.nextUrl
+          .searchParams
+          .get("ref"),
       );
 
-      const response =
-        NextResponse.redirect(
-          cleanUrl,
-        );
+    /*
+      Agar referral code nahi hai,
+      Clerk normal tarike se kaam karega.
+    */
+    if (!referralCode) {
+      return;
+    }
 
-      response.cookies.set({
-        name:
-          REFERRAL_COOKIE,
+    /*
+      Example incoming URL:
 
-        value:
-          referralCode,
+      https://krve-fashion.vercel.app/?ref=KRVE-LP-FD8BEA
 
-        path: "/",
+      Referral code cookie me
+      30 days ke liye save hoga.
+    */
 
-        maxAge:
-          REFERRAL_MAX_AGE,
+    const cleanUrl =
+      request.nextUrl.clone();
 
-        sameSite: "lax",
+    /*
+      Referral capture hone ke baad
+      URL se ?ref=... hata denge.
+    */
+    cleanUrl.searchParams.delete(
+      "ref",
+    );
 
-        secure:
-          request.nextUrl
-            .protocol ===
-          "https:",
+    const response =
+      NextResponse.redirect(
+        cleanUrl,
+      );
 
-        httpOnly: false,
-      });
+    response.cookies.set({
+      name:
+        REFERRAL_COOKIE,
 
-      return response;
-    },
-  );
+      value:
+        referralCode,
 
-export default function proxy(
-  request: NextRequest,
-) {
-  return clerkProxy(
-    request,
-    {} as any,
-  );
-}
+      path:
+        "/",
+
+      maxAge:
+        REFERRAL_MAX_AGE,
+
+      sameSite:
+        "lax",
+
+      secure:
+        request.nextUrl
+          .protocol ===
+        "https:",
+
+      httpOnly:
+        false,
+    });
+
+    return response;
+  },
+);
 
 export const config = {
   matcher: [
     /*
       Next.js internal files aur
       static assets skip honge.
+
+      Baaki website pages par
+      Clerk + referral tracking
+      available rahega.
     */
     "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
 
     /*
-      API aur TRPC routes par
+      API aur TRPC routes par bhi
       Clerk authentication state
       available rahegi.
     */
