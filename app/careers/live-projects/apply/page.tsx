@@ -2,6 +2,7 @@
 
 import {
   FormEvent,
+  useEffect,
   useState,
 } from "react";
 
@@ -52,6 +53,50 @@ const initialForm: FormData = {
   resumeUrl: "",
 };
 
+
+const LIVE_PROJECT_OPEN_AT =
+  new Date(
+    "2026-08-22T00:00:00+05:30",
+  );
+
+const LIVE_PROJECT_CLOSE_AT =
+  new Date(
+    "2026-09-16T00:00:00+05:30",
+  );
+
+type LiveProjectStatus =
+  | "upcoming"
+  | "open"
+  | "closed";
+
+function getLiveProjectStatus(): LiveProjectStatus {
+  const now = new Date();
+
+  if (now < LIVE_PROJECT_OPEN_AT) {
+    return "upcoming";
+  }
+
+  if (now >= LIVE_PROJECT_CLOSE_AT) {
+    return "closed";
+  }
+
+  return "open";
+}
+
+function formatWindowDate(
+  date: Date,
+) {
+  return new Intl.DateTimeFormat(
+    "en-IN",
+    {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+      timeZone: "Asia/Kolkata",
+    },
+  ).format(date);
+}
+
 export default function LiveProjectApplyPage() {
   const [form, setForm] =
     useState<FormData>(
@@ -72,6 +117,49 @@ export default function LiveProjectApplyPage() {
     setApplicationNumber,
   ] = useState("");
 
+
+  const [
+    applicationStatus,
+    setApplicationStatus,
+  ] =
+    useState<LiveProjectStatus>(
+      getLiveProjectStatus(),
+    );
+
+  const [
+    currentTime,
+    setCurrentTime,
+  ] =
+    useState(
+      new Date(),
+    );
+
+  useEffect(() => {
+    const updateStatus =
+      () => {
+        setApplicationStatus(
+          getLiveProjectStatus(),
+        );
+
+        setCurrentTime(
+          new Date(),
+        );
+      };
+
+    updateStatus();
+
+    const timer =
+      window.setInterval(
+        updateStatus,
+        60_000,
+      );
+
+    return () =>
+      window.clearInterval(
+        timer,
+      );
+  }, []);
+
   function updateField(
     field: keyof FormData,
     value: string,
@@ -88,6 +176,27 @@ export default function LiveProjectApplyPage() {
     event.preventDefault();
 
     setError("");
+
+    const liveStatus =
+      getLiveProjectStatus();
+
+    if (
+      liveStatus !==
+      "open"
+    ) {
+      setApplicationStatus(
+        liveStatus,
+      );
+
+      setError(
+        liveStatus ===
+          "upcoming"
+          ? "Applications are not open yet. The application window opens on 22 August 2026."
+          : "Applications for this Live Project cohort closed on 15 September 2026.",
+      );
+
+      return;
+    }
 
     if (
       !form.fullName.trim() ||
@@ -205,16 +314,19 @@ export default function LiveProjectApplyPage() {
             ) : null}
 
             <div className={styles.successActions}>
-              <button
-                type="button"
-                onClick={() => {
-                  setSuccess(false);
-                  setApplicationNumber("");
-                }}
-                className={styles.primaryButton}
-              >
-                Submit Another Application
-              </button>
+              {applicationStatus ===
+              "open" ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSuccess(false);
+                    setApplicationNumber("");
+                  }}
+                  className={styles.primaryButton}
+                >
+                  Submit Another Application
+                </button>
+              ) : null}
 
               <Link
                 href="/careers/live-projects"
@@ -222,6 +334,179 @@ export default function LiveProjectApplyPage() {
               >
                 Back to Live Projects
               </Link>
+            </div>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
+  if (
+    applicationStatus !==
+    "open"
+  ) {
+    const upcoming =
+      applicationStatus ===
+      "upcoming";
+
+    return (
+      <main className={styles.page}>
+        <section className={styles.hero}>
+          <div className={styles.container}>
+            <Link
+              href="/careers/live-projects"
+              className={styles.backLink}
+            >
+              ← Back to Live Projects
+            </Link>
+
+            <div className={styles.heroContent}>
+              <div className={styles.eyebrow}>
+                {upcoming
+                  ? "Applications Opening Soon"
+                  : "Applications Closed"}
+              </div>
+
+              <h1 className={styles.heroTitle}>
+                KRVE Live Business Project
+                <span className={styles.gold}>
+                  {upcoming
+                    ? " Applications Open 22 August"
+                    : " Application Window Closed"}
+                </span>
+              </h1>
+
+              <p className={styles.heroText}>
+                {upcoming
+                  ? "Applications for the KRVE Live Business Project Program will open on 22 August 2026 and remain available through 15 September 2026."
+                  : "The application window for this KRVE Live Business Project cohort closed on 15 September 2026. Please check the Careers page for future opportunities."}
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section className={styles.formSection}>
+          <div className={styles.container}>
+            <div className={styles.layout}>
+              <div className={styles.formCard}>
+                <div className={styles.formHeader}>
+                  <p className={styles.sectionTag}>
+                    Application Window
+                  </p>
+
+                  <h2 className={styles.formTitle}>
+                    {upcoming
+                      ? "Applications Are Not Open Yet"
+                      : "Applications Are Closed"}
+                  </h2>
+
+                  <p className={styles.formIntro}>
+                    {upcoming
+                      ? `Opening date: ${formatWindowDate(
+                          LIVE_PROJECT_OPEN_AT,
+                        )}`
+                      : "Closing date: 15 September 2026"}
+                  </p>
+                </div>
+
+                <div
+                  style={{
+                    marginTop: "24px",
+                    padding: "24px",
+                    border:
+                      "1px solid rgba(218, 165, 32, 0.25)",
+                    background:
+                      "rgba(218, 165, 32, 0.05)",
+                  }}
+                >
+                  <p
+                    style={{
+                      margin: 0,
+                      color: "#b9932f",
+                      fontSize: "12px",
+                      fontWeight: 800,
+                      letterSpacing: "0.12em",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    Application Window
+                  </p>
+
+                  <p
+                    style={{
+                      margin: "10px 0 0",
+                      color: "#ffffff",
+                      fontSize: "18px",
+                      fontWeight: 800,
+                    }}
+                  >
+                    22 August 2026 – 15 September 2026
+                  </p>
+
+                  <p
+                    style={{
+                      margin: "10px 0 0",
+                      color:
+                        "rgba(255,255,255,0.65)",
+                      fontSize: "13px",
+                      lineHeight: 1.7,
+                    }}
+                  >
+                    {upcoming
+                      ? `Current status checked at ${currentTime.toLocaleTimeString(
+                          "en-IN",
+                          {
+                            timeZone:
+                              "Asia/Kolkata",
+                          },
+                        )} IST. The form will become available automatically when the window opens.`
+                      : "This form has been disabled automatically because the application deadline has passed."}
+                  </p>
+                </div>
+
+                <div className={styles.submitArea}>
+                  <Link
+                    href="/careers"
+                    className={styles.secondaryButton}
+                  >
+                    Back to Careers
+                  </Link>
+                </div>
+              </div>
+
+              <aside className={styles.sidebar}>
+                <div className={styles.infoCard}>
+                  <p className={styles.sectionTag}>
+                    Program Summary
+                  </p>
+
+                  <h2 className={styles.infoTitle}>
+                    KRVE Live Business Project
+                  </h2>
+
+                  <div className={styles.infoRows}>
+                    <InfoRow
+                      label="Applications Open"
+                      value="22 Aug 2026"
+                    />
+
+                    <InfoRow
+                      label="Applications Close"
+                      value="15 Sept 2026"
+                    />
+
+                    <InfoRow
+                      label="Duration"
+                      value="4–6 Weeks"
+                    />
+
+                    <InfoRow
+                      label="Certificate"
+                      value="Verified ID"
+                    />
+                  </div>
+                </div>
+              </aside>
             </div>
           </div>
         </section>
@@ -242,7 +527,7 @@ export default function LiveProjectApplyPage() {
 
           <div className={styles.heroContent}>
             <div className={styles.eyebrow}>
-              Applications Open
+              Applications Open • Until 15 Sept 2026
             </div>
 
             <h1 className={styles.heroTitle}>
@@ -489,12 +774,19 @@ export default function LiveProjectApplyPage() {
               <div className={styles.submitArea}>
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={
+                    loading ||
+                    applicationStatus !==
+                      "open"
+                  }
                   className={styles.submitButton}
                 >
                   {loading
                     ? "Submitting..."
-                    : "Submit Application →"}
+                    : applicationStatus ===
+                        "open"
+                      ? "Submit Application →"
+                      : "Applications Closed"}
                 </button>
               </div>
             </form>
@@ -519,6 +811,11 @@ export default function LiveProjectApplyPage() {
                   <InfoRow
                     label="Duration"
                     value="4–6 Weeks"
+                  />
+
+                  <InfoRow
+                    label="Application Window"
+                    value="22 Aug – 15 Sept 2026"
                   />
 
                   <InfoRow
