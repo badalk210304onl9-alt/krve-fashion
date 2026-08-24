@@ -30,6 +30,11 @@ export const metadata: Metadata = {
   title: "KRVE — The Fashion Studio",
   description:
     "AI-powered luxury fashion, intelligent styling and virtual try-on.",
+
+  verification: {
+    google:
+      "nIAj_VeM5fHBEYZxchM_0HzUCBh3oboNJARgzOArn3o",
+  },
 };
 
 export default function RootLayout({
