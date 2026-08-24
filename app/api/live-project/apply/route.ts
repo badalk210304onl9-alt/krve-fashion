@@ -63,6 +63,9 @@ function getLiveProjectStatus(): LiveProjectStatus {
 function getApiUrl() {
   const value =
     process.env
+      .KRVE_CENTRAL_API_URL
+      ?.trim() ||
+    process.env
       .KRVE_API_URL
       ?.trim() ||
     process.env
@@ -72,7 +75,7 @@ function getApiUrl() {
 
   if (!value) {
     throw new Error(
-      "KRVE_API_URL is missing in Vercel Environment Variables.",
+      "KRVE Central API URL is missing in Vercel Environment Variables.",
     );
   }
 
@@ -80,6 +83,22 @@ function getApiUrl() {
     /\/+$/,
     "",
   );
+}
+
+function getWebsiteSecret() {
+  const value =
+    process.env
+      .KRVE_WEBSITE_SECRET
+      ?.trim() ||
+    "";
+
+  if (!value) {
+    throw new Error(
+      "KRVE_WEBSITE_SECRET is missing in Vercel Environment Variables.",
+    );
+  }
+
+  return value;
 }
 
 function cleanText(
@@ -128,7 +147,9 @@ function isHttpUrl(
 
   try {
     const parsed =
-      new URL(value);
+      new URL(
+        value,
+      );
 
     return (
       parsed.protocol ===
@@ -159,6 +180,7 @@ async function readResponse(
     } catch {
       return {
         success: false,
+
         message:
           "KRVE Central API returned invalid JSON.",
       };
@@ -181,6 +203,7 @@ async function readResponse(
   ) {
     return {
       success: false,
+
       message:
         `KRVE Central API route was not found (HTTP ${response.status}).`,
     };
@@ -188,6 +211,7 @@ async function readResponse(
 
   return {
     success: false,
+
     message:
       text ||
       `KRVE Central API returned HTTP ${response.status}.`,
@@ -398,7 +422,8 @@ export async function POST(
     }
 
     if (
-      phone.length !== 10
+      phone.length !==
+      10
     ) {
       return NextResponse.json(
         {
@@ -449,11 +474,6 @@ export async function POST(
       );
     }
 
-    /*
-      Keep payload structure compatible with the existing
-      KRVE Central API application endpoint.
-    */
-
     const applicationPayload = {
       fullName,
       email,
@@ -473,11 +493,15 @@ export async function POST(
     const apiUrl =
       getApiUrl();
 
+    const websiteSecret =
+      getWebsiteSecret();
+
     const response =
       await fetch(
         `${apiUrl}/live-projects/applications`,
         {
-          method: "POST",
+          method:
+            "POST",
 
           headers: {
             "Content-Type":
@@ -485,6 +509,13 @@ export async function POST(
 
             Accept:
               "application/json",
+
+            /*
+              IMPORTANT:
+              Central API checks this exact header.
+            */
+            "X-KRVE-Website-Key":
+              websiteSecret,
           },
 
           body:
