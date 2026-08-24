@@ -1,6 +1,63 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 
 import styles from "./careers.module.css";
+
+export const metadata: Metadata = {
+  title: "Careers & Live Projects",
+
+  description:
+    "Explore careers, internships and live business projects at KRVE — The Fashion Studio. Gain practical exposure across marketing, sales, finance, HR, operations, technology, fashion and e-commerce.",
+
+  keywords: [
+    "KRVE careers",
+    "KRVE live project",
+    "KRVE internship",
+    "KRVE The Fashion Studio careers",
+    "KRVE Live Business Project",
+    "live business project India",
+    "MBA live project",
+    "MBA live project India",
+    "student live projects",
+    "fashion internship India",
+    "ecommerce internship India",
+    "marketing live project",
+    "finance live project",
+    "HR live project",
+    "sales live project",
+    "business development live project",
+    "fashion ecommerce careers",
+  ],
+
+  alternates: {
+    canonical: "/careers",
+  },
+
+  openGraph: {
+    title: "Careers & Live Projects | KRVE",
+    description:
+      "Explore live business projects, internships and future career opportunities with KRVE — The Fashion Studio.",
+    url: "/careers",
+    type: "website",
+    siteName: "KRVE — The Fashion Studio",
+  },
+
+  twitter: {
+    card: "summary_large_image",
+    title: "Careers & Live Projects | KRVE",
+    description:
+      "Explore live business projects, internships and career opportunities with KRVE — The Fashion Studio.",
+  },
+
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+    },
+  },
+};
 
 /*
   ==========================================================
