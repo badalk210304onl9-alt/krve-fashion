@@ -1,6 +1,73 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 
 import styles from "./live-projects.module.css";
+
+export const metadata: Metadata = {
+  title: "KRVE Live Business Project Program | Careers at KRVE",
+  description:
+    "Apply for the KRVE Live Business Project Program and gain practical experience in marketing, sales, finance, HR, operations, e-commerce, technology and product through real business projects.",
+  keywords: [
+    "KRVE Live Project",
+    "KRVE Live Business Project",
+    "KRVE The Fashion Studio Live Project",
+    "KRVE Careers",
+    "Live Business Project",
+    "MBA Live Project",
+    "Student Live Project",
+    "Business Live Project India",
+    "Marketing Live Project",
+    "Sales Live Project",
+    "Finance Live Project",
+    "HR Live Project",
+    "E-Commerce Live Project",
+    "Technology Live Project",
+    "Fashion Live Project",
+    "Internship Project India",
+    "KRVE Internship",
+  ],
+  authors: [
+    {
+      name: "KRVE — The Fashion Studio",
+    },
+  ],
+  creator: "KRVE — The Fashion Studio",
+  publisher: "KRVE — The Fashion Studio",
+
+  alternates: {
+    canonical:
+      "https://krve-fashion.vercel.app/careers/live-projects",
+  },
+
+  openGraph: {
+    title: "KRVE Live Business Project Program",
+    description:
+      "Work on real business challenges at KRVE across marketing, sales, finance, HR, operations, e-commerce, technology and product.",
+    url: "https://krve-fashion.vercel.app/careers/live-projects",
+    siteName: "KRVE — The Fashion Studio",
+    type: "website",
+    locale: "en_IN",
+  },
+
+  twitter: {
+    card: "summary_large_image",
+    title: "KRVE Live Business Project Program",
+    description:
+      "Gain practical business experience through real projects at KRVE — The Fashion Studio.",
+  },
+
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
+};
 
 const departments = [
   {
@@ -92,328 +159,363 @@ const process = [
   },
 ];
 
+const structuredData = {
+  "@context": "https://schema.org",
+  "@type": "EducationalOccupationalProgram",
+  name: "KRVE Live Business Project Program",
+  description:
+    "A structured live business project program by KRVE — The Fashion Studio providing practical experience across marketing, sales, finance, human resources, operations, e-commerce, technology and product.",
+  url: "https://krve-fashion.vercel.app/careers/live-projects",
+  provider: {
+    "@type": "Organization",
+    name: "KRVE — The Fashion Studio",
+    url: "https://krve-fashion.vercel.app",
+  },
+  timeToComplete: "P4W",
+  occupationalCategory: [
+    "Marketing",
+    "Sales",
+    "Finance",
+    "Human Resources",
+    "Operations",
+    "E-Commerce",
+    "Technology",
+    "Product",
+  ],
+  educationalProgramMode: "Project Based",
+};
+
 export default function LiveProjectsPage() {
   return (
-    <main className={styles.page}>
-      <section className={styles.hero}>
-        <div className={styles.container}>
-          <Link
-            href="/careers"
-            className={styles.backLink}
-          >
-            ← Back to Careers
-          </Link>
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(structuredData),
+        }}
+      />
 
-          <div className={styles.heroGrid}>
-            <div>
-              <div className={styles.eyebrow}>
-                <span className={styles.liveDot} />
+      <main className={styles.page}>
+        <section className={styles.hero}>
+          <div className={styles.container}>
+            <Link
+              href="/careers"
+              className={styles.backLink}
+            >
+              ← Back to Careers
+            </Link>
 
-                Applications Open
-              </div>
+            <div className={styles.heroGrid}>
+              <div>
+                <div className={styles.eyebrow}>
+                  <span className={styles.liveDot} />
 
-              <h1 className={styles.heroTitle}>
-                KRVE Live Business
-                <span className={styles.gold}>
-                  Project Program
-                </span>
-              </h1>
-
-              <p className={styles.heroText}>
-                Work on real business challenges inside KRVE and gain
-                practical experience across fashion, e-commerce,
-                marketing, sales, finance, HR, operations and
-                technology.
-              </p>
-
-              <div className={styles.heroActions}>
-                <a
-                  href="#projects"
-                  className={styles.primaryButton}
-                >
-                  Explore Projects
-                  <span>→</span>
-                </a>
-
-                <a
-                  href="/KRVE_Live_Business_Project_Program_Detailed.pdf"
-                  download="KRVE_Live_Business_Project_Program_Detailed.pdf"
-                  className={styles.secondaryButton}
-                >
-                  Program Details
-                  <span>↓</span>
-                </a>
-              </div>
-            </div>
-
-            <div className={styles.programCard}>
-              <p className={styles.programLabel}>
-                Program Overview
-              </p>
-
-              <div className={styles.programRows}>
-                <ProgramRow
-                  label="Program Type"
-                  value="Live Business Project"
-                />
-
-                <ProgramRow
-                  label="Duration"
-                  value="4–6 Weeks"
-                />
-
-                <ProgramRow
-                  label="Mode"
-                  value="Project Based"
-                />
-
-                <ProgramRow
-                  label="Functions"
-                  value="6 Business Areas"
-                />
-
-                <ProgramRow
-                  label="Certificate"
-                  value="Verified"
-                />
-
-                <ProgramRow
-                  label="Status"
-                  value="Applications Open"
-                  highlight
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section
-        id="program"
-        className={styles.introSection}
-      >
-        <div className={styles.container}>
-          <div className={styles.introGrid}>
-            <div>
-              <p className={styles.sectionTag}>
-                About The Program
-              </p>
-
-              <h2 className={styles.sectionTitle}>
-                Learn by Working on
-                <span className={styles.goldInline}>
-                  {" "}
-                  Real Business
-                </span>
-              </h2>
-            </div>
-
-            <div>
-              <p className={styles.largeText}>
-                The KRVE Live Business Project Program gives students
-                an opportunity to contribute to an early-stage fashion
-                and e-commerce venture through structured,
-                outcome-driven projects.
-              </p>
-
-              <p className={styles.bodyText}>
-                Participants work on defined business objectives,
-                receive weekly assignments and are evaluated on the
-                quality of their work, initiative, consistency,
-                collaboration and practical business contribution.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section
-        id="projects"
-        className={styles.projectsSection}
-      >
-        <div className={styles.container}>
-          <div className={styles.sectionHeading}>
-            <p className={styles.sectionTag}>
-              Project Functions
-            </p>
-
-            <h2 className={styles.sectionTitle}>
-              Choose Your Project Area
-            </h2>
-
-            <p className={styles.sectionDescription}>
-              Select the business function that best matches your
-              interests, skills and career goals.
-            </p>
-          </div>
-
-          <div className={styles.projectGrid}>
-            {departments.map((department) => (
-              <article
-                key={department.number}
-                className={styles.projectCard}
-              >
-                <div className={styles.projectTop}>
-                  <span className={styles.projectNumber}>
-                    {department.number}
-                  </span>
-
-                  <span className={styles.openBadge}>
-                    Open
-                  </span>
+                  Applications Open
                 </div>
 
-                <h3 className={styles.projectTitle}>
-                  {department.title}
-                </h3>
+                <h1 className={styles.heroTitle}>
+                  KRVE Live Business
+                  <span className={styles.gold}>
+                    Project Program
+                  </span>
+                </h1>
 
-                <p className={styles.projectDescription}>
-                  {department.description}
+                <p className={styles.heroText}>
+                  Work on real business challenges inside KRVE and gain
+                  practical experience across fashion, e-commerce,
+                  marketing, sales, finance, HR, operations and
+                  technology.
                 </p>
 
-                <div className={styles.skills}>
-                  {department.skills}
-                </div>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
+                <div className={styles.heroActions}>
+                  <a
+                    href="#projects"
+                    className={styles.primaryButton}
+                  >
+                    Explore Projects
+                    <span>→</span>
+                  </a>
 
-      <section className={styles.benefitsSection}>
-        <div className={styles.container}>
-          <div className={styles.benefitsGrid}>
-            <div>
+                  <a
+                    href="/KRVE_Live_Business_Project_Program_Detailed.pdf"
+                    download="KRVE_Live_Business_Project_Program_Detailed.pdf"
+                    className={styles.secondaryButton}
+                  >
+                    Program Details
+                    <span>↓</span>
+                  </a>
+                </div>
+              </div>
+
+              <div className={styles.programCard}>
+                <p className={styles.programLabel}>
+                  Program Overview
+                </p>
+
+                <div className={styles.programRows}>
+                  <ProgramRow
+                    label="Program Type"
+                    value="Live Business Project"
+                  />
+
+                  <ProgramRow
+                    label="Duration"
+                    value="4–6 Weeks"
+                  />
+
+                  <ProgramRow
+                    label="Mode"
+                    value="Project Based"
+                  />
+
+                  <ProgramRow
+                    label="Functions"
+                    value="6 Business Areas"
+                  />
+
+                  <ProgramRow
+                    label="Certificate"
+                    value="Verified"
+                  />
+
+                  <ProgramRow
+                    label="Status"
+                    value="Applications Open"
+                    highlight
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section
+          id="program"
+          className={styles.introSection}
+        >
+          <div className={styles.container}>
+            <div className={styles.introGrid}>
+              <div>
+                <p className={styles.sectionTag}>
+                  About The Program
+                </p>
+
+                <h2 className={styles.sectionTitle}>
+                  Learn by Working on
+                  <span className={styles.goldInline}>
+                    {" "}
+                    Real Business
+                  </span>
+                </h2>
+              </div>
+
+              <div>
+                <p className={styles.largeText}>
+                  The KRVE Live Business Project Program gives students
+                  an opportunity to contribute to an early-stage fashion
+                  and e-commerce venture through structured,
+                  outcome-driven projects.
+                </p>
+
+                <p className={styles.bodyText}>
+                  Participants work on defined business objectives,
+                  receive weekly assignments and are evaluated on the
+                  quality of their work, initiative, consistency,
+                  collaboration and practical business contribution.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section
+          id="projects"
+          className={styles.projectsSection}
+        >
+          <div className={styles.container}>
+            <div className={styles.sectionHeading}>
               <p className={styles.sectionTag}>
-                Program Experience
+                Project Functions
               </p>
 
               <h2 className={styles.sectionTitle}>
-                More Than Just
-                <span className={styles.goldInline}>
-                  {" "}
-                  a Certificate
-                </span>
+                Choose Your Project Area
               </h2>
 
               <p className={styles.sectionDescription}>
-                The program is designed around practical exposure,
-                measurable work and professional development.
+                Select the business function that best matches your
+                interests, skills and career goals.
               </p>
             </div>
 
-            <div className={styles.benefitCards}>
-              <Benefit
-                number="01"
-                title="Real Business Exposure"
-                text="Work on actual KRVE business requirements and practical challenges."
-              />
+            <div className={styles.projectGrid}>
+              {departments.map((department) => (
+                <article
+                  key={department.number}
+                  className={styles.projectCard}
+                >
+                  <div className={styles.projectTop}>
+                    <span className={styles.projectNumber}>
+                      {department.number}
+                    </span>
 
-              <Benefit
-                number="02"
-                title="Weekly Deliverables"
-                text="Complete structured assignments with measurable project outcomes."
-              />
+                    <span className={styles.openBadge}>
+                      Open
+                    </span>
+                  </div>
 
-              <Benefit
-                number="03"
-                title="Performance Evaluation"
-                text="Receive evaluation based on execution, quality, initiative and contribution."
-              />
+                  <h3 className={styles.projectTitle}>
+                    {department.title}
+                  </h3>
 
-              <Benefit
-                number="04"
-                title="Verified Certificate"
-                text="Successful completion can lead to a KRVE certificate with a unique Certificate ID."
-              />
+                  <p className={styles.projectDescription}>
+                    {department.description}
+                  </p>
 
-              <Benefit
-                number="05"
-                title="Professional Portfolio"
-                text="Build practical project experience that can strengthen your professional profile."
-              />
-
-              <Benefit
-                number="06"
-                title="Future Opportunities"
-                text="Strong performers may be considered for internships or future KRVE team opportunities."
-              />
+                  <div className={styles.skills}>
+                    {department.skills}
+                  </div>
+                </article>
+              ))}
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <section className={styles.processSection}>
-        <div className={styles.container}>
-          <div className={styles.sectionHeading}>
-            <p className={styles.sectionTag}>
-              Selection Process
-            </p>
-
-            <h2 className={styles.sectionTitle}>
-              From Application to Completion
-            </h2>
-          </div>
-
-          <div className={styles.processGrid}>
-            {process.map((item) => (
-              <article
-                key={item.number}
-                className={styles.processCard}
-              >
-                <span className={styles.processNumber}>
-                  {item.number}
-                </span>
-
-                <h3 className={styles.processTitle}>
-                  {item.title}
-                </h3>
-
-                <p className={styles.processText}>
-                  {item.text}
+        <section className={styles.benefitsSection}>
+          <div className={styles.container}>
+            <div className={styles.benefitsGrid}>
+              <div>
+                <p className={styles.sectionTag}>
+                  Program Experience
                 </p>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
 
-      <section className={styles.ctaSection}>
-        <div className={styles.container}>
-          <div className={styles.ctaBox}>
-            <div>
-              <div className={styles.eyebrow}>
-                <span className={styles.liveDot} />
+                <h2 className={styles.sectionTitle}>
+                  More Than Just
+                  <span className={styles.goldInline}>
+                    {" "}
+                    a Certificate
+                  </span>
+                </h2>
 
-                Applications Open
+                <p className={styles.sectionDescription}>
+                  The program is designed around practical exposure,
+                  measurable work and professional development.
+                </p>
               </div>
 
-              <h2 className={styles.ctaTitle}>
-                Ready to Start Your
-                <span className={styles.goldInline}>
-                  {" "}
-                  KRVE Live Project?
-                </span>
-              </h2>
+              <div className={styles.benefitCards}>
+                <Benefit
+                  number="01"
+                  title="Real Business Exposure"
+                  text="Work on actual KRVE business requirements and practical challenges."
+                />
 
-              <p className={styles.ctaText}>
-                Select your preferred business function and submit
-                your application for the KRVE Live Business Project
-                Program.
+                <Benefit
+                  number="02"
+                  title="Weekly Deliverables"
+                  text="Complete structured assignments with measurable project outcomes."
+                />
+
+                <Benefit
+                  number="03"
+                  title="Performance Evaluation"
+                  text="Receive evaluation based on execution, quality, initiative and contribution."
+                />
+
+                <Benefit
+                  number="04"
+                  title="Verified Certificate"
+                  text="Successful completion can lead to a KRVE certificate with a unique Certificate ID."
+                />
+
+                <Benefit
+                  number="05"
+                  title="Professional Portfolio"
+                  text="Build practical project experience that can strengthen your professional profile."
+                />
+
+                <Benefit
+                  number="06"
+                  title="Future Opportunities"
+                  text="Strong performers may be considered for internships or future KRVE team opportunities."
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className={styles.processSection}>
+          <div className={styles.container}>
+            <div className={styles.sectionHeading}>
+              <p className={styles.sectionTag}>
+                Selection Process
               </p>
+
+              <h2 className={styles.sectionTitle}>
+                From Application to Completion
+              </h2>
             </div>
 
-            <Link
-              href="/careers/live-projects/apply"
-              className={styles.applyButton}
-            >
-              Apply Now
-              <span>→</span>
-            </Link>
+            <div className={styles.processGrid}>
+              {process.map((item) => (
+                <article
+                  key={item.number}
+                  className={styles.processCard}
+                >
+                  <span className={styles.processNumber}>
+                    {item.number}
+                  </span>
+
+                  <h3 className={styles.processTitle}>
+                    {item.title}
+                  </h3>
+
+                  <p className={styles.processText}>
+                    {item.text}
+                  </p>
+                </article>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
-    </main>
+        </section>
+
+        <section className={styles.ctaSection}>
+          <div className={styles.container}>
+            <div className={styles.ctaBox}>
+              <div>
+                <div className={styles.eyebrow}>
+                  <span className={styles.liveDot} />
+
+                  Applications Open
+                </div>
+
+                <h2 className={styles.ctaTitle}>
+                  Ready to Start Your
+                  <span className={styles.goldInline}>
+                    {" "}
+                    KRVE Live Project?
+                  </span>
+                </h2>
+
+                <p className={styles.ctaText}>
+                  Select your preferred business function and submit
+                  your application for the KRVE Live Business Project
+                  Program.
+                </p>
+              </div>
+
+              <Link
+                href="/careers/live-projects/apply"
+                className={styles.applyButton}
+              >
+                Apply Now
+                <span>→</span>
+              </Link>
+            </div>
+          </div>
+        </section>
+      </main>
+    </>
   );
 }
 
