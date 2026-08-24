@@ -26,15 +26,87 @@ const bodyFont = Manrope({
   weight: ["400", "500", "600", "700", "800"],
 });
 
+const siteUrl = "https://krve-fashion.vercel.app";
+
 export const metadata: Metadata = {
-  title: "KRVE — The Fashion Studio",
+  metadataBase: new URL(siteUrl),
+
+  title: {
+    default: "KRVE — The Fashion Studio",
+    template: "%s | KRVE",
+  },
+
   description:
-    "AI-powered luxury fashion, intelligent styling and virtual try-on.",
+    "KRVE — The Fashion Studio is an emerging fashion and e-commerce brand offering contemporary fashion, intelligent styling experiences and AI-powered virtual try-on.",
+
+  applicationName: "KRVE — The Fashion Studio",
+
+  keywords: [
+    "KRVE",
+    "KRVE The Fashion Studio",
+    "KRVE Fashion",
+    "KRVE clothing",
+    "fashion brand India",
+    "online fashion store India",
+    "luxury fashion India",
+    "menswear India",
+    "womenswear India",
+    "kidswear India",
+    "AI fashion",
+    "AI stylist",
+    "virtual try on",
+    "fashion ecommerce",
+  ],
+
+  authors: [
+    {
+      name: "KRVE — The Fashion Studio",
+      url: siteUrl,
+    },
+  ],
+
+  creator: "KRVE — The Fashion Studio",
+  publisher: "KRVE — The Fashion Studio",
+
+  alternates: {
+    canonical: "/",
+  },
+
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
+
+  openGraph: {
+    type: "website",
+    locale: "en_IN",
+    url: siteUrl,
+    siteName: "KRVE — The Fashion Studio",
+    title: "KRVE — The Fashion Studio",
+    description:
+      "Discover contemporary fashion, intelligent styling and AI-powered virtual try-on with KRVE — The Fashion Studio.",
+  },
+
+  twitter: {
+    card: "summary_large_image",
+    title: "KRVE — The Fashion Studio",
+    description:
+      "Discover contemporary fashion, intelligent styling and AI-powered virtual try-on with KRVE.",
+  },
 
   verification: {
     google:
       "nIAj_VeM5fHBEYZxchM_0HzUCBh3oboNJARgzOArn3o",
   },
+
+  category: "fashion",
 };
 
 export default function RootLayout({
