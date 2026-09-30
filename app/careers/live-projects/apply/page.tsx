@@ -53,6 +53,19 @@ const initialForm: FormData = {
   resumeUrl: "",
 };
 
+/*
+ * KRVE LIVE PROJECT APPLICATION WINDOW
+ *
+ * Original opening:
+ * 22 August 2026
+ *
+ * Special reopening:
+ * 30 September 2026
+ *
+ * The form remains open for the entire day on
+ * 30 September 2026 and automatically closes at
+ * 12:00 AM IST on 1 October 2026.
+ */
 
 const LIVE_PROJECT_OPEN_AT =
   new Date(
@@ -61,7 +74,7 @@ const LIVE_PROJECT_OPEN_AT =
 
 const LIVE_PROJECT_CLOSE_AT =
   new Date(
-    "2026-09-16T00:00:00+05:30",
+    "2026-10-01T00:00:00+05:30",
   );
 
 type LiveProjectStatus =
@@ -117,7 +130,6 @@ export default function LiveProjectApplyPage() {
     setApplicationNumber,
   ] = useState("");
 
-
   const [
     applicationStatus,
     setApplicationStatus,
@@ -129,22 +141,20 @@ export default function LiveProjectApplyPage() {
   const [
     currentTime,
     setCurrentTime,
-  ] =
-    useState(
-      new Date(),
-    );
+  ] = useState(
+    new Date(),
+  );
 
   useEffect(() => {
-    const updateStatus =
-      () => {
-        setApplicationStatus(
-          getLiveProjectStatus(),
-        );
+    const updateStatus = () => {
+      setApplicationStatus(
+        getLiveProjectStatus(),
+      );
 
-        setCurrentTime(
-          new Date(),
-        );
-      };
+      setCurrentTime(
+        new Date(),
+      );
+    };
 
     updateStatus();
 
@@ -192,7 +202,7 @@ export default function LiveProjectApplyPage() {
         liveStatus ===
           "upcoming"
           ? "Applications are not open yet. The application window opens on 22 August 2026."
-          : "Applications for this Live Project cohort closed on 15 September 2026.",
+          : "Applications for this Live Project reopening closed on 30 September 2026.",
       );
 
       return;
@@ -299,15 +309,27 @@ export default function LiveProjectApplyPage() {
 
             {applicationNumber ? (
               <div className={styles.applicationNumberBox}>
-                <span className={styles.applicationNumberLabel}>
+                <span
+                  className={
+                    styles.applicationNumberLabel
+                  }
+                >
                   Application Number
                 </span>
 
-                <strong className={styles.applicationNumber}>
+                <strong
+                  className={
+                    styles.applicationNumber
+                  }
+                >
                   {applicationNumber}
                 </strong>
 
-                <span className={styles.applicationNumberHint}>
+                <span
+                  className={
+                    styles.applicationNumberHint
+                  }
+                >
                   Save this number for future reference.
                 </span>
               </div>
@@ -378,8 +400,8 @@ export default function LiveProjectApplyPage() {
 
               <p className={styles.heroText}>
                 {upcoming
-                  ? "Applications for the KRVE Live Business Project Program will open on 22 August 2026 and remain available through 15 September 2026."
-                  : "The application window for this KRVE Live Business Project cohort closed on 15 September 2026. Please check the Careers page for future opportunities."}
+                  ? "Applications for the KRVE Live Business Project Program will open on 22 August 2026."
+                  : "The special application reopening for the KRVE Live Business Project closed on 30 September 2026. Please check the Careers page for future opportunities."}
               </p>
             </div>
           </div>
@@ -405,7 +427,7 @@ export default function LiveProjectApplyPage() {
                       ? `Opening date: ${formatWindowDate(
                           LIVE_PROJECT_OPEN_AT,
                         )}`
-                      : "Closing date: 15 September 2026"}
+                      : "Special reopening closed: 30 September 2026"}
                   </p>
                 </div>
 
@@ -440,7 +462,7 @@ export default function LiveProjectApplyPage() {
                       fontWeight: 800,
                     }}
                   >
-                    22 August 2026 – 15 September 2026
+                    22 August 2026 – 30 September 2026
                   </p>
 
                   <p
@@ -486,13 +508,13 @@ export default function LiveProjectApplyPage() {
 
                   <div className={styles.infoRows}>
                     <InfoRow
-                      label="Applications Open"
+                      label="Original Opening"
                       value="22 Aug 2026"
                     />
 
                     <InfoRow
-                      label="Applications Close"
-                      value="15 Sept 2026"
+                      label="Special Reopening"
+                      value="30 Sept 2026"
                     />
 
                     <InfoRow
@@ -527,7 +549,7 @@ export default function LiveProjectApplyPage() {
 
           <div className={styles.heroContent}>
             <div className={styles.eyebrow}>
-              Applications Open • Until 15 Sept 2026
+              Applications Reopened • Until 30 Sept 2026
             </div>
 
             <h1 className={styles.heroTitle}>
@@ -538,6 +560,7 @@ export default function LiveProjectApplyPage() {
             </h1>
 
             <p className={styles.heroText}>
+              Applications have been reopened for today.
               Submit your profile and preferred business function.
               Selected candidates will receive project allocation,
               weekly tasks and performance evaluation through KRVE.
@@ -815,7 +838,12 @@ export default function LiveProjectApplyPage() {
 
                   <InfoRow
                     label="Application Window"
-                    value="22 Aug – 15 Sept 2026"
+                    value="22 Aug – 30 Sept 2026"
+                  />
+
+                  <InfoRow
+                    label="Special Reopening"
+                    value="30 Sept 2026"
                   />
 
                   <InfoRow
