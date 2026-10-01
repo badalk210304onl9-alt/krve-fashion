@@ -54,28 +54,32 @@ const initialForm: FormData = {
 };
 
 /*
- * KRVE LIVE PROJECT APPLICATION WINDOW
+ * ==========================================================
+ * KRVE LIVE BUSINESS PROJECT APPLICATION WINDOW
+ * ==========================================================
  *
- * Original opening:
- * 22 August 2026
+ * ORIGINAL OPENING:
+ * 22 August 2026, 12:00 AM IST
  *
- * Special reopening:
- * 30 September 2026
+ * SPECIAL REOPENING:
+ * 1 October 2026
  *
- * The form remains open for the entire day on
- * 30 September 2026 and automatically closes at
- * 12:00 AM IST on 1 October 2026.
+ * CLOSE:
+ * 2 October 2026, 12:00 AM IST
+ *
+ * This means the application remains OPEN for the
+ * complete day of 1 October 2026.
+ *
+ * ==========================================================
  */
 
-const LIVE_PROJECT_OPEN_AT =
-  new Date(
-    "2026-08-22T00:00:00+05:30",
-  );
+const LIVE_PROJECT_OPEN_AT = new Date(
+  "2026-08-22T00:00:00+05:30",
+);
 
-const LIVE_PROJECT_CLOSE_AT =
-  new Date(
-    "2026-10-01T00:00:00+05:30",
-  );
+const LIVE_PROJECT_CLOSE_AT = new Date(
+  "2026-10-02T00:00:00+05:30",
+);
 
 type LiveProjectStatus =
   | "upcoming"
@@ -202,7 +206,7 @@ export default function LiveProjectApplyPage() {
         liveStatus ===
           "upcoming"
           ? "Applications are not open yet. The application window opens on 22 August 2026."
-          : "Applications for this Live Project reopening closed on 30 September 2026.",
+          : "Applications for the KRVE Live Business Project are closed. The reopening ended on 1 October 2026.",
       );
 
       return;
@@ -308,7 +312,11 @@ export default function LiveProjectApplyPage() {
             </p>
 
             {applicationNumber ? (
-              <div className={styles.applicationNumberBox}>
+              <div
+                className={
+                  styles.applicationNumberBox
+                }
+              >
                 <span
                   className={
                     styles.applicationNumberLabel
@@ -401,7 +409,7 @@ export default function LiveProjectApplyPage() {
               <p className={styles.heroText}>
                 {upcoming
                   ? "Applications for the KRVE Live Business Project Program will open on 22 August 2026."
-                  : "The special application reopening for the KRVE Live Business Project closed on 30 September 2026. Please check the Careers page for future opportunities."}
+                  : "The special application reopening for the KRVE Live Business Project remained open on 1 October 2026 and is now closed. Please check the Careers page for future opportunities."}
               </p>
             </div>
           </div>
@@ -427,7 +435,7 @@ export default function LiveProjectApplyPage() {
                       ? `Opening date: ${formatWindowDate(
                           LIVE_PROJECT_OPEN_AT,
                         )}`
-                      : "Special reopening closed: 30 September 2026"}
+                      : "Special reopening closed: 1 October 2026"}
                   </p>
                 </div>
 
@@ -462,7 +470,7 @@ export default function LiveProjectApplyPage() {
                       fontWeight: 800,
                     }}
                   >
-                    22 August 2026 – 30 September 2026
+                    22 August 2026 – 1 October 2026
                   </p>
 
                   <p
@@ -514,7 +522,7 @@ export default function LiveProjectApplyPage() {
 
                     <InfoRow
                       label="Special Reopening"
-                      value="30 Sept 2026"
+                      value="1 Oct 2026"
                     />
 
                     <InfoRow
@@ -549,7 +557,7 @@ export default function LiveProjectApplyPage() {
 
           <div className={styles.heroContent}>
             <div className={styles.eyebrow}>
-              Applications Reopened • Until 30 Sept 2026
+              Applications Reopened • Until 1 Oct 2026
             </div>
 
             <h1 className={styles.heroTitle}>
@@ -838,12 +846,12 @@ export default function LiveProjectApplyPage() {
 
                   <InfoRow
                     label="Application Window"
-                    value="22 Aug – 30 Sept 2026"
+                    value="22 Aug – 1 Oct 2026"
                   />
 
                   <InfoRow
                     label="Special Reopening"
-                    value="30 Sept 2026"
+                    value="1 Oct 2026"
                   />
 
                   <InfoRow
