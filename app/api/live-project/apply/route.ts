@@ -29,9 +29,17 @@ const LIVE_PROJECT_OPEN_AT =
     "2026-08-22T00:00:00+05:30",
   );
 
+/*
+  SPECIAL REOPENING:
+  Applications are open for the full day
+  of 1 October 2026 (IST).
+
+  Closing:
+  2 October 2026 at 12:00 AM IST.
+*/
 const LIVE_PROJECT_CLOSE_AT =
   new Date(
-    "2026-09-16T00:00:00+05:30",
+    "2026-10-02T00:00:00+05:30",
   );
 
 type LiveProjectStatus =
@@ -262,7 +270,7 @@ function windowClosedResponse(
         "APPLICATIONS_CLOSED",
 
       message:
-        "Applications for this KRVE Live Business Project cohort closed on 15 September 2026.",
+        "Applications for this KRVE Live Business Project cohort closed on 1 October 2026.",
 
       applicationWindow: {
         opensAt:
@@ -290,14 +298,17 @@ export async function POST(
       SERVER-SIDE APPLICATION WINDOW LOCK
       ======================================================
 
-      OPEN:
+      ORIGINAL OPENING:
       22 Aug 2026, 12:00 AM IST
 
+      SPECIAL REOPENING:
+      1 Oct 2026
+
       CLOSE:
-      16 Sep 2026, 12:00 AM IST
+      2 Oct 2026, 12:00 AM IST
 
       Therefore:
-      15 Sep 2026 remains fully open.
+      1 Oct 2026 remains fully open.
     */
 
     const liveProjectStatus =
