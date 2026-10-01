@@ -68,10 +68,10 @@ export const metadata: Metadata = {
   22 August 2026, 12:00 AM IST
 
   TEMPORARY REOPEN:
-  30 September 2026
+  1 October 2026
 
   CLOSE:
-  1 October 2026, 12:00 AM IST
+  2 October 2026, 12:00 AM IST
 
   IMPORTANT:
   This page is forced dynamic so the date status does not
@@ -87,7 +87,7 @@ const LIVE_PROJECT_OPEN_AT = new Date(
 );
 
 const LIVE_PROJECT_CLOSE_AT = new Date(
-  "2026-10-01T00:00:00+05:30",
+  "2026-10-02T00:00:00+05:30",
 );
 
 type LiveProjectStatus =
@@ -416,7 +416,7 @@ export default function CareersPage() {
                             fontSize: "13px",
                           }}
                         >
-                          22 Aug 2026 – 30 Sept 2026
+                          22 Aug 2026 – 1 Oct 2026
                         </strong>
 
                       </div>
@@ -608,11 +608,11 @@ export default function CareersPage() {
 
                 {liveProjectStatus ===
                 "open"
-                  ? "Applications are currently open. Explore the KRVE Live Business Project Program and submit your application before 1 October 2026."
+                  ? "Applications are currently open. Explore the KRVE Live Business Project Program and submit your application before 2 October 2026."
                   : liveProjectStatus ===
                       "upcoming"
                     ? "Applications for the KRVE Live Business Project Program will automatically open on 22 August 2026 and remain open until 30 September 2026."
-                    : "The application window for this KRVE Live Business Project cohort closed on 30 September 2026."}
+                    : "The application window for this KRVE Live Business Project cohort closed on 1 October 2026."}
 
               </p>
 
