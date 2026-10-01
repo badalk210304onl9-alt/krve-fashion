@@ -270,7 +270,7 @@ function windowClosedResponse(
         "APPLICATIONS_CLOSED",
 
       message:
-        "Applications for this KRVE Live Business Project cohort closed on 1 October 2026.",
+        "Applications for this KRVE Live Business Project cohort closed on 2 October 2026.",
 
       applicationWindow: {
         opensAt:
