@@ -106,8 +106,11 @@ export default function SiteFooter() {
             </div>
 
             <div className={styles.social}>
+              {/* KRVE Instagram */}
               <a
-                href="#"
+                href="https://www.instagram.com/krvefashionstudio/"
+                target="_blank"
+                rel="noopener noreferrer"
                 className={styles.socialLink}
               >
                 Instagram
