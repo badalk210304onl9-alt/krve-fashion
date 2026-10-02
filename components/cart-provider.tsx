@@ -11,9 +11,15 @@ import {
 
 import type { Product } from "@/lib/catalog";
 
+/* =========================================================
+   TYPES
+========================================================= */
+
 export type CartItem = Product & {
   quantity: number;
   size: string;
+  colour?: string;
+  colours?: string[];
 };
 
 type CartContextValue = {
@@ -52,16 +58,87 @@ type CartContextValue = {
   clearCart: () => void;
 };
 
+/* =========================================================
+   CONTEXT
+========================================================= */
+
 const CartContext =
   createContext<CartContextValue | null>(
     null,
   );
 
+/* =========================================================
+   STORAGE KEYS
+========================================================= */
+
 const CART_STORAGE_KEY =
+  "krve-cart";
+
+const LEGACY_CART_STORAGE_KEY =
   "krve-shopping-bag";
 
 const WISHLIST_STORAGE_KEY =
   "krve-wishlist";
+
+/* =========================================================
+   CART NORMALIZER
+========================================================= */
+
+function normalizeCartItem(
+  item: any,
+): CartItem | null {
+  if (
+    !item ||
+    typeof item !== "object" ||
+    !item.id
+  ) {
+    return null;
+  }
+
+  const quantity = Math.max(
+    1,
+    Number(item.quantity ?? 1),
+  );
+
+  const colour =
+    typeof item.colour ===
+    "string"
+      ? item.colour
+      : Array.isArray(
+            item.colours,
+          )
+        ? item.colours[0] ?? ""
+        : "";
+
+  const colours =
+    Array.isArray(
+      item.colours,
+    )
+      ? item.colours
+      : colour
+        ? [colour]
+        : [];
+
+  return {
+    ...item,
+
+    quantity,
+
+    size:
+      typeof item.size ===
+      "string"
+        ? item.size
+        : "",
+
+    colour,
+
+    colours,
+  } as CartItem;
+}
+
+/* =========================================================
+   LOAD CART
+========================================================= */
 
 function loadCart(): CartItem[] {
   if (
@@ -72,10 +149,26 @@ function loadCart(): CartItem[] {
   }
 
   try {
-    const stored =
+    /*
+      First read the new/main cart key.
+    */
+
+    let stored =
       window.localStorage.getItem(
         CART_STORAGE_KEY,
       );
+
+    /*
+      If the new cart is empty/not present,
+      support old KRVE cart data too.
+    */
+
+    if (!stored) {
+      stored =
+        window.localStorage.getItem(
+          LEGACY_CART_STORAGE_KEY,
+        );
+    }
 
     if (!stored) {
       return [];
@@ -84,17 +177,54 @@ function loadCart(): CartItem[] {
     const parsed =
       JSON.parse(
         stored,
-      ) as CartItem[];
+      );
 
-    return Array.isArray(
-      parsed,
-    )
-      ? parsed
-      : [];
-  } catch {
+    if (
+      !Array.isArray(
+        parsed,
+      )
+    ) {
+      return [];
+    }
+
+    const normalized =
+      parsed
+        .map(
+          normalizeCartItem,
+        )
+        .filter(
+          (
+            item,
+          ): item is CartItem =>
+            Boolean(item),
+        );
+
+    /*
+      Always migrate legacy data
+      into the new cart key.
+    */
+
+    window.localStorage.setItem(
+      CART_STORAGE_KEY,
+      JSON.stringify(
+        normalized,
+      ),
+    );
+
+    return normalized;
+  } catch (error) {
+    console.error(
+      "KRVE_CART_LOAD_ERROR",
+      error,
+    );
+
     return [];
   }
 }
+
+/* =========================================================
+   LOAD WISHLIST
+========================================================= */
 
 function loadWishlist(): string[] {
   if (
@@ -117,17 +247,26 @@ function loadWishlist(): string[] {
     const parsed =
       JSON.parse(
         stored,
-      ) as string[];
+      );
 
     return Array.isArray(
       parsed,
     )
       ? parsed
       : [];
-  } catch {
+  } catch (error) {
+    console.error(
+      "KRVE_WISHLIST_LOAD_ERROR",
+      error,
+    );
+
     return [];
   }
 }
+
+/* =========================================================
+   PROVIDER
+========================================================= */
 
 export function CartProvider({
   children,
@@ -156,60 +295,215 @@ export function CartProvider({
   ] =
     useState(false);
 
-  useEffect(
-    () => {
-      setCart(
-        loadCart(),
-      );
+  /* =======================================================
+     INITIAL LOAD
+  ======================================================= */
 
-      setWishlist(
-        loadWishlist(),
-      );
+  useEffect(() => {
+    const initialCart =
+      loadCart();
 
-      setHydrated(
-        true,
-      );
-    },
-    [],
-  );
+    const initialWishlist =
+      loadWishlist();
 
-  useEffect(
-    () => {
-      if (!hydrated) {
-        return;
-      }
+    setCart(
+      initialCart,
+    );
 
+    setWishlist(
+      initialWishlist,
+    );
+
+    setHydrated(
+      true,
+    );
+  }, []);
+
+  /* =======================================================
+     SAVE CART
+  ======================================================= */
+
+  useEffect(() => {
+    if (!hydrated) {
+      return;
+    }
+
+    try {
       window.localStorage.setItem(
         CART_STORAGE_KEY,
         JSON.stringify(
           cart,
         ),
       );
-    },
-    [
-      cart,
-      hydrated,
-    ],
-  );
+    } catch (error) {
+      console.error(
+        "KRVE_CART_SAVE_ERROR",
+        error,
+      );
+    }
+  }, [
+    cart,
+    hydrated,
+  ]);
 
-  useEffect(
-    () => {
-      if (!hydrated) {
-        return;
-      }
+  /* =======================================================
+     SAVE WISHLIST
+  ======================================================= */
 
+  useEffect(() => {
+    if (!hydrated) {
+      return;
+    }
+
+    try {
       window.localStorage.setItem(
         WISHLIST_STORAGE_KEY,
         JSON.stringify(
           wishlist,
         ),
       );
-    },
-    [
-      hydrated,
-      wishlist,
-    ],
-  );
+    } catch (error) {
+      console.error(
+        "KRVE_WISHLIST_SAVE_ERROR",
+        error,
+      );
+    }
+  }, [
+    wishlist,
+    hydrated,
+  ]);
+
+  /* =======================================================
+     IMPORTANT:
+     LISTEN FOR PRODUCT PAGE CART UPDATES
+  ======================================================= */
+
+  useEffect(() => {
+    if (
+      typeof window ===
+      "undefined"
+    ) {
+      return;
+    }
+
+    function handleCartUpdated(
+      event: Event,
+    ) {
+      try {
+        const customEvent =
+          event as CustomEvent;
+
+        /*
+          ProductPurchasePanel already sends
+          krve-cart-updated with the latest cart.
+
+          We intentionally reload from localStorage
+          so both systems always use exactly the same
+          data.
+        */
+
+        const detail =
+          customEvent.detail;
+
+        if (
+          Array.isArray(
+            detail,
+          )
+        ) {
+          const normalized =
+            detail
+              .map(
+                normalizeCartItem,
+              )
+              .filter(
+                (
+                  item,
+                ): item is CartItem =>
+                  Boolean(item),
+              );
+
+          setCart(
+            normalized,
+          );
+
+          window.localStorage.setItem(
+            CART_STORAGE_KEY,
+            JSON.stringify(
+              normalized,
+            ),
+          );
+
+          return;
+        }
+
+        setCart(
+          loadCart(),
+        );
+      } catch (error) {
+        console.error(
+          "KRVE_CART_EVENT_ERROR",
+          error,
+        );
+
+        setCart(
+          loadCart(),
+        );
+      }
+    }
+
+    function handleStorage(
+      event: StorageEvent,
+    ) {
+      if (
+        event.key ===
+        CART_STORAGE_KEY
+      ) {
+        setCart(
+          loadCart(),
+        );
+      }
+
+      /*
+        Also support old cart key
+        during migration.
+      */
+
+      if (
+        event.key ===
+        LEGACY_CART_STORAGE_KEY
+      ) {
+        setCart(
+          loadCart(),
+        );
+      }
+    }
+
+    window.addEventListener(
+      "krve-cart-updated",
+      handleCartUpdated,
+    );
+
+    window.addEventListener(
+      "storage",
+      handleStorage,
+    );
+
+    return () => {
+      window.removeEventListener(
+        "krve-cart-updated",
+        handleCartUpdated,
+      );
+
+      window.removeEventListener(
+        "storage",
+        handleStorage,
+      );
+    };
+  }, []);
+
+  /* =======================================================
+     ADD TO CART
+  ======================================================= */
 
   const addToCart = (
     product: Product,
@@ -225,41 +519,86 @@ export function CartProvider({
               item,
             ) =>
               item.id ===
-              product.id,
+                product.id &&
+              item.size ===
+                size,
           );
 
-        if (existing) {
-          return currentCart.map(
-            (
-              item,
-            ) =>
-              item.id ===
-              product.id
-                ? {
-                    ...item,
+        let nextCart: CartItem[];
 
-                    quantity:
-                      item.quantity +
-                      1,
-                  }
-                : item,
+        if (existing) {
+          nextCart =
+            currentCart.map(
+              (
+                item,
+              ) =>
+                item.id ===
+                  product.id &&
+                item.size ===
+                  size
+                  ? {
+                      ...item,
+
+                      quantity:
+                        item.quantity +
+                        1,
+                    }
+                  : item,
+            );
+        } else {
+          nextCart = [
+            ...currentCart,
+
+            {
+              ...product,
+
+              quantity: 1,
+
+              size,
+
+              colour:
+                product.colours?.[0] ??
+                "",
+
+              colours:
+                product.colours ??
+                [],
+            },
+          ];
+        }
+
+        try {
+          window.localStorage.setItem(
+            CART_STORAGE_KEY,
+            JSON.stringify(
+              nextCart,
+            ),
+          );
+
+          window.dispatchEvent(
+            new CustomEvent(
+              "krve-cart-updated",
+              {
+                detail:
+                  nextCart,
+              },
+            ),
+          );
+        } catch (error) {
+          console.error(
+            "KRVE_CART_ADD_SAVE_ERROR",
+            error,
           );
         }
 
-        return [
-          ...currentCart,
-
-          {
-            ...product,
-
-            quantity: 1,
-
-            size,
-          },
-        ];
+        return nextCart;
       },
     );
   };
+
+  /* =======================================================
+     REMOVE FROM CART
+  ======================================================= */
 
   const removeFromCart = (
     id: string,
@@ -267,16 +606,24 @@ export function CartProvider({
     setCart(
       (
         currentCart,
-      ) =>
-        currentCart.filter(
-          (
-            item,
-          ) =>
-            item.id !==
-            id,
-        ),
+      ) => {
+        const nextCart =
+          currentCart.filter(
+            (
+              item,
+            ) =>
+              item.id !==
+              id,
+          );
+
+        return nextCart;
+      },
     );
   };
+
+  /* =======================================================
+     INCREASE QUANTITY
+  ======================================================= */
 
   const increaseQuantity = (
     id: string,
@@ -302,6 +649,10 @@ export function CartProvider({
         ),
     );
   };
+
+  /* =======================================================
+     DECREASE QUANTITY
+  ======================================================= */
 
   const decreaseQuantity = (
     id: string,
@@ -336,6 +687,10 @@ export function CartProvider({
     );
   };
 
+  /* =======================================================
+     UPDATE SIZE
+  ======================================================= */
+
   const updateSize = (
     id: string,
     size: string,
@@ -359,6 +714,10 @@ export function CartProvider({
         ),
     );
   };
+
+  /* =======================================================
+     WISHLIST
+  ======================================================= */
 
   const toggleWishlist = (
     id: string,
@@ -384,11 +743,46 @@ export function CartProvider({
     );
   };
 
+  /* =======================================================
+     CLEAR CART
+  ======================================================= */
+
   const clearCart = () => {
-    setCart(
-      [],
-    );
+    setCart([]);
+
+    try {
+      window.localStorage.setItem(
+        CART_STORAGE_KEY,
+        "[]",
+      );
+
+      /*
+        Keep legacy storage clean too.
+      */
+
+      window.localStorage.removeItem(
+        LEGACY_CART_STORAGE_KEY,
+      );
+
+      window.dispatchEvent(
+        new CustomEvent(
+          "krve-cart-updated",
+          {
+            detail: [],
+          },
+        ),
+      );
+    } catch (error) {
+      console.error(
+        "KRVE_CART_CLEAR_ERROR",
+        error,
+      );
+    }
   };
+
+  /* =======================================================
+     CART COUNT
+  ======================================================= */
 
   const cartCount =
     useMemo(
@@ -399,13 +793,23 @@ export function CartProvider({
             item,
           ) =>
             total +
-            item.quantity,
+            Math.max(
+              0,
+              Number(
+                item.quantity ??
+                  0,
+              ),
+            ),
           0,
         ),
       [
         cart,
       ],
     );
+
+  /* =======================================================
+     CART SUBTOTAL
+  ======================================================= */
 
   const cartSubtotal =
     useMemo(
@@ -416,8 +820,17 @@ export function CartProvider({
             item,
           ) =>
             total +
-            item.price *
-              item.quantity,
+            Number(
+              item.price ??
+                0,
+            ) *
+              Math.max(
+                0,
+                Number(
+                  item.quantity ??
+                    0,
+                ),
+              ),
           0,
         ),
       [
@@ -425,21 +838,35 @@ export function CartProvider({
       ],
     );
 
+  /* =======================================================
+     CONTEXT VALUE
+  ======================================================= */
+
   const value =
     useMemo<CartContextValue>(
       () => ({
         cart,
+
         wishlist,
+
         cartCount,
+
         cartSubtotal,
+
         hydrated,
 
         addToCart,
+
         removeFromCart,
+
         increaseQuantity,
+
         decreaseQuantity,
+
         updateSize,
+
         toggleWishlist,
+
         clearCart,
       }),
       [
@@ -451,6 +878,10 @@ export function CartProvider({
       ],
     );
 
+  /* =======================================================
+     PROVIDER
+  ======================================================= */
+
   return (
     <CartContext.Provider
       value={value}
@@ -459,6 +890,10 @@ export function CartProvider({
     </CartContext.Provider>
   );
 }
+
+/* =========================================================
+   HOOK
+========================================================= */
 
 export function useCart() {
   const context =
