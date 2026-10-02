@@ -51,6 +51,7 @@ type StoredCartItem = {
   currency: string;
   size: string;
   colour: string;
+  colours: string[];
   quantity: number;
 };
 
@@ -416,7 +417,9 @@ export default function ProductPurchasePanel({
     const cartItem:
       StoredCartItem = {
       id: product.id,
+
       slug: product.slug,
+
       name: product.name,
 
       image:
@@ -436,6 +439,11 @@ export default function ProductPurchasePanel({
 
       colour:
         selectedColour,
+
+      colours:
+        selectedColour
+          ? [selectedColour]
+          : [],
 
       quantity,
     };
@@ -471,6 +479,9 @@ export default function ProductPurchasePanel({
 
           image:
             cartItem.image,
+
+          colours:
+            cartItem.colours,
 
           quantity:
             currentCart[
