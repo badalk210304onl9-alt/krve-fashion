@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
 import {
   useMemo,
@@ -312,12 +313,26 @@ export default function CollectionsClient({
     toggleWishlist,
   } = useCart();
 
+  const searchParams = useSearchParams();
+
+  const urlCategory =
+    searchParams.get("category");
+
+  const initialCategory: CategoryFilter =
+    urlCategory === "menswear" ||
+    urlCategory === "womenswear" ||
+    urlCategory === "kidswear" ||
+    urlCategory === "accessories" ||
+    urlCategory === "footwear"
+      ? urlCategory
+      : "all";
+
   const [
     activeCategory,
     setActiveCategory,
   ] =
     useState<CategoryFilter>(
-      "all",
+      initialCategory,
     );
 
   const [
