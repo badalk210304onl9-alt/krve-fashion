@@ -6,6 +6,8 @@ import {
   useState,
 } from "react";
 
+import styles from "./returns-refunds.module.css";
+
 type ReturnItem = {
   id: string;
   productId?: string | null;
@@ -60,14 +62,20 @@ function formatMoney(
   amount: number,
   currency = "INR",
 ) {
-  return new Intl.NumberFormat(
-    "en-IN",
-    {
-      style: "currency",
-      currency,
-      maximumFractionDigits: 0,
-    },
-  ).format(amount);
+  try {
+    return new Intl.NumberFormat(
+      "en-IN",
+      {
+        style: "currency",
+        currency,
+        maximumFractionDigits: 0,
+      },
+    ).format(amount);
+  } catch {
+    return `₹${amount.toLocaleString(
+      "en-IN",
+    )}`;
+  }
 }
 
 function formatDate(
@@ -77,14 +85,9 @@ function formatDate(
     return "—";
   }
 
-  const date =
-    new Date(value);
+  const date = new Date(value);
 
-  if (
-    Number.isNaN(
-      date.getTime(),
-    )
-  ) {
+  if (Number.isNaN(date.getTime())) {
     return "—";
   }
 
@@ -108,9 +111,7 @@ function getDaysRemaining(
   }
 
   const remaining =
-    new Date(
-      deadline,
-    ).getTime() -
+    new Date(deadline).getTime() -
     Date.now();
 
   if (remaining <= 0) {
@@ -136,14 +137,10 @@ export default function ReturnsRefundsPage() {
     );
 
   const [selectedItemId, setSelectedItemId] =
-    useState<string | null>(
-      null,
-    );
+    useState<string | null>(null);
 
   const [reason, setReason] =
-    useState(
-      RETURN_REASONS[0],
-    );
+    useState(RETURN_REASONS[0]);
 
   const [note, setNote] =
     useState("");
@@ -255,12 +252,10 @@ export default function ReturnsRefundsPage() {
           "/api/returns/request",
           {
             method: "POST",
-
             headers: {
               "Content-Type":
                 "application/json",
             },
-
             body: JSON.stringify({
               orderNumber:
                 orderData.order
@@ -275,8 +270,7 @@ export default function ReturnsRefundsPage() {
 
               reason,
 
-              note:
-                note.trim(),
+              note: note.trim(),
             }),
           },
         );
@@ -297,49 +291,42 @@ export default function ReturnsRefundsPage() {
         "Your return request has been submitted successfully.",
       );
 
-      setOrderData(
-        (current) => {
-          if (!current) {
-            return current;
-          }
+      setOrderData((current) => {
+        if (!current) {
+          return current;
+        }
 
-          return {
-            ...current,
+        return {
+          ...current,
+          order: {
+            ...current.order,
+            items:
+              current.order.items.map(
+                (item) => {
+                  if (
+                    item.id !==
+                    selectedItem.id
+                  ) {
+                    return item;
+                  }
 
-            order: {
-              ...current.order,
-
-              items:
-                current.order.items.map(
-                  (item) => {
-                    if (
-                      item.id !==
-                      selectedItem.id
-                    ) {
-                      return item;
-                    }
-
-                    return {
-                      ...item,
-
-                      returnAvailable:
-                        false,
-
-                      returnStatus:
-                        "Pending",
-
-                      returnRequestId:
-                        data
-                          ?.returnRequest
-                          ?.id ??
-                        null,
-                    };
-                  },
-                ),
-            },
-          };
-        },
-      );
+                  return {
+                    ...item,
+                    returnAvailable:
+                      false,
+                    returnStatus:
+                      "Pending",
+                    returnRequestId:
+                      data
+                        ?.returnRequest
+                        ?.id ??
+                      null,
+                  };
+                },
+              ),
+          },
+        };
+      });
 
       setSelectedItemId(null);
       setNote("");
@@ -354,148 +341,144 @@ export default function ReturnsRefundsPage() {
     }
   }
 
-  const returnDeadline =
-    orderData?.returnWindow
-      ?.returnDeadline;
-
   const daysRemaining =
     getDaysRemaining(
-      returnDeadline,
+      orderData?.returnWindow
+        ?.returnDeadline,
     );
 
   return (
-    <main className="min-h-screen bg-[#050505] text-[#f5f1e8]">
-      <section className="mx-auto max-w-[1500px] px-5 py-16 md:px-10 lg:px-16 lg:py-24">
-        {/* HEADER */}
-
-        <div className="max-w-4xl">
-          <p className="mb-5 text-sm font-semibold uppercase tracking-[0.28em] text-[#d4af37]">
+    <main className={styles.page}>
+      <section className={styles.container}>
+        <header className={styles.hero}>
+          <div className={styles.eyebrow}>
             KRVE CUSTOMER CARE
-          </p>
+          </div>
 
-          <h1 className="text-5xl font-light leading-[0.95] tracking-[-0.04em] md:text-7xl lg:text-8xl">
+          <h1 className={styles.heroTitle}>
             Returns &
-            <span className="text-[#d4af37]">
-              {" "}
-              refunds.
-            </span>
+            <span> refunds.</span>
           </h1>
 
-          <p className="mt-8 max-w-2xl text-base leading-8 text-[#929292] md:text-lg">
-            Changed your mind or received
-            something that isn't right?
-            Eligible products can be
-            returned within 15 days from
-            the exact time your order was
-            delivered.
+          <p className={styles.heroDescription}>
+            Information about returning
+            a KRVE purchase and how
+            refunds are handled.
           </p>
 
-          <div className="mt-8 h-[2px] w-20 bg-[#d4af37]" />
-        </div>
+          <div className={styles.goldLine} />
+        </header>
 
-        {/* RETURN POLICY */}
-
-        <div className="mt-14 grid gap-4 md:grid-cols-3">
-          <div className="border border-[#262626] bg-[#0d0d0d] p-6">
-            <p className="text-xs uppercase tracking-[0.18em] text-[#777]">
+        <section
+          className={
+            styles.policyGrid
+          }
+        >
+          <div className={styles.policyCard}>
+            <span className={styles.policyLabel}>
               RETURN WINDOW
-            </p>
+            </span>
 
-            <p className="mt-3 text-2xl font-light">
-              15 days
-            </p>
+            <h2>15 days</h2>
 
-            <p className="mt-2 text-sm leading-6 text-[#777]">
-              From the exact date and time
-              your order is delivered.
+            <p>
+              From the exact date and
+              time your order is
+              delivered.
             </p>
           </div>
 
-          <div className="border border-[#262626] bg-[#0d0d0d] p-6">
-            <p className="text-xs uppercase tracking-[0.18em] text-[#777]">
+          <div className={styles.policyCard}>
+            <span className={styles.policyLabel}>
               ELIGIBILITY
-            </p>
+            </span>
 
-            <p className="mt-3 text-2xl font-light">
+            <h2>
               Delivered orders
-            </p>
+            </h2>
 
-            <p className="mt-2 text-sm leading-6 text-[#777]">
+            <p>
               Return becomes available
               only after delivery.
             </p>
           </div>
 
-          <div className="border border-[#262626] bg-[#0d0d0d] p-6">
-            <p className="text-xs uppercase tracking-[0.18em] text-[#777]">
+          <div className={styles.policyCard}>
+            <span className={styles.policyLabel}>
               AFTER 15 DAYS
-            </p>
+            </span>
 
-            <p className="mt-3 text-2xl font-light">
+            <h2>
               Automatically closed
-            </p>
-
-            <p className="mt-2 text-sm leading-6 text-[#777]">
-              New return requests cannot
-              be submitted.
-            </p>
-          </div>
-        </div>
-
-        {/* FIND ORDER */}
-
-        <section className="mt-10 border border-[#292929] bg-[#0d0d0d] p-6 md:p-10">
-          <div className="mb-8">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#d4af37]">
-              STEP 01
-            </p>
-
-            <h2 className="mt-3 text-3xl font-light md:text-4xl">
-              Find your order
             </h2>
 
-            <p className="mt-3 text-sm leading-7 text-[#777]">
-              Enter the order ID and the
-              email address used during
-              checkout.
+            <p>
+              New return requests
+              cannot be submitted.
             </p>
           </div>
+        </section>
+
+        <section className={styles.formCard}>
+          <div className={styles.stepLabel}>
+            STEP 01
+          </div>
+
+          <h2 className={styles.sectionTitle}>
+            Find your order
+          </h2>
+
+          <p className={styles.sectionText}>
+            Enter your order ID and
+            the email address used
+            during checkout.
+          </p>
 
           <form
             onSubmit={
               handleFindOrder
             }
-            className="grid gap-4 lg:grid-cols-[1fr_1fr_auto]"
+            className={styles.orderForm}
           >
-            <input
-              value={orderNumber}
-              onChange={(event) =>
-                setOrderNumber(
-                  event.target.value,
-                )
-              }
-              required
-              placeholder="Order ID — KRVE-10245"
-              className="h-14 border border-[#333] bg-[#060606] px-5 text-white outline-none placeholder:text-[#555] focus:border-[#d4af37]"
-            />
+            <div className={styles.inputGroup}>
+              <label>
+                ORDER ID
+              </label>
 
-            <input
-              type="email"
-              value={email}
-              onChange={(event) =>
-                setEmail(
-                  event.target.value,
-                )
-              }
-              required
-              placeholder="Email address"
-              className="h-14 border border-[#333] bg-[#060606] px-5 text-white outline-none placeholder:text-[#555] focus:border-[#d4af37]"
-            />
+              <input
+                value={orderNumber}
+                onChange={(event) =>
+                  setOrderNumber(
+                    event.target.value,
+                  )
+                }
+                required
+                placeholder="e.g. KRVE-10245"
+              />
+            </div>
+
+            <div className={styles.inputGroup}>
+              <label>
+                EMAIL ADDRESS
+              </label>
+
+              <input
+                type="email"
+                value={email}
+                onChange={(event) =>
+                  setEmail(
+                    event.target.value,
+                  )
+                }
+                required
+                placeholder="Enter the email used for your order"
+              />
+            </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="h-14 bg-[#d4af37] px-8 text-sm font-bold tracking-[0.12em] text-black transition hover:bg-[#e2c45a] disabled:cursor-not-allowed disabled:opacity-50"
+              className={styles.goldButton}
             >
               {loading
                 ? "CHECKING..."
@@ -504,158 +487,143 @@ export default function ReturnsRefundsPage() {
           </form>
         </section>
 
-        {/* ERROR */}
-
         {error && (
-          <div className="mt-6 border border-red-900/60 bg-red-950/20 p-5 text-sm text-red-300">
+          <div className={styles.errorBox}>
             {error}
           </div>
         )}
 
-        {/* SUCCESS */}
-
         {success && (
-          <div className="mt-6 border border-[#5e622f] bg-[#12170b] p-5 text-sm text-[#d5e29e]">
+          <div className={styles.successBox}>
             {success}
           </div>
         )}
 
-        {/* ORDER */}
-
         {orderData && (
-          <section className="mt-10">
-            {/* ORDER SUMMARY */}
+          <>
+            <section
+              className={styles.orderSummary}
+            >
+              <div>
+                <span className={styles.mutedLabel}>
+                  ORDER
+                </span>
 
-            <div className="border border-[#292929] bg-[#0d0d0d] p-6 md:p-10">
-              <div className="flex flex-col justify-between gap-8 lg:flex-row">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.2em] text-[#666]">
-                    ORDER
-                  </p>
-
-                  <p className="mt-3 text-3xl font-light">
-                    {
-                      orderData
-                        .order
-                        .orderNumber
-                    }
-                  </p>
-
-                  <p className="mt-2 text-sm text-[#777]">
-                    {
-                      orderData
-                        .order
-                        .customerEmail
-                    }
-                  </p>
-                </div>
-
-                <div>
-                  <p className="text-xs uppercase tracking-[0.2em] text-[#666]">
-                    DELIVERED
-                  </p>
-
-                  <p className="mt-3 text-base">
-                    {formatDate(
-                      orderData
-                        .returnWindow
-                        ?.deliveredAt,
-                    )}
-                  </p>
-                </div>
-
-                <div>
-                  <p className="text-xs uppercase tracking-[0.2em] text-[#666]">
-                    RETURN DEADLINE
-                  </p>
-
-                  <p
-                    className={`mt-3 text-base ${
-                      orderData
-                        .eligible
-                        ? "text-[#d4af37]"
-                        : "text-red-400"
-                    }`}
-                  >
-                    {formatDate(
-                      orderData
-                        .returnWindow
-                        ?.returnDeadline,
-                    )}
-                  </p>
-                </div>
-              </div>
-
-              {orderData.eligible ? (
-                <div className="mt-8 border border-[#42391b] bg-[#151208] p-5">
-                  <div className="flex flex-col justify-between gap-2 md:flex-row md:items-center">
-                    <div>
-                      <p className="font-medium text-[#d4af37]">
-                        Return window is
-                        currently open.
-                      </p>
-
-                      <p className="mt-1 text-sm text-[#777]">
-                        You have approximately{" "}
-                        <span className="text-white">
-                          {daysRemaining}{" "}
-                          {daysRemaining ===
-                          1
-                            ? "day"
-                            : "days"}
-                        </span>{" "}
-                        remaining.
-                      </p>
-                    </div>
-
-                    <span className="text-xs font-bold uppercase tracking-[0.15em] text-[#d4af37]">
-                      RETURN AVAILABLE
-                    </span>
-                  </div>
-                </div>
-              ) : (
-                <div className="mt-8 border border-red-950/70 bg-red-950/10 p-5">
-                  <p className="font-medium text-red-300">
-                    Return window closed.
-                  </p>
-
-                  <p className="mt-2 text-sm leading-6 text-[#777]">
-                    The 15-day return period
-                    from delivery has expired.
-                    New return requests for
-                    this order cannot be
-                    submitted.
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {/* PRODUCTS */}
-
-            <div className="mt-10">
-              <div className="mb-7">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#d4af37]">
-                  STEP 02
-                </p>
-
-                <h2 className="mt-3 text-3xl font-light md:text-4xl">
-                  Select a product
+                <h2>
+                  {
+                    orderData.order
+                      .orderNumber
+                  }
                 </h2>
+
+                <p>
+                  {
+                    orderData.order
+                      .customerEmail
+                  }
+                </p>
               </div>
 
-              <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+              <div>
+                <span className={styles.mutedLabel}>
+                  DELIVERED
+                </span>
+
+                <strong>
+                  {formatDate(
+                    orderData
+                      .returnWindow
+                      ?.deliveredAt,
+                  )}
+                </strong>
+              </div>
+
+              <div>
+                <span className={styles.mutedLabel}>
+                  RETURN DEADLINE
+                </span>
+
+                <strong
+                  className={
+                    orderData.eligible
+                      ? styles.goldText
+                      : styles.redText
+                  }
+                >
+                  {formatDate(
+                    orderData
+                      .returnWindow
+                      ?.returnDeadline,
+                  )}
+                </strong>
+              </div>
+            </section>
+
+            {orderData.eligible ? (
+              <div className={styles.openBox}>
+                <div>
+                  <strong>
+                    Return window is
+                    currently open.
+                  </strong>
+
+                  <p>
+                    Approximately{" "}
+                    {daysRemaining}{" "}
+                    {daysRemaining ===
+                    1
+                      ? "day"
+                      : "days"}{" "}
+                    remaining.
+                  </p>
+                </div>
+
+                <span>
+                  RETURN AVAILABLE
+                </span>
+              </div>
+            ) : (
+              <div className={styles.closedBox}>
+                <strong>
+                  Return window closed.
+                </strong>
+
+                <p>
+                  The 15-day return period
+                  from delivery has expired.
+                  New return requests for
+                  this order cannot be
+                  submitted.
+                </p>
+              </div>
+            )}
+
+            <section className={styles.productsSection}>
+              <div className={styles.stepLabel}>
+                STEP 02
+              </div>
+
+              <h2 className={styles.sectionTitle}>
+                Select a product
+              </h2>
+
+              <div
+                className={
+                  styles.productsGrid
+                }
+              >
                 {orderData.order.items.map(
                   (item) => {
-                    const isSelected =
+                    const selected =
                       selectedItemId ===
                       item.id;
 
-                    const isRequested =
+                    const requested =
                       Boolean(
                         item.returnStatus,
                       );
 
-                    const isAvailable =
+                    const available =
                       Boolean(
                         item.returnAvailable &&
                           orderData.eligible,
@@ -664,15 +632,17 @@ export default function ReturnsRefundsPage() {
                     return (
                       <article
                         key={item.id}
-                        className={`overflow-hidden border bg-[#0d0d0d] transition ${
-                          isSelected
-                            ? "border-[#d4af37]"
-                            : "border-[#292929]"
+                        className={`${styles.productCard} ${
+                          selected
+                            ? styles.selectedCard
+                            : ""
                         }`}
                       >
-                        {/* IMAGE */}
-
-                        <div className="relative aspect-[4/5] bg-[#080808]">
+                        <div
+                          className={
+                            styles.productImage
+                          }
+                        >
                           {item.productImageUrl ? (
                             <img
                               src={
@@ -681,115 +651,122 @@ export default function ReturnsRefundsPage() {
                               alt={
                                 item.productName
                               }
-                              className="h-full w-full object-cover"
                             />
                           ) : (
-                            <div className="flex h-full items-center justify-center">
-                              <span className="text-2xl tracking-[0.25em] text-[#333]">
-                                KRVE
-                              </span>
-                            </div>
+                            <span>
+                              KRVE
+                            </span>
                           )}
 
-                          {isRequested && (
-                            <div className="absolute left-4 top-4 bg-black/90 px-3 py-2 text-[10px] font-bold uppercase tracking-[0.16em] text-[#d4af37]">
+                          {requested && (
+                            <div
+                              className={
+                                styles.statusBadge
+                              }
+                            >
                               {item.returnStatus}
                             </div>
                           )}
                         </div>
 
-                        {/* DETAILS */}
-
-                        <div className="p-6">
-                          <h3 className="text-xl font-light">
+                        <div
+                          className={
+                            styles.productInfo
+                          }
+                        >
+                          <h3>
                             {
                               item.productName
                             }
                           </h3>
 
                           {item.sku && (
-                            <p className="mt-2 text-xs uppercase tracking-[0.12em] text-[#555]">
+                            <p
+                              className={
+                                styles.sku
+                              }
+                            >
                               SKU:{" "}
                               {item.sku}
                             </p>
                           )}
 
-                          <div className="mt-5 grid grid-cols-2 gap-3 text-sm">
+                          <div
+                            className={
+                              styles.productMeta
+                            }
+                          >
                             <div>
-                              <p className="text-[#555]">
-                                Size
-                              </p>
-
-                              <p className="mt-1 text-[#ccc]">
+                              <span>
+                                SIZE
+                              </span>
+                              <strong>
                                 {item.size ||
                                   "—"}
-                              </p>
+                              </strong>
                             </div>
 
                             <div>
-                              <p className="text-[#555]">
-                                Colour
-                              </p>
-
-                              <p className="mt-1 text-[#ccc]">
+                              <span>
+                                COLOUR
+                              </span>
+                              <strong>
                                 {item.colour ||
                                   "—"}
-                              </p>
+                              </strong>
                             </div>
 
                             <div>
-                              <p className="text-[#555]">
-                                Quantity
-                              </p>
-
-                              <p className="mt-1 text-[#ccc]">
+                              <span>
+                                QTY
+                              </span>
+                              <strong>
                                 {
                                   item.quantity
                                 }
-                              </p>
+                              </strong>
                             </div>
 
                             <div>
-                              <p className="text-[#555]">
-                                Amount
-                              </p>
-
-                              <p className="mt-1 text-[#ccc]">
+                              <span>
+                                AMOUNT
+                              </span>
+                              <strong>
                                 {formatMoney(
                                   item.lineTotal,
                                   orderData
                                     .order
                                     .currency,
                                 )}
-                              </p>
+                              </strong>
                             </div>
                           </div>
 
                           <button
                             type="button"
                             disabled={
-                              !isAvailable ||
-                              isRequested
+                              !available ||
+                              requested
                             }
                             onClick={() =>
                               setSelectedItemId(
                                 item.id,
                               )
                             }
-                            className={`mt-6 w-full border px-5 py-4 text-xs font-bold tracking-[0.16em] transition ${
-                              isSelected
-                                ? "border-[#d4af37] bg-[#d4af37] text-black"
-                                : isAvailable
-                                  ? "border-[#d4af37] bg-transparent text-[#d4af37] hover:bg-[#d4af37] hover:text-black"
-                                  : "cursor-not-allowed border-[#292929] bg-[#151515] text-[#555]"
-                            }`}
+                            className={
+                              selected
+                                ? styles.selectedButton
+                                : available
+                                  ? styles.outlineButton
+                                  : styles.disabledButton
+                            }
                           >
-                            {isRequested
+                            {requested
                               ? `RETURN ${String(
                                   item.returnStatus,
                                 ).toUpperCase()}`
-                              : isAvailable
-                                ? isSelected
+                              : available
+                                ? selected
                                   ? "SELECTED"
                                   : "REQUEST RETURN"
                                 : "RETURN WINDOW CLOSED"}
@@ -800,96 +777,119 @@ export default function ReturnsRefundsPage() {
                   },
                 )}
               </div>
-            </div>
-
-            {/* RETURN FORM */}
+            </section>
 
             {selectedItem &&
               orderData.eligible && (
-                <section className="mt-10 border border-[#292929] bg-[#0d0d0d] p-6 md:p-10">
-                  <div className="mb-8">
-                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#d4af37]">
-                      STEP 03
-                    </p>
-
-                    <h2 className="mt-3 text-3xl font-light">
-                      Return details
-                    </h2>
-
-                    <p className="mt-3 text-sm text-[#777]">
-                      {
-                        selectedItem.productName
-                      }
-                    </p>
+                <section
+                  className={
+                    styles.returnForm
+                  }
+                >
+                  <div className={styles.stepLabel}>
+                    STEP 03
                   </div>
+
+                  <h2
+                    className={
+                      styles.sectionTitle
+                    }
+                  >
+                    Return details
+                  </h2>
+
+                  <p
+                    className={
+                      styles.selectedProduct
+                    }
+                  >
+                    {
+                      selectedItem.productName
+                    }
+                  </p>
 
                   <form
                     onSubmit={
                       handleSubmitReturn
                     }
-                    className="max-w-3xl"
                   >
-                    <label className="block text-xs font-semibold uppercase tracking-[0.16em] text-[#888]">
-                      Reason for return
-                    </label>
-
-                    <select
-                      value={reason}
-                      onChange={(event) =>
-                        setReason(
-                          event.target.value,
-                        )
+                    <div
+                      className={
+                        styles.inputGroup
                       }
-                      className="mt-3 h-14 w-full border border-[#333] bg-[#060606] px-5 text-white outline-none focus:border-[#d4af37]"
                     >
-                      {RETURN_REASONS.map(
-                        (returnReason) => (
-                          <option
-                            key={
-                              returnReason
-                            }
-                            value={
-                              returnReason
-                            }
-                          >
-                            {
-                              returnReason
-                            }
-                          </option>
-                        ),
-                      )}
-                    </select>
+                      <label>
+                        REASON FOR RETURN
+                      </label>
 
-                    <label className="mt-7 block text-xs font-semibold uppercase tracking-[0.16em] text-[#888]">
-                      Additional note
-                    </label>
+                      <select
+                        value={reason}
+                        onChange={(event) =>
+                          setReason(
+                            event.target
+                              .value,
+                          )
+                        }
+                      >
+                        {RETURN_REASONS.map(
+                          (returnReason) => (
+                            <option
+                              key={
+                                returnReason
+                              }
+                              value={
+                                returnReason
+                              }
+                            >
+                              {
+                                returnReason
+                              }
+                            </option>
+                          ),
+                        )}
+                      </select>
+                    </div>
 
-                    <textarea
-                      value={note}
-                      onChange={(event) =>
-                        setNote(
-                          event.target.value,
-                        )
+                    <div
+                      className={
+                        styles.inputGroup
                       }
-                      rows={5}
-                      placeholder="Tell us anything else about the return..."
-                      className="mt-3 w-full resize-y border border-[#333] bg-[#060606] p-5 text-white outline-none placeholder:text-[#555] focus:border-[#d4af37]"
-                    />
+                    >
+                      <label>
+                        ADDITIONAL NOTE
+                      </label>
 
-                    <div className="mt-7 flex flex-col gap-4 border border-[#292929] bg-[#080808] p-5 md:flex-row md:items-center md:justify-between">
+                      <textarea
+                        value={note}
+                        onChange={(event) =>
+                          setNote(
+                            event.target
+                              .value,
+                          )
+                        }
+                        rows={5}
+                        placeholder="Tell us anything else about the return..."
+                      />
+                    </div>
+
+                    <div
+                      className={
+                        styles.submitArea
+                      }
+                    >
                       <div>
-                        <p className="text-xs uppercase tracking-[0.14em] text-[#666]">
+                        <span>
                           REFUND AMOUNT
-                        </p>
+                        </span>
 
-                        <p className="mt-2 text-2xl text-[#d4af37]">
+                        <strong>
                           {formatMoney(
                             selectedItem.lineTotal,
                             orderData
                               .order
                               .currency,
                           )}
-                        </p>
+                        </strong>
                       </div>
 
                       <button
@@ -897,7 +897,9 @@ export default function ReturnsRefundsPage() {
                         disabled={
                           submitting
                         }
-                        className="bg-[#d4af37] px-8 py-4 text-xs font-bold tracking-[0.15em] text-black transition hover:bg-[#e2c45a] disabled:cursor-not-allowed disabled:opacity-50"
+                        className={
+                          styles.goldButton
+                        }
                       >
                         {submitting
                           ? "SUBMITTING..."
@@ -907,22 +909,16 @@ export default function ReturnsRefundsPage() {
                   </form>
                 </section>
               )}
-
-            {/* FOOT NOTE */}
-
-            <div className="mt-10 border-t border-[#222] pt-7">
-              <p className="max-w-3xl text-sm leading-7 text-[#666]">
-                Return eligibility is
-                calculated from the exact
-                delivery timestamp recorded
-                by KRVE. Once the 15-day
-                window expires, new return
-                requests are automatically
-                disabled.
-              </p>
-            </div>
-          </section>
+          </>
         )}
+
+        <footer className={styles.footerNote}>
+          Return eligibility is calculated
+          from the exact delivery timestamp
+          recorded by KRVE. Once the 15-day
+          window expires, new return requests
+          are automatically disabled.
+        </footer>
       </section>
     </main>
   );
