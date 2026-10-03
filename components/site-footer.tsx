@@ -5,23 +5,23 @@ import styles from "./site-footer.module.css";
 const shopLinks = [
   {
     label: "Men",
-    href: "/men",
+    href: "/collections?category=menswear",
   },
   {
     label: "Women",
-    href: "/women",
+    href: "/collections?category=womenswear",
   },
   {
     label: "Kids",
-    href: "/kids",
+    href: "/collections?category=kidswear",
   },
   {
     label: "Accessories",
-    href: "/accessories",
+    href: "/collections?category=accessories",
   },
   {
     label: "New Arrivals",
-    href: "/new-arrivals",
+    href: "/collections?category=new-arrivals",
   },
 ];
 
