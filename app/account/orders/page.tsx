@@ -15,6 +15,9 @@ import {
   ShieldCheck,
   ShoppingBag,
   Truck,
+  RotateCcw,
+  X,
+  AlertCircle,
 } from "lucide-react";
 
 import {
@@ -40,12 +43,26 @@ type PaymentStatus =
   | "failed"
   | "refunded";
 
+type ReturnStatus =
+  | "none"
+  | "requested"
+  | "approved"
+  | "rejected"
+  | "completed";
+
 type Order = {
   id: string;
 
   orderNumber: string;
 
   createdAt: string;
+
+  /*
+   * IMPORTANT:
+   * Backend should send the actual delivery date
+   * for delivered orders.
+   */
+  deliveredAt?: string | null;
 
   status: OrderStatus;
 
@@ -58,6 +75,8 @@ type Order = {
   currency: string;
 
   itemCount: number;
+
+  returnStatus?: ReturnStatus;
 
   items: Array<{
     id: string;
@@ -84,6 +103,14 @@ type ApiResponse = {
   orders?: Order[];
 };
 
+type ReturnResponse = {
+  success?: boolean;
+
+  message?: string;
+
+  returnId?: string;
+};
+
 const money =
   new Intl.NumberFormat(
     "en-IN",
@@ -94,6 +121,8 @@ const money =
         0,
     },
   );
+
+const RETURN_WINDOW_DAYS = 15;
 
 function formatDate(
   value: string,
@@ -211,6 +240,143 @@ function OrderStatusIcon({
   );
 }
 
+/*
+ * Return eligibility
+ *
+ * Return starts from the actual delivered date.
+ * Customer gets 15 calendar days.
+ */
+function getReturnInfo(
+  order: Order,
+) {
+  if (
+    order.status !==
+    "delivered"
+  ) {
+    return {
+      eligible: false,
+      expired: false,
+      daysLeft: 0,
+      deliveryDate: null,
+      returnUntil: null,
+      reason:
+        "Return becomes available after delivery.",
+    };
+  }
+
+  if (
+    !order.deliveredAt
+  ) {
+    return {
+      eligible: false,
+      expired: false,
+      daysLeft: 0,
+      deliveryDate: null,
+      returnUntil: null,
+      reason:
+        "Delivery date is not available yet.",
+    };
+  }
+
+  const delivered =
+    new Date(
+      order.deliveredAt,
+    );
+
+  if (
+    Number.isNaN(
+      delivered.getTime(),
+    )
+  ) {
+    return {
+      eligible: false,
+      expired: false,
+      daysLeft: 0,
+      deliveryDate: null,
+      returnUntil: null,
+      reason:
+        "Delivery date is invalid.",
+    };
+  }
+
+  const returnUntil =
+    new Date(
+      delivered,
+    );
+
+  returnUntil.setDate(
+    returnUntil.getDate() +
+      RETURN_WINDOW_DAYS,
+  );
+
+  const now =
+    new Date();
+
+  /*
+   * Compare calendar dates rather than
+   * exact hours so that the customer's
+   * 15-day window is consistent.
+   */
+  const today =
+    new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+    );
+
+  const deadline =
+    new Date(
+      returnUntil.getFullYear(),
+      returnUntil.getMonth(),
+      returnUntil.getDate(),
+    );
+
+  const deliveredDate =
+    new Date(
+      delivered.getFullYear(),
+      delivered.getMonth(),
+      delivered.getDate(),
+    );
+
+  const difference =
+    deadline.getTime() -
+    today.getTime();
+
+  const daysLeft =
+    Math.max(
+      0,
+      Math.ceil(
+        difference /
+          (1000 *
+            60 *
+            60 *
+            24),
+      ),
+    );
+
+  const expired =
+    today.getTime() >
+    deadline.getTime();
+
+  return {
+    eligible:
+      !expired,
+    expired,
+    daysLeft,
+    deliveryDate:
+      deliveredDate,
+    returnUntil:
+      deadline,
+    reason: expired
+      ? "The 15-day return period has ended."
+      : `${daysLeft} day${
+          daysLeft === 1
+            ? ""
+            : "s"
+        } left to return this product.`,
+  };
+}
+
 export default function OrdersPage() {
   const supabase =
     useMemo(
@@ -245,6 +411,34 @@ export default function OrdersPage() {
   ] =
     useState("");
 
+  const [
+    returningOrderId,
+    setReturningOrderId,
+  ] =
+    useState<string | null>(
+      null,
+    );
+
+  const [
+    returnError,
+    setReturnError,
+  ] =
+    useState("");
+
+  const [
+    returnSuccess,
+    setReturnSuccess,
+  ] =
+    useState("");
+
+  const [
+    confirmReturnOrder,
+    setConfirmReturnOrder,
+  ] =
+    useState<Order | null>(
+      null,
+    );
+
   useEffect(() => {
     let active =
       true;
@@ -272,17 +466,6 @@ export default function OrdersPage() {
 
           return;
         }
-
-        /*
-          This API route will be added
-          in the next step.
-
-          It will verify the current
-          Supabase session server-side
-          and then fetch only this
-          customer's orders from KRVE
-          Central API.
-        */
 
         const response =
           await fetch(
@@ -370,6 +553,159 @@ export default function OrdersPage() {
     supabase,
   ]);
 
+  async function submitReturn(
+    order: Order,
+  ) {
+    try {
+      setReturningOrderId(
+        order.id,
+      );
+
+      setReturnError(
+        "",
+      );
+
+      setReturnSuccess(
+        "",
+      );
+
+      const returnInfo =
+        getReturnInfo(
+          order,
+        );
+
+      if (
+        !returnInfo.eligible
+      ) {
+        throw new Error(
+          returnInfo.reason,
+        );
+      }
+
+      /*
+       * Customer must be authenticated.
+       */
+      const {
+        data,
+      } =
+        await supabase.auth.getUser();
+
+      if (
+        !data.user
+      ) {
+        window.location.href =
+          "/account";
+
+        return;
+      }
+
+      /*
+       * This route should create the
+       * return request server-side.
+       *
+       * The server must re-check:
+       * - customer ownership
+       * - delivered status
+       * - deliveredAt
+       * - 15-day return window
+       *
+       * Never trust the frontend alone.
+       */
+      const response =
+        await fetch(
+          `/api/account/orders/${encodeURIComponent(
+            order.id,
+          )}/return`,
+          {
+            method:
+              "POST",
+
+            headers: {
+              Accept:
+                "application/json",
+
+              "Content-Type":
+                "application/json",
+            },
+
+            body:
+              JSON.stringify({
+                orderId:
+                  order.id,
+              }),
+
+            cache:
+              "no-store",
+          },
+        );
+
+      let responseData:
+        ReturnResponse | null =
+        null;
+
+      try {
+        responseData =
+          (await response.json()) as ReturnResponse;
+      } catch {
+        responseData =
+          null;
+      }
+
+      if (
+        !response.ok ||
+        !responseData
+          ?.success
+      ) {
+        throw new Error(
+          responseData
+            ?.message ||
+            "Return request could not be submitted.",
+        );
+      }
+
+      setOrders(
+        (
+          current,
+        ) =>
+          current.map(
+            (
+              currentOrder,
+            ) =>
+              currentOrder.id ===
+              order.id
+                ? {
+                    ...currentOrder,
+
+                    returnStatus:
+                      "requested",
+                  }
+                : currentOrder,
+          ),
+      );
+
+      setReturnSuccess(
+        `Return request submitted for order ${order.orderNumber}.`,
+      );
+
+      setConfirmReturnOrder(
+        null,
+      );
+    } catch (
+      error
+    ) {
+      setReturnError(
+        error instanceof
+        Error
+          ? error.message
+          : "Return request could not be submitted.",
+      );
+    } finally {
+      setReturningOrderId(
+        null,
+      );
+    }
+  }
+
   const filteredOrders =
     orders.filter(
       (
@@ -454,8 +790,6 @@ export default function OrdersPage() {
             "0 auto",
         }}
       >
-        {/* BACK */}
-
         <Link
           href="/account"
           style={{
@@ -493,8 +827,6 @@ export default function OrdersPage() {
 
           BACK TO ACCOUNT
         </Link>
-
-        {/* HEADER */}
 
         <header
           style={{
@@ -576,8 +908,9 @@ export default function OrdersPage() {
               }}
             >
               View your KRVE purchases,
-              payment status and delivery
-              progress in one place.
+              payment status, delivery
+              progress and return window
+              in one place.
             </p>
           </div>
 
@@ -634,8 +967,6 @@ export default function OrdersPage() {
             </span>
           </div>
         </header>
-
-        {/* STATS */}
 
         <section
           style={{
@@ -704,7 +1035,87 @@ export default function OrdersPage() {
           />
         </section>
 
-        {/* SEARCH */}
+        {returnSuccess ? (
+          <div
+            style={{
+              marginTop:
+                "20px",
+
+              display:
+                "flex",
+
+              alignItems:
+                "center",
+
+              gap:
+                "9px",
+
+              border:
+                "1px solid rgba(216,165,41,.35)",
+
+              background:
+                "rgba(216,165,41,.05)",
+
+              padding:
+                "13px 15px",
+
+              color:
+                "#d8a529",
+
+              fontSize:
+                "9px",
+            }}
+          >
+            <CheckCircle2
+              size={16}
+            />
+
+            {
+              returnSuccess
+            }
+          </div>
+        ) : null}
+
+        {returnError ? (
+          <div
+            style={{
+              marginTop:
+                "20px",
+
+              display:
+                "flex",
+
+              alignItems:
+                "center",
+
+              gap:
+                "9px",
+
+              border:
+                "1px solid rgba(190,80,60,.4)",
+
+              background:
+                "rgba(190,80,60,.06)",
+
+              padding:
+                "13px 15px",
+
+              color:
+                "#e39b89",
+
+              fontSize:
+                "9px",
+            }}
+          >
+            <AlertCircle
+              size={16}
+            />
+
+            {
+              returnError
+            }
+          </div>
+        ) : null}
 
         <section
           style={{
@@ -837,8 +1248,6 @@ export default function OrdersPage() {
           </div>
         </section>
 
-        {/* LOADING */}
-
         {loading ? (
           <section
             style={{
@@ -892,8 +1301,6 @@ export default function OrdersPage() {
             </div>
           </section>
         ) : null}
-
-        {/* ERROR */}
 
         {!loading &&
         error ? (
@@ -963,8 +1370,6 @@ export default function OrdersPage() {
             </p>
           </section>
         ) : null}
-
-        {/* EMPTY */}
 
         {!loading &&
         !error &&
@@ -1145,8 +1550,6 @@ export default function OrdersPage() {
           </section>
         ) : null}
 
-        {/* ORDERS */}
-
         {!loading &&
         !error &&
         filteredOrders.length >
@@ -1166,334 +1569,614 @@ export default function OrdersPage() {
             {filteredOrders.map(
               (
                 order,
-              ) => (
-                <article
-                  key={
-                    order.id
-                  }
-                  style={{
-                    border:
-                      "1px solid rgba(216,165,41,.2)",
+              ) => {
+                const returnInfo =
+                  getReturnInfo(
+                    order,
+                  );
 
-                    background:
-                      "#050505",
-                  }}
-                >
-                  <div
+                const returnRequested =
+                  order.returnStatus ===
+                    "requested" ||
+                  order.returnStatus ===
+                    "approved" ||
+                  order.returnStatus ===
+                    "completed";
+
+                return (
+                  <article
+                    key={
+                      order.id
+                    }
                     style={{
-                      minHeight:
-                        "70px",
+                      border:
+                        "1px solid rgba(216,165,41,.2)",
 
-                      display:
-                        "flex",
-
-                      alignItems:
-                        "center",
-
-                      justifyContent:
-                        "space-between",
-
-                      gap:
-                        "20px",
-
-                      padding:
-                        "15px 20px",
-
-                      borderBottom:
-                        "1px solid rgba(216,165,41,.13)",
+                      background:
+                        "#050505",
                     }}
                   >
                     <div
                       style={{
+                        minHeight:
+                          "70px",
+
                         display:
                           "flex",
 
                         alignItems:
                           "center",
 
-                        gap:
-                          "13px",
-                      }}
-                    >
-                      <div
-                        style={{
-                          width:
-                            "39px",
-
-                          height:
-                            "39px",
-
-                          display:
-                            "grid",
-
-                          placeItems:
-                            "center",
-
-                          border:
-                            "1px solid rgba(216,165,41,.3)",
-
-                          color:
-                            "#d8a529",
-                        }}
-                      >
-                        <OrderStatusIcon
-                          status={
-                            order.status
-                          }
-                        />
-                      </div>
-
-                      <div>
-                        <span
-                          style={{
-                            color:
-                              "#7f6520",
-
-                            fontSize:
-                              "7px",
-
-                            fontWeight:
-                              800,
-
-                            letterSpacing:
-                              ".14em",
-                          }}
-                        >
-                          ORDER NUMBER
-                        </span>
-
-                        <strong
-                          style={{
-                            display:
-                              "block",
-
-                            marginTop:
-                              "4px",
-
-                            fontFamily:
-                              "Georgia, serif",
-
-                            fontWeight:
-                              400,
-
-                            fontSize:
-                              "16px",
-                          }}
-                        >
-                          {
-                            order.orderNumber
-                          }
-                        </strong>
-                      </div>
-                    </div>
-
-                    <div
-                      style={{
-                        display:
-                          "flex",
+                        justifyContent:
+                          "space-between",
 
                         gap:
-                          "27px",
+                          "20px",
 
-                        alignItems:
-                          "center",
+                        padding:
+                          "15px 20px",
+
+                        borderBottom:
+                          "1px solid rgba(216,165,41,.13)",
                       }}
                     >
-                      <div>
-                        <span
-                          style={{
-                            display:
-                              "block",
-
-                            color:
-                              "#777",
-
-                            fontSize:
-                              "7px",
-                          }}
-                        >
-                          ORDERED
-                        </span>
-
-                        <strong
-                          style={{
-                            display:
-                              "block",
-
-                            marginTop:
-                              "4px",
-
-                            color:
-                              "rgba(255,255,255,.68)",
-
-                            fontSize:
-                              "9px",
-
-                            fontWeight:
-                              500,
-                          }}
-                        >
-                          {formatDate(
-                            order.createdAt,
-                          )}
-                        </strong>
-                      </div>
-
-                      <div>
-                        <span
-                          style={{
-                            display:
-                              "block",
-
-                            color:
-                              "#777",
-
-                            fontSize:
-                              "7px",
-                          }}
-                        >
-                          TOTAL
-                        </span>
-
-                        <strong
-                          style={{
-                            display:
-                              "block",
-
-                            marginTop:
-                              "4px",
-
-                            color:
-                              "#d8a529",
-
-                            fontFamily:
-                              "Georgia, serif",
-
-                            fontSize:
-                              "15px",
-                          }}
-                        >
-                          {money.format(
-                            order.total,
-                          )}
-                        </strong>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div
-                    style={{
-                      display:
-                        "grid",
-
-                      gridTemplateColumns:
-                        "minmax(0,1fr) 210px",
-
-                      gap:
-                        "25px",
-
-                      padding:
-                        "20px",
-                    }}
-                  >
-                    <div>
                       <div
                         style={{
                           display:
                             "flex",
 
-                          flexWrap:
-                            "wrap",
+                          alignItems:
+                            "center",
 
                           gap:
-                            "8px",
-
-                          marginBottom:
-                            "16px",
+                            "13px",
                         }}
                       >
-                        <StatusPill>
-                          {
-                            statusLabel(
-                              order.status,
-                            )
-                          }
-                        </StatusPill>
+                        <div
+                          style={{
+                            width:
+                              "39px",
 
-                        <StatusPill>
-                          {
-                            paymentLabel(
-                              order.paymentStatus,
-                            )
-                          }
-                        </StatusPill>
+                            height:
+                              "39px",
 
-                        <StatusPill>
-                          {
-                            order.paymentMethod
-                          }
-                        </StatusPill>
+                            display:
+                              "grid",
+
+                            placeItems:
+                              "center",
+
+                            border:
+                              "1px solid rgba(216,165,41,.3)",
+
+                            color:
+                              "#d8a529",
+                          }}
+                        >
+                          <OrderStatusIcon
+                            status={
+                              order.status
+                            }
+                          />
+                        </div>
+
+                        <div>
+                          <span
+                            style={{
+                              color:
+                                "#7f6520",
+
+                              fontSize:
+                                "7px",
+
+                              fontWeight:
+                                800,
+
+                              letterSpacing:
+                                ".14em",
+                            }}
+                          >
+                            ORDER NUMBER
+                          </span>
+
+                          <strong
+                            style={{
+                              display:
+                                "block",
+
+                              marginTop:
+                                "4px",
+
+                              fontFamily:
+                                "Georgia, serif",
+
+                              fontWeight:
+                                400,
+
+                              fontSize:
+                                "16px",
+                            }}
+                          >
+                            {
+                              order.orderNumber
+                            }
+                          </strong>
+                        </div>
                       </div>
 
                       <div
                         style={{
                           display:
-                            "grid",
+                            "flex",
 
                           gap:
-                            "10px",
+                            "27px",
+
+                          alignItems:
+                            "center",
                         }}
                       >
-                        {order.items
-                          .slice(
-                            0,
-                            3,
-                          )
-                          .map(
-                            (
-                              item,
-                            ) => (
+                        <div>
+                          <span
+                            style={{
+                              display:
+                                "block",
+
+                              color:
+                                "#777",
+
+                              fontSize:
+                                "7px",
+                            }}
+                          >
+                            ORDERED
+                          </span>
+
+                          <strong
+                            style={{
+                              display:
+                                "block",
+
+                              marginTop:
+                                "4px",
+
+                              color:
+                                "rgba(255,255,255,.68)",
+
+                              fontSize:
+                                "9px",
+
+                              fontWeight:
+                                500,
+                            }}
+                          >
+                            {formatDate(
+                              order.createdAt,
+                            )}
+                          </strong>
+                        </div>
+
+                        {order.deliveredAt ? (
+                          <div>
+                            <span
+                              style={{
+                                display:
+                                  "block",
+
+                                color:
+                                  "#777",
+
+                                fontSize:
+                                  "7px",
+                              }}
+                            >
+                              DELIVERED
+                            </span>
+
+                            <strong
+                              style={{
+                                display:
+                                  "block",
+
+                                marginTop:
+                                  "4px",
+
+                                color:
+                                  "rgba(255,255,255,.68)",
+
+                                fontSize:
+                                  "9px",
+
+                                fontWeight:
+                                  500,
+                              }}
+                            >
+                              {formatDate(
+                                order.deliveredAt,
+                              )}
+                            </strong>
+                          </div>
+                        ) : null}
+
+                        <div>
+                          <span
+                            style={{
+                              display:
+                                "block",
+
+                              color:
+                                "#777",
+
+                              fontSize:
+                                "7px",
+                            }}
+                          >
+                            TOTAL
+                          </span>
+
+                          <strong
+                            style={{
+                              display:
+                                "block",
+
+                              marginTop:
+                                "4px",
+
+                              color:
+                                "#d8a529",
+
+                              fontFamily:
+                                "Georgia, serif",
+
+                              fontSize:
+                                "15px",
+                            }}
+                          >
+                            {money.format(
+                              order.total,
+                            )}
+                          </strong>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div
+                      style={{
+                        display:
+                          "grid",
+
+                        gridTemplateColumns:
+                          "minmax(0,1fr) 250px",
+
+                        gap:
+                          "25px",
+
+                        padding:
+                          "20px",
+                      }}
+                    >
+                      <div>
+                        <div
+                          style={{
+                            display:
+                              "flex",
+
+                            flexWrap:
+                              "wrap",
+
+                            gap:
+                              "8px",
+
+                            marginBottom:
+                              "16px",
+                          }}
+                        >
+                          <StatusPill>
+                            {
+                              statusLabel(
+                                order.status,
+                              )
+                            }
+                          </StatusPill>
+
+                          <StatusPill>
+                            {
+                              paymentLabel(
+                                order.paymentStatus,
+                              )
+                            }
+                          </StatusPill>
+
+                          <StatusPill>
+                            {
+                              order.paymentMethod
+                            }
+                          </StatusPill>
+                        </div>
+
+                        <div
+                          style={{
+                            display:
+                              "grid",
+
+                            gap:
+                              "10px",
+                          }}
+                        >
+                          {order.items
+                            .slice(
+                              0,
+                              3,
+                            )
+                            .map(
+                              (
+                                item,
+                              ) => (
+                                <div
+                                  key={
+                                    item.id
+                                  }
+                                  style={{
+                                    display:
+                                      "flex",
+
+                                    justifyContent:
+                                      "space-between",
+
+                                    gap:
+                                      "15px",
+
+                                    borderBottom:
+                                      "1px solid rgba(255,255,255,.05)",
+
+                                    paddingBottom:
+                                      "9px",
+                                  }}
+                                >
+                                  <div
+                                    style={{
+                                      display:
+                                        "flex",
+
+                                      gap:
+                                        "12px",
+
+                                      alignItems:
+                                        "center",
+                                    }}
+                                  >
+                                    {item.image ? (
+                                      <img
+                                        src={
+                                          item.image
+                                        }
+                                        alt={
+                                          item.name
+                                        }
+                                        style={{
+                                          width:
+                                            "48px",
+
+                                          height:
+                                            "60px",
+
+                                          objectFit:
+                                            "cover",
+
+                                          border:
+                                            "1px solid rgba(216,165,41,.18)",
+
+                                          background:
+                                            "#090909",
+                                        }}
+                                      />
+                                    ) : null}
+
+                                    <div>
+                                      <strong
+                                        style={{
+                                          display:
+                                            "block",
+
+                                          fontFamily:
+                                            "Georgia, serif",
+
+                                          fontWeight:
+                                            400,
+
+                                          fontSize:
+                                            "13px",
+                                        }}
+                                      >
+                                        {
+                                          item.name
+                                        }
+                                      </strong>
+
+                                      <span
+                                        style={{
+                                          display:
+                                            "block",
+
+                                          marginTop:
+                                            "4px",
+
+                                          color:
+                                            "rgba(255,255,255,.3)",
+
+                                          fontSize:
+                                            "8px",
+                                        }}
+                                      >
+                                        Qty{" "}
+                                        {
+                                          item.quantity
+                                        }
+                                        {item.size
+                                          ? ` · Size ${item.size}`
+                                          : ""}
+                                        {item.colour
+                                          ? ` · ${item.colour}`
+                                          : ""}
+                                      </span>
+                                    </div>
+                                  </div>
+
+                                  <span
+                                    style={{
+                                      color:
+                                        "rgba(255,255,255,.65)",
+
+                                      fontSize:
+                                        "10px",
+                                    }}
+                                  >
+                                    {money.format(
+                                      item.price *
+                                        item.quantity,
+                                    )}
+                                  </span>
+                                </div>
+                              ),
+                            )}
+                        </div>
+                      </div>
+
+                      <div
+                        style={{
+                          display:
+                            "flex",
+
+                          flexDirection:
+                            "column",
+
+                          justifyContent:
+                            "space-between",
+
+                          gap:
+                            "15px",
+
+                          borderLeft:
+                            "1px solid rgba(216,165,41,.12)",
+
+                          paddingLeft:
+                            "20px",
+                        }}
+                      >
+                        <div>
+                          <span
+                            style={{
+                              color:
+                                "#7d6420",
+
+                              fontSize:
+                                "7px",
+
+                              fontWeight:
+                                800,
+
+                              letterSpacing:
+                                ".14em",
+                            }}
+                          >
+                            CURRENT STATUS
+                          </span>
+
+                          <strong
+                            style={{
+                              display:
+                                "block",
+
+                              marginTop:
+                                "7px",
+
+                              fontFamily:
+                                "Georgia, serif",
+
+                              fontSize:
+                                "19px",
+
+                              fontWeight:
+                                400,
+                            }}
+                          >
+                            {statusLabel(
+                              order.status,
+                            )}
+                          </strong>
+
+                          {order.status ===
+                            "delivered" ? (
+                            <div
+                              style={{
+                                marginTop:
+                                  "14px",
+
+                                padding:
+                                  "11px",
+
+                                border:
+                                  "1px solid rgba(216,165,41,.16)",
+
+                                background:
+                                  "rgba(216,165,41,.025)",
+                              }}
+                            >
                               <div
-                                key={
-                                  item.id
-                                }
                                 style={{
                                   display:
                                     "flex",
 
-                                  justifyContent:
-                                    "space-between",
+                                  alignItems:
+                                    "center",
 
                                   gap:
-                                    "15px",
+                                    "7px",
 
-                                  borderBottom:
-                                    "1px solid rgba(255,255,255,.05)",
+                                  color:
+                                    "#d8a529",
 
-                                  paddingBottom:
-                                    "9px",
+                                  fontSize:
+                                    "8px",
+
+                                  fontWeight:
+                                    800,
                                 }}
                               >
-                                <div>
-                                  <strong
+                                <CalendarDays
+                                  size={
+                                    14
+                                  }
+                                />
+
+                                RETURN WINDOW
+                              </div>
+
+                              {order.deliveredAt ? (
+                                <>
+                                  <span
                                     style={{
                                       display:
                                         "block",
 
-                                      fontFamily:
-                                        "Georgia, serif",
+                                      marginTop:
+                                        "8px",
 
-                                      fontWeight:
-                                        400,
+                                      color:
+                                        "rgba(255,255,255,.36)",
 
                                       fontSize:
-                                        "13px",
+                                        "8px",
+
+                                      lineHeight:
+                                        1.6,
                                     }}
                                   >
-                                    {
-                                      item.name
-                                    }
-                                  </strong>
+                                    Delivered on{" "}
+                                    {formatDate(
+                                      order.deliveredAt,
+                                    )}
+                                  </span>
 
                                   <span
                                     style={{
@@ -1501,163 +2184,241 @@ export default function OrdersPage() {
                                         "block",
 
                                       marginTop:
-                                        "4px",
+                                        "3px",
 
                                       color:
-                                        "rgba(255,255,255,.3)",
+                                        returnInfo.expired
+                                          ? "#a66b60"
+                                          : "#d8a529",
 
                                       fontSize:
                                         "8px",
+
+                                      fontWeight:
+                                        700,
                                     }}
                                   >
-                                    Qty{" "}
-                                    {
-                                      item.quantity
-                                    }
-                                    {item.size
-                                      ? ` · Size ${item.size}`
-                                      : ""}
+                                    {returnInfo.expired
+                                      ? "Return period expired"
+                                      : `${returnInfo.daysLeft} day${
+                                          returnInfo.daysLeft ===
+                                          1
+                                            ? ""
+                                            : "s"
+                                        } remaining`}
                                   </span>
-                                </div>
-
+                                </>
+                              ) : (
                                 <span
                                   style={{
+                                    display:
+                                      "block",
+
+                                    marginTop:
+                                      "8px",
+
                                     color:
-                                      "rgba(255,255,255,.65)",
+                                      "rgba(255,255,255,.36)",
 
                                     fontSize:
-                                      "10px",
+                                      "8px",
+
+                                    lineHeight:
+                                      1.6,
                                   }}
                                 >
-                                  {money.format(
-                                    item.price *
-                                      item.quantity,
-                                  )}
+                                  Delivery date is
+                                  required to calculate
+                                  the 15-day return window.
                                 </span>
-                              </div>
-                            ),
-                          )}
-                      </div>
-                    </div>
+                              )}
+                            </div>
+                          ) : null}
+                        </div>
 
-                    <div
-                      style={{
-                        display:
-                          "flex",
-
-                        flexDirection:
-                          "column",
-
-                        justifyContent:
-                          "space-between",
-
-                        gap:
-                          "15px",
-
-                        borderLeft:
-                          "1px solid rgba(216,165,41,.12)",
-
-                        paddingLeft:
-                          "20px",
-                      }}
-                    >
-                      <div>
-                        <span
+                        <Link
+                          href={`/account/orders/${encodeURIComponent(
+                            order.id,
+                          )}`}
                           style={{
+                            minHeight:
+                              "42px",
+
+                            display:
+                              "flex",
+
+                            alignItems:
+                              "center",
+
+                            justifyContent:
+                              "space-between",
+
+                            border:
+                              "1px solid rgba(216,165,41,.35)",
+
+                            padding:
+                              "0 13px",
+
                             color:
-                              "#7d6420",
+                              "#d8a529",
+
+                            textDecoration:
+                              "none",
 
                             fontSize:
-                              "7px",
+                              "8px",
 
                             fontWeight:
                               800,
 
                             letterSpacing:
-                              ".14em",
+                              ".1em",
                           }}
                         >
-                          CURRENT STATUS
-                        </span>
+                          VIEW ORDER
 
-                        <strong
-                          style={{
-                            display:
-                              "block",
+                          <ChevronRight
+                            size={14}
+                          />
+                        </Link>
 
-                            marginTop:
-                              "7px",
+                        {order.status ===
+                        "delivered" ? (
+                          returnRequested ? (
+                            <div
+                              style={{
+                                minHeight:
+                                  "42px",
 
-                            fontFamily:
-                              "Georgia, serif",
+                                display:
+                                  "flex",
 
-                            fontSize:
-                              "19px",
+                                alignItems:
+                                  "center",
 
-                            fontWeight:
-                              400,
-                          }}
-                        >
-                          {statusLabel(
-                            order.status,
-                          )}
-                        </strong>
+                                justifyContent:
+                                  "center",
+
+                                gap:
+                                  "8px",
+
+                                border:
+                                  "1px solid rgba(216,165,41,.3)",
+
+                                background:
+                                  "rgba(216,165,41,.035)",
+
+                                color:
+                                  "#d8a529",
+
+                                fontSize:
+                                  "8px",
+
+                                fontWeight:
+                                  800,
+
+                                letterSpacing:
+                                  ".1em",
+                              }}
+                            >
+                              <CheckCircle2
+                                size={
+                                  14
+                                }
+                              />
+
+                              RETURN REQUESTED
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              disabled={
+                                !returnInfo.eligible ||
+                                returningOrderId ===
+                                  order.id
+                              }
+                              onClick={() => {
+                                setReturnError(
+                                  "",
+                                );
+
+                                setReturnSuccess(
+                                  "",
+                                );
+
+                                setConfirmReturnOrder(
+                                  order,
+                                );
+                              }}
+                              style={{
+                                minHeight:
+                                  "42px",
+
+                                display:
+                                  "flex",
+
+                                alignItems:
+                                  "center",
+
+                                justifyContent:
+                                  "center",
+
+                                gap:
+                                  "8px",
+
+                                border:
+                                  returnInfo.eligible
+                                    ? "1px solid #d8a529"
+                                    : "1px solid rgba(255,255,255,.08)",
+
+                                background:
+                                  returnInfo.eligible
+                                    ? "rgba(216,165,41,.07)"
+                                    : "rgba(255,255,255,.02)",
+
+                                color:
+                                  returnInfo.eligible
+                                    ? "#d8a529"
+                                    : "rgba(255,255,255,.22)",
+
+                                fontSize:
+                                  "8px",
+
+                                fontWeight:
+                                  800,
+
+                                letterSpacing:
+                                  ".1em",
+
+                                cursor:
+                                  returnInfo.eligible
+                                    ? "pointer"
+                                    : "not-allowed",
+                              }}
+                            >
+                              <RotateCcw
+                                size={
+                                  14
+                                }
+                              />
+
+                              {returnInfo.expired
+                                ? "RETURN PERIOD EXPIRED"
+                                : returningOrderId ===
+                                  order.id
+                                ? "SUBMITTING..."
+                                : "RETURN PRODUCT"}
+                            </button>
+                          )
+                        ) : null}
                       </div>
-
-                      <Link
-                        href={`/account/orders/${encodeURIComponent(
-                          order.id,
-                        )}`}
-                        style={{
-                          minHeight:
-                            "42px",
-
-                          display:
-                            "flex",
-
-                          alignItems:
-                            "center",
-
-                          justifyContent:
-                            "space-between",
-
-                          border:
-                            "1px solid rgba(216,165,41,.35)",
-
-                          padding:
-                            "0 13px",
-
-                          color:
-                            "#d8a529",
-
-                          textDecoration:
-                            "none",
-
-                          fontSize:
-                            "8px",
-
-                          fontWeight:
-                            800,
-
-                          letterSpacing:
-                            ".1em",
-                        }}
-                      >
-                        VIEW ORDER
-
-                        <ChevronRight
-                          size={14}
-                        />
-                      </Link>
                     </div>
-                  </div>
-                </article>
-              ),
+                  </article>
+                );
+              },
             )}
           </section>
         ) : null}
-
-        {/* SECURITY */}
 
         <footer
           style={{
@@ -1738,6 +2499,337 @@ export default function OrdersPage() {
           </div>
         </footer>
       </section>
+
+      {/* RETURN CONFIRMATION MODAL */}
+
+      {confirmReturnOrder ? (
+        <div
+          style={{
+            position:
+              "fixed",
+
+            inset:
+              0,
+
+            zIndex:
+              100,
+
+            display:
+              "grid",
+
+            placeItems:
+              "center",
+
+            padding:
+              "20px",
+
+            background:
+              "rgba(0,0,0,.78)",
+          }}
+        >
+          <div
+            style={{
+              position:
+                "relative",
+
+              width:
+                "min(470px,100%)",
+
+              border:
+                "1px solid rgba(216,165,41,.4)",
+
+              background:
+                "#060606",
+
+              padding:
+                "30px",
+
+              boxShadow:
+                "0 30px 100px rgba(0,0,0,.7)",
+            }}
+          >
+            <button
+              type="button"
+              onClick={() =>
+                setConfirmReturnOrder(
+                  null,
+                )
+              }
+              style={{
+                position:
+                  "absolute",
+
+                top:
+                  "15px",
+
+                right:
+                  "15px",
+
+                width:
+                  "32px",
+
+                height:
+                  "32px",
+
+                display:
+                  "grid",
+
+                placeItems:
+                  "center",
+
+                border:
+                  "1px solid rgba(255,255,255,.1)",
+
+                background:
+                  "transparent",
+
+                color:
+                  "rgba(255,255,255,.5)",
+
+                cursor:
+                  "pointer",
+              }}
+            >
+              <X
+                size={15}
+              />
+            </button>
+
+            <RotateCcw
+              size={29}
+              color="#d8a529"
+              strokeWidth={
+                1.2
+              }
+            />
+
+            <span
+              style={{
+                display:
+                  "block",
+
+                marginTop:
+                  "18px",
+
+                color:
+                  "#d8a529",
+
+                fontSize:
+                  "7px",
+
+                fontWeight:
+                  800,
+
+                letterSpacing:
+                  ".16em",
+              }}
+            >
+              RETURN REQUEST
+            </span>
+
+            <h2
+              style={{
+                margin:
+                  "9px 0 10px",
+
+                fontFamily:
+                  "Georgia, serif",
+
+                fontSize:
+                  "29px",
+
+                fontWeight:
+                  400,
+              }}
+            >
+              Return this order?
+            </h2>
+
+            <p
+              style={{
+                margin:
+                  0,
+
+                color:
+                  "rgba(255,255,255,.4)",
+
+                fontSize:
+                  "10px",
+
+                lineHeight:
+                  1.8,
+              }}
+            >
+              You are requesting a return for
+              order{" "}
+              <strong
+                style={{
+                  color:
+                    "#d8a529",
+                }}
+              >
+                {
+                  confirmReturnOrder.orderNumber
+                }
+              </strong>
+              .
+            </p>
+
+            {confirmReturnOrder.deliveredAt ? (
+              <div
+                style={{
+                  marginTop:
+                    "20px",
+
+                  display:
+                    "grid",
+
+                  gap:
+                    "8px",
+
+                  border:
+                    "1px solid rgba(216,165,41,.16)",
+
+                  padding:
+                    "14px",
+                }}
+              >
+                <span
+                  style={{
+                    color:
+                      "rgba(255,255,255,.35)",
+
+                    fontSize:
+                      "8px",
+                  }}
+                >
+                  Delivered on{" "}
+                  {formatDate(
+                    confirmReturnOrder.deliveredAt,
+                  )}
+                </span>
+
+                <span
+                  style={{
+                    color:
+                      "#d8a529",
+
+                    fontSize:
+                      "9px",
+
+                    fontWeight:
+                      800,
+                  }}
+                >
+                  Return must be requested within
+                  15 days of delivery.
+                </span>
+              </div>
+            ) : null}
+
+            <div
+              style={{
+                display:
+                  "grid",
+
+                gridTemplateColumns:
+                  "1fr 1fr",
+
+                gap:
+                  "10px",
+
+                marginTop:
+                  "22px",
+              }}
+            >
+              <button
+                type="button"
+                onClick={() =>
+                  setConfirmReturnOrder(
+                    null,
+                  )
+                }
+                style={{
+                  minHeight:
+                    "45px",
+
+                  border:
+                    "1px solid rgba(255,255,255,.12)",
+
+                  background:
+                    "transparent",
+
+                  color:
+                    "rgba(255,255,255,.6)",
+
+                  fontSize:
+                    "8px",
+
+                  fontWeight:
+                    800,
+
+                  letterSpacing:
+                    ".1em",
+
+                  cursor:
+                    "pointer",
+                }}
+              >
+                CANCEL
+              </button>
+
+              <button
+                type="button"
+                disabled={
+                  returningOrderId ===
+                  confirmReturnOrder.id
+                }
+                onClick={() =>
+                  void submitReturn(
+                    confirmReturnOrder,
+                  )
+                }
+                style={{
+                  minHeight:
+                    "45px",
+
+                  border:
+                    0,
+
+                  background:
+                    "linear-gradient(90deg,#b87c0d,#edbd45,#ca8b14)",
+
+                  color:
+                    "#050505",
+
+                  fontSize:
+                    "8px",
+
+                  fontWeight:
+                    900,
+
+                  letterSpacing:
+                    ".1em",
+
+                  cursor:
+                    "pointer",
+
+                  opacity:
+                    returningOrderId ===
+                    confirmReturnOrder.id
+                      ? 0.55
+                      : 1,
+                }}
+              >
+                {returningOrderId ===
+                confirmReturnOrder.id
+                  ? "SUBMITTING..."
+                  : "CONFIRM RETURN"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </main>
   );
 }
