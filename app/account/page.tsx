@@ -59,6 +59,74 @@ type FormState = {
   confirmPassword: string;
 };
 
+type AccountOrder = {
+  id: string;
+  orderNumber: string;
+  createdAt: string;
+  status: string;
+  paymentStatus: string;
+  total: number;
+  currency: string;
+  itemCount: number;
+  items: Array<{
+    id: string;
+    name: string;
+    image?: string | null;
+    size?: string | null;
+    colour?: string | null;
+    quantity: number;
+    price: number;
+  }>;
+};
+
+type OrdersApiResponse = {
+  success?: boolean;
+  message?: string;
+  orders?: AccountOrder[];
+};
+
+function formatAccountDate(value: string) {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return new Intl.DateTimeFormat("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).format(date);
+}
+
+function accountStatusLabel(status: string) {
+  switch (status.toLowerCase()) {
+    case "processing":
+      return "Processing";
+    case "packed":
+      return "Packed";
+    case "shipped":
+      return "Shipped";
+    case "out_for_delivery":
+      return "Out for delivery";
+    case "delivered":
+      return "Delivered";
+    case "cancelled":
+    case "canceled":
+      return "Cancelled";
+    default:
+      return "Confirmed";
+  }
+}
+
+function accountMoney(value: number, currency: string) {
+  return new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: currency || "INR",
+    maximumFractionDigits: 0,
+  }).format(value);
+}
+
 const initialForm: FormState = {
   firstName: "",
   lastName: "",
@@ -179,6 +247,24 @@ function AccountContent() {
   ] =
     useState("");
 
+  const [
+    recentOrders,
+    setRecentOrders,
+  ] =
+    useState<AccountOrder[]>([]);
+
+  const [
+    ordersLoading,
+    setOrdersLoading,
+  ] =
+    useState(false);
+
+  const [
+    ordersError,
+    setOrdersError,
+  ] =
+    useState("");
+
   useEffect(() => {
     let mounted =
       true;
@@ -286,6 +372,72 @@ function AccountContent() {
     searchParams,
     supabase,
   ]);
+
+  useEffect(() => {
+    if (!user) {
+      setRecentOrders([]);
+      setOrdersError("");
+      return;
+    }
+
+    let active = true;
+
+    async function loadRecentOrders() {
+      try {
+        setOrdersLoading(true);
+        setOrdersError("");
+
+        const response = await fetch("/api/account/orders", {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+          },
+          cache: "no-store",
+        });
+
+        let data: OrdersApiResponse | null = null;
+
+        try {
+          data = (await response.json()) as OrdersApiResponse;
+        } catch {
+          data = null;
+        }
+
+        if (!response.ok || !data?.success) {
+          throw new Error(
+            data?.message ||
+              "Your order history could not be loaded.",
+          );
+        }
+
+        if (active) {
+          setRecentOrders(
+            Array.isArray(data.orders)
+              ? data.orders.slice(0, 3)
+              : [],
+          );
+        }
+      } catch (error) {
+        if (active) {
+          setOrdersError(
+            error instanceof Error
+              ? error.message
+              : "Your order history could not be loaded.",
+          );
+        }
+      } finally {
+        if (active) {
+          setOrdersLoading(false);
+        }
+      }
+    }
+
+    void loadRecentOrders();
+
+    return () => {
+      active = false;
+    };
+  }, [user]);
 
   function updateField(
     field:
@@ -1025,6 +1177,152 @@ function AccountContent() {
                 },
               )}
             </div>
+          </section>
+
+          {/* RECENT ORDERS */}
+
+          <section
+            className={
+              styles.accountSection
+            }
+          >
+            <div
+              className={
+                styles.sectionHeader
+              }
+            >
+              <div>
+                <span>
+                  PURCHASE HISTORY
+                </span>
+
+                <h2>
+                  Recent Orders
+                </h2>
+              </div>
+
+              <Link
+                href="/account/orders"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "7px",
+                  color: "#d8a529",
+                  fontSize: "8px",
+                  fontWeight: 800,
+                  letterSpacing: ".12em",
+                  textDecoration: "none",
+                }}
+              >
+                VIEW ALL
+                <ArrowRight size={14} />
+              </Link>
+            </div>
+
+            {ordersLoading ? (
+              <div
+                className={styles.accountCard}
+                style={{ cursor: "default" }}
+              >
+                <PackageCheck size={20} />
+                <div>
+                  <small>
+                    KRVE ORDERS
+                  </small>
+                  <h3>
+                    Loading your purchases...
+                  </h3>
+                </div>
+              </div>
+            ) : ordersError ? (
+              <div
+                className={styles.accountCard}
+                style={{ cursor: "default" }}
+              >
+                <ShieldCheck size={20} />
+                <div>
+                  <small>
+                    ORDER HISTORY
+                  </small>
+                  <h3>
+                    Orders are temporarily unavailable.
+                  </h3>
+                  <p>{ordersError}</p>
+                </div>
+              </div>
+            ) : recentOrders.length === 0 ? (
+              <div
+                className={styles.accountCard}
+                style={{ cursor: "default" }}
+              >
+                <ShoppingBag size={20} />
+                <div>
+                  <small>
+                    PURCHASE HISTORY
+                  </small>
+                  <h3>
+                    No orders yet.
+                  </h3>
+                  <p>
+                    Your KRVE purchases will appear here after checkout.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className={styles.accountGrid}>
+                {recentOrders.map((order) => {
+                  const firstItem = order.items?.[0];
+
+                  return (
+                    <Link
+                      href={`/account/orders/${encodeURIComponent(order.id)}`}
+                      key={order.id}
+                      className={styles.accountCard}
+                    >
+                      {firstItem?.image ? (
+                        <img
+                          src={firstItem.image}
+                          alt={firstItem.name}
+                          style={{
+                            width: 58,
+                            height: 72,
+                            objectFit: "cover",
+                            flexShrink: 0,
+                          }}
+                        />
+                      ) : (
+                        <div
+                          className={styles.accountCardIcon}
+                        >
+                          <PackageCheck size={20} strokeWidth={1.35} />
+                        </div>
+                      )}
+
+                      <div style={{ minWidth: 0, flex: 1 }}>
+                        <small>
+                          {order.orderNumber}
+                        </small>
+
+                        <h3>
+                          {firstItem?.name ||
+                            `${order.itemCount} KRVE item${order.itemCount === 1 ? "" : "s"}`}
+                        </h3>
+
+                        <p>
+                          {accountStatusLabel(order.status)}
+                          {" • "}
+                          {formatAccountDate(order.createdAt)}
+                          {" • "}
+                          {accountMoney(order.total, order.currency)}
+                        </p>
+                      </div>
+
+                      <ArrowRight size={15} />
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
           </section>
 
           {/* EXPERIENCE */}
