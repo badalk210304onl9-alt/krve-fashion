@@ -3,15 +3,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { useMemo, useState } from "react";
 
-import {
-  useMemo,
-  useState,
-} from "react";
-
-import {
-  useCart,
-} from "@/components/cart-provider";
+import { useCart } from "@/components/cart-provider";
 
 import type {
   KrveProduct,
@@ -20,9 +14,7 @@ import type {
 
 import styles from "./collections.module.css";
 
-type CategoryFilter =
-  | "all"
-  | ProductCategory;
+type CategoryFilter = "all" | ProductCategory;
 
 type SortOption =
   | "featured"
@@ -83,9 +75,7 @@ const categoryOptions: {
   },
 ];
 
-function HeartIcon({
-  size = 21,
-}: IconProps) {
+function HeartIcon({ size = 21 }: IconProps) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -110,9 +100,7 @@ function HeartIcon({
   );
 }
 
-function BagIcon({
-  size = 18,
-}: IconProps) {
+function BagIcon({ size = 18 }: IconProps) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -142,9 +130,7 @@ function BagIcon({
   );
 }
 
-function ArrowIcon({
-  size = 17,
-}: IconProps) {
+function ArrowIcon({ size = 17 }: IconProps) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -158,9 +144,7 @@ function ArrowIcon({
   );
 }
 
-function SparkleIcon({
-  size = 20,
-}: IconProps) {
+function SparkleIcon({ size = 20 }: IconProps) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -199,9 +183,7 @@ function SparkleIcon({
   );
 }
 
-function FilterIcon({
-  size = 18,
-}: IconProps) {
+function FilterIcon({ size = 18 }: IconProps) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -216,9 +198,7 @@ function FilterIcon({
   );
 }
 
-function SearchIcon({
-  size = 18,
-}: IconProps) {
+function SearchIcon({ size = 18 }: IconProps) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -241,57 +221,65 @@ function formatPrice(
   price: number,
   currency = "INR",
 ) {
-  return new Intl.NumberFormat(
-    "en-IN",
-    {
-      style: "currency",
-      currency,
-      maximumFractionDigits: 0,
-    },
-  ).format(price);
+  return new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency,
+    maximumFractionDigits: 0,
+  }).format(price);
 }
 
 function getCategoryLabel(
   category: ProductCategory,
 ) {
-  const matched =
-    categoryOptions.find(
-      (item) =>
-        item.id === category,
-    );
-
-  return (
-    matched?.title ??
-    "KRVE Collection"
+  const matched = categoryOptions.find(
+    (item) => item.id === category,
   );
+
+  return matched?.title ?? "KRVE Collection";
 }
 
+/**
+ * IMPORTANT:
+ * Product images now come ONLY from the live product data.
+ *
+ * We intentionally do NOT use:
+ * /images/products/product-1.jpg
+ *
+ * because that was a demo/fallback product image.
+ */
 function getProductImage(
   product: KrveProduct,
-) {
-  return (
-    product.image ||
-    product.imageUrl ||
-    product.gallery?.[0] ||
-    "/images/products/product-1.jpg"
+): string | null {
+  const candidates = [
+    product.image,
+    product.imageUrl,
+    ...(Array.isArray(product.gallery)
+      ? product.gallery
+      : []),
+  ];
+
+  const validImage = candidates.find(
+    (image): image is string =>
+      typeof image === "string" &&
+      image.trim().length > 0,
   );
+
+  return validImage ?? null;
 }
 
 function getCategoryImage(
   category: ProductCategory,
   products: KrveProduct[],
-) {
-  const categoryProduct =
-    products.find(
-      (product) =>
-        product.category === category,
-    );
+): string | null {
+  const categoryProduct = products.find(
+    (product) =>
+      product.category === category &&
+      Boolean(getProductImage(product)),
+  );
 
   return categoryProduct
-    ? getProductImage(
-        categoryProduct,
-      )
-    : "/images/products/product-1.jpg";
+    ? getProductImage(categoryProduct)
+    : null;
 }
 
 function getCategoryCount(
@@ -302,6 +290,55 @@ function getCategoryCount(
     (product) =>
       product.category === category,
   ).length;
+}
+
+function ProductImage({
+  product,
+  className,
+  sizes,
+}: {
+  product: KrveProduct;
+  className?: string;
+  sizes: string;
+}) {
+  const image = getProductImage(product);
+
+  if (!image) {
+    return (
+      <span
+        className={className}
+        aria-label={`${product.name} image unavailable`}
+      >
+        <span
+          style={{
+            position: "absolute",
+            inset: 0,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "24px",
+            textAlign: "center",
+            fontSize: "12px",
+            letterSpacing: "0.12em",
+            opacity: 0.65,
+          }}
+        >
+          IMAGE UNAVAILABLE
+        </span>
+      </span>
+    );
+  }
+
+  return (
+    <span className={className}>
+      <Image
+        src={image}
+        alt={product.name}
+        fill
+        sizes={sizes}
+      />
+    </span>
+  );
 }
 
 export default function CollectionsClient({
@@ -330,213 +367,165 @@ export default function CollectionsClient({
   const [
     activeCategory,
     setActiveCategory,
-  ] =
-    useState<CategoryFilter>(
-      initialCategory,
-    );
+  ] = useState<CategoryFilter>(
+    initialCategory,
+  );
 
   const [
     sortOption,
     setSortOption,
-  ] =
-    useState<SortOption>(
-      "featured",
-    );
+  ] = useState<SortOption>(
+    "featured",
+  );
 
   const [
     searchQuery,
     setSearchQuery,
-  ] =
-    useState("");
+  ] = useState("");
 
-  const visibleProducts =
-    useMemo(() => {
-      let result =
-        [...initialProducts];
+  const visibleProducts = useMemo(() => {
+    let result = [...initialProducts];
 
-      if (
-        activeCategory !== "all"
-      ) {
-        result =
-          result.filter(
-            (product) =>
-              product.category ===
-              activeCategory,
+    if (activeCategory !== "all") {
+      result = result.filter(
+        (product) =>
+          product.category ===
+          activeCategory,
+      );
+    }
+
+    const cleanSearch =
+      searchQuery.trim().toLowerCase();
+
+    if (cleanSearch) {
+      result = result.filter(
+        (product) => {
+          const content = [
+            product.name,
+            product.category,
+            product.description,
+            product.shortDescription,
+            product.sku,
+          ]
+            .filter(Boolean)
+            .join(" ")
+            .toLowerCase();
+
+          return content.includes(
+            cleanSearch,
           );
-      }
+        },
+      );
+    }
 
-      const cleanSearch =
-        searchQuery
-          .trim()
-          .toLowerCase();
+    if (sortOption === "price-low") {
+      result.sort(
+        (first, second) =>
+          first.price - second.price,
+      );
+    }
 
-      if (cleanSearch) {
-        result =
-          result.filter(
-            (product) => {
-              const content = [
-                product.name,
-                product.category,
-                product.description,
-                product.shortDescription,
-                product.sku,
-              ]
-                .filter(Boolean)
-                .join(" ")
-                .toLowerCase();
+    if (sortOption === "price-high") {
+      result.sort(
+        (first, second) =>
+          second.price - first.price,
+      );
+    }
 
-              return content.includes(
-                cleanSearch,
-              );
-            },
-          );
-      }
+    if (sortOption === "name") {
+      result.sort(
+        (first, second) =>
+          first.name.localeCompare(
+            second.name,
+          ),
+      );
+    }
 
-      if (
-        sortOption ===
-        "price-low"
-      ) {
-        result.sort(
-          (first, second) =>
-            first.price -
-            second.price,
-        );
-      }
+    if (sortOption === "newest") {
+      result.sort(
+        (first, second) =>
+          new Date(
+            second.createdAt || 0,
+          ).getTime() -
+          new Date(
+            first.createdAt || 0,
+          ).getTime(),
+      );
+    }
 
-      if (
-        sortOption ===
-        "price-high"
-      ) {
-        result.sort(
-          (first, second) =>
-            second.price -
-            first.price,
-        );
-      }
+    if (sortOption === "featured") {
+      result.sort(
+        (first, second) => {
+          if (
+            first.featured !==
+            second.featured
+          ) {
+            return first.featured
+              ? -1
+              : 1;
+          }
 
-      if (
-        sortOption === "name"
-      ) {
-        result.sort(
-          (first, second) =>
-            first.name.localeCompare(
-              second.name,
-            ),
-        );
-      }
+          if (
+            first.newArrival !==
+            second.newArrival
+          ) {
+            return first.newArrival
+              ? -1
+              : 1;
+          }
 
-      if (
-        sortOption === "newest"
-      ) {
-        result.sort(
-          (first, second) =>
-            new Date(
-              second.createdAt ||
-                0,
-            ).getTime() -
-            new Date(
-              first.createdAt ||
-                0,
-            ).getTime(),
-        );
-      }
+          return 0;
+        },
+      );
+    }
 
-      if (
-        sortOption ===
-        "featured"
-      ) {
-        result.sort(
-          (first, second) => {
-            if (
-              first.featured !==
-              second.featured
-            ) {
-              return first.featured
-                ? -1
-                : 1;
-            }
-
-            if (
-              first.newArrival !==
-              second.newArrival
-            ) {
-              return first.newArrival
-                ? -1
-                : 1;
-            }
-
-            return 0;
-          },
-        );
-      }
-
-      return result;
-    }, [
-      activeCategory,
-      initialProducts,
-      searchQuery,
-      sortOption,
-    ]);
+    return result;
+  }, [
+    activeCategory,
+    initialProducts,
+    searchQuery,
+    sortOption,
+  ]);
 
   function selectCategory(
     category: CategoryFilter,
   ) {
-    setActiveCategory(
-      category,
-    );
+    setActiveCategory(category);
 
-    window.setTimeout(
-      () => {
-        document
-          .getElementById(
-            "collection-products",
-          )
-          ?.scrollIntoView({
-            behavior: "smooth",
-            block: "start",
-          });
-      },
-      50,
-    );
+    window.setTimeout(() => {
+      document
+        .getElementById(
+          "collection-products",
+        )
+        ?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+    }, 50);
   }
 
   return (
-    <main
-      className={styles.page}
-    >
-      <section
-        className={styles.hero}
-      >
+    <main className={styles.page}>
+      <section className={styles.hero}>
         <div
-          className={
-            styles.heroPattern
-          }
+          className={styles.heroPattern}
         />
 
         <div
-          className={
-            styles.heroMonogram
-          }
+          className={styles.heroMonogram}
         >
           K
         </div>
 
         <div
-          className={
-            styles.heroContent
-          }
+          className={styles.heroContent}
         >
-          <div
-            className={
-              styles.eyebrow
-            }
-          >
+          <div className={styles.eyebrow}>
             <span />
 
             <SparkleIcon />
 
-            KRVE PRIVATE
-            COLLECTIONS
+            KRVE PRIVATE COLLECTIONS
           </div>
 
           <h1>
@@ -547,25 +536,18 @@ export default function CollectionsClient({
           </h1>
 
           <p>
-            Explore luxury
-            menswear,
-            womenswear,
-            kidswear,
+            Explore luxury menswear,
+            womenswear, kidswear,
             accessories and
-            footwear—curated
-            through the refined
-            world of KRVE.
+            footwear—curated through
+            the refined world of KRVE.
           </p>
 
           <div
-            className={
-              styles.heroMeta
-            }
+            className={styles.heroMeta}
           >
             <div>
-              <strong>
-                05
-              </strong>
+              <strong>05</strong>
 
               <span>
                 MAIN CATEGORIES
@@ -574,9 +556,7 @@ export default function CollectionsClient({
 
             <div>
               <strong>
-                {
-                  initialProducts.length
-                }
+                {initialProducts.length}
               </strong>
 
               <span>
@@ -598,18 +578,10 @@ export default function CollectionsClient({
           </div>
         </div>
 
-        <div
-          className={
-            styles.heroCard
-          }
-        >
-          <SparkleIcon
-            size={35}
-          />
+        <div className={styles.heroCard}>
+          <SparkleIcon size={35} />
 
-          <p>
-            KRVE INTELLIGENCE
-          </p>
+          <p>KRVE INTELLIGENCE</p>
 
           <h2>
             Your personal
@@ -619,17 +591,13 @@ export default function CollectionsClient({
           </h2>
 
           <span>
-            Let KRVE AI
-            understand your
-            style and recommend
-            pieces selected
-            around your
-            personality.
+            Let KRVE AI understand
+            your style and recommend
+            pieces selected around
+            your personality.
           </span>
 
-          <Link
-            href="/ai-stylist"
-          >
+          <Link href="/ai-stylist">
             OPEN AI STYLIST
             <ArrowIcon />
           </Link>
@@ -637,19 +605,14 @@ export default function CollectionsClient({
       </section>
 
       <section
-        className={
-          styles.categorySection
-        }
+        className={styles.categorySection}
       >
         <header
-          className={
-            styles.categoryHeading
-          }
+          className={styles.categoryHeading}
         >
           <div>
             <p>
-              EXPLORE BY
-              CATEGORY
+              EXPLORE BY CATEGORY
             </p>
 
             <h2>
@@ -659,15 +622,13 @@ export default function CollectionsClient({
 
           <span>
             Five distinctive
-            collections. One
-            KRVE experience.
+            collections. One KRVE
+            experience.
           </span>
         </header>
 
         <div
-          className={
-            styles.categoryGrid
-          }
+          className={styles.categoryGrid}
         >
           {categoryOptions.map(
             (category) => {
@@ -677,11 +638,15 @@ export default function CollectionsClient({
                   initialProducts,
                 );
 
+              const categoryImage =
+                getCategoryImage(
+                  category.id,
+                  initialProducts,
+                );
+
               return (
                 <button
-                  key={
-                    category.id
-                  }
+                  key={category.id}
                   type="button"
                   className={`${
                     styles.categoryCard
@@ -697,23 +662,32 @@ export default function CollectionsClient({
                     )
                   }
                 >
-                  <Image
-                    src={getCategoryImage(
-                      category.id,
-                      initialProducts,
-                    )}
-                    alt={
-                      category.title
-                    }
-                    fill
-                    sizes="
-                      (max-width: 650px)
-                      100vw,
-                      (max-width: 1100px)
-                      50vw,
-                      20vw
-                    "
-                  />
+                  {categoryImage ? (
+                    <Image
+                      src={categoryImage}
+                      alt={
+                        category.title
+                      }
+                      fill
+                      sizes="
+                        (max-width: 650px)
+                        100vw,
+                        (max-width: 1100px)
+                        50vw,
+                        20vw
+                      "
+                    />
+                  ) : (
+                    <span
+                      style={{
+                        position:
+                          "absolute",
+                        inset: 0,
+                        background:
+                          "linear-gradient(135deg, #111, #292929)",
+                      }}
+                    />
+                  )}
 
                   <span
                     className={
@@ -726,9 +700,7 @@ export default function CollectionsClient({
                       styles.categoryNumber
                     }
                   >
-                    {
-                      category.number
-                    }
+                    {category.number}
                   </span>
 
                   <div
@@ -742,15 +714,11 @@ export default function CollectionsClient({
                     </p>
 
                     <h3>
-                      {
-                        category.title
-                      }
+                      {category.title}
                     </h3>
 
                     <span>
-                      {
-                        category.subtitle
-                      }
+                      {category.subtitle}
                     </span>
 
                     <strong>
@@ -767,14 +735,10 @@ export default function CollectionsClient({
 
       <section
         id="collection-products"
-        className={
-          styles.collectionArea
-        }
+        className={styles.collectionArea}
       >
         <header
-          className={
-            styles.collectionHeader
-          }
+          className={styles.collectionHeader}
         >
           <div>
             <p>
@@ -791,41 +755,27 @@ export default function CollectionsClient({
             </h2>
 
             <span>
-              Explore premium
-              pieces controlled
-              directly through
-              the KRVE Enterprise
-              Operating System.
+              Explore premium pieces
+              controlled directly
+              through the KRVE
+              Enterprise Operating
+              System.
             </span>
           </div>
 
           <div
-            className={
-              styles.resultCount
-            }
+            className={styles.resultCount}
           >
             <strong>
-              {
-                visibleProducts.length
-              }
+              {visibleProducts.length}
             </strong>
 
-            <span>
-              PIECES
-            </span>
+            <span>PIECES</span>
           </div>
         </header>
 
-        <div
-          className={
-            styles.toolbar
-          }
-        >
-          <div
-            className={
-              styles.filters
-            }
-          >
+        <div className={styles.toolbar}>
+          <div className={styles.filters}>
             <div
               className={
                 styles.filterLabel
@@ -855,9 +805,7 @@ export default function CollectionsClient({
             {categoryOptions.map(
               (category) => (
                 <button
-                  key={
-                    category.id
-                  }
+                  key={category.id}
                   type="button"
                   className={
                     activeCategory ===
@@ -891,15 +839,10 @@ export default function CollectionsClient({
 
               <input
                 type="search"
-                value={
-                  searchQuery
-                }
-                onChange={(
-                  event,
-                ) =>
+                value={searchQuery}
+                onChange={(event) =>
                   setSearchQuery(
-                    event.target
-                      .value,
+                    event.target.value,
                   )
                 }
                 placeholder="Search products"
@@ -908,56 +851,36 @@ export default function CollectionsClient({
             </label>
 
             <label
-              className={
-                styles.sort
-              }
+              className={styles.sort}
             >
-              <span>
-                SORT BY
-              </span>
+              <span>SORT BY</span>
 
               <select
-                value={
-                  sortOption
-                }
-                onChange={(
-                  event,
-                ) =>
+                value={sortOption}
+                onChange={(event) =>
                   setSortOption(
                     event.target
                       .value as SortOption,
                   )
                 }
               >
-                <option
-                  value="featured"
-                >
+                <option value="featured">
                   Featured
                 </option>
 
-                <option
-                  value="newest"
-                >
+                <option value="newest">
                   Newest
                 </option>
 
-                <option
-                  value="price-low"
-                >
-                  Price: Low to
-                  High
+                <option value="price-low">
+                  Price: Low to High
                 </option>
 
-                <option
-                  value="price-high"
-                >
-                  Price: High to
-                  Low
+                <option value="price-high">
+                  Price: High to Low
                 </option>
 
-                <option
-                  value="name"
-                >
+                <option value="name">
                   Product Name
                 </option>
               </select>
@@ -975,48 +898,34 @@ export default function CollectionsClient({
 
             <div>
               <strong>
-                Central API
-                unavailable
+                Central API unavailable
               </strong>
 
               <span>
-                Products will
-                appear here when
-                the KEOS API
-                connection is
-                available.
+                Products will appear
+                here when the KEOS API
+                connection is available.
               </span>
             </div>
           </div>
         )}
 
-        {visibleProducts.length >
-        0 ? (
+        {visibleProducts.length > 0 ? (
           <div
             className={
               styles.productGrid
             }
           >
             {visibleProducts.map(
-              (
-                product,
-                index,
-              ) => {
+              (product, index) => {
                 const saved =
                   wishlist.includes(
                     product.id,
                   );
 
-                const image =
-                  getProductImage(
-                    product,
-                  );
-
                 return (
                   <article
-                    key={
-                      product.id
-                    }
+                    key={product.id}
                     className={
                       styles.productCard
                     }
@@ -1028,10 +937,7 @@ export default function CollectionsClient({
                     >
                       {String(
                         index + 1,
-                      ).padStart(
-                        2,
-                        "0",
-                      )}
+                      ).padStart(2, "0")}
                     </div>
 
                     <button
@@ -1064,14 +970,8 @@ export default function CollectionsClient({
                       }
                       aria-label={`Open ${product.name}`}
                     >
-                      <Image
-                        src={
-                          image
-                        }
-                        alt={
-                          product.name
-                        }
-                        fill
+                      <ProductImage
+                        product={product}
                         sizes="
                           (max-width: 650px)
                           100vw,
@@ -1125,9 +1025,7 @@ export default function CollectionsClient({
                           </p>
 
                           <h3>
-                            {
-                              product.name
-                            }
+                            {product.name}
                           </h3>
                         </div>
 
@@ -1198,6 +1096,7 @@ export default function CollectionsClient({
                           aria-label={`Open ${product.name}`}
                         >
                           <BagIcon />
+
                           {product.inStock
                             ? "ADD"
                             : "VIEW"}
@@ -1216,9 +1115,7 @@ export default function CollectionsClient({
             }
           >
             <div>
-              <SparkleIcon
-                size={37}
-              />
+              <SparkleIcon size={37} />
             </div>
 
             <p>
@@ -1226,17 +1123,15 @@ export default function CollectionsClient({
             </p>
 
             <h2>
-              This KRVE
-              collection is
-              being curated.
+              This KRVE collection
+              is being curated.
             </h2>
 
             <span>
-              Add or publish
-              products from KEOS
-              Center and they
-              will automatically
-              appear here.
+              No published products
+              were returned from the
+              KRVE store API for this
+              selection.
             </span>
 
             <button
@@ -1246,38 +1141,24 @@ export default function CollectionsClient({
                   "all",
                 );
 
-                setSearchQuery(
-                  "",
-                );
+                setSearchQuery("");
               }}
             >
-              VIEW ALL
-              COLLECTIONS
+              VIEW ALL COLLECTIONS
               <ArrowIcon />
             </button>
           </section>
         )}
       </section>
 
-      <section
-        className={
-          styles.aiBanner
-        }
-      >
-        <div
-          className={
-            styles.aiIcon
-          }
-        >
-          <SparkleIcon
-            size={32}
-          />
+      <section className={styles.aiBanner}>
+        <div className={styles.aiIcon}>
+          <SparkleIcon size={32} />
         </div>
 
         <div>
           <p>
-            KRVE PERSONAL
-            STYLIST
+            KRVE PERSONAL STYLIST
           </p>
 
           <h2>
@@ -1289,20 +1170,15 @@ export default function CollectionsClient({
 
           <span>
             Receive intelligent
-            recommendations
-            across menswear,
-            womenswear,
-            kidswear,
-            accessories and
-            footwear.
+            recommendations across
+            menswear, womenswear,
+            kidswear, accessories
+            and footwear.
           </span>
         </div>
 
-        <Link
-          href="/ai-stylist"
-        >
-          GET
-          RECOMMENDATIONS
+        <Link href="/ai-stylist">
+          GET RECOMMENDATIONS
           <ArrowIcon />
         </Link>
       </section>
@@ -1314,24 +1190,16 @@ export default function CollectionsClient({
       >
         {categoryOptions.map(
           (category) => (
-            <div
-              key={
-                category.id
-              }
-            >
+            <div key={category.id}>
               <strong>
-                {
-                  category.number
-                }
+                {category.number}
               </strong>
 
               <p>
                 {category.title.toUpperCase()}
 
                 <span>
-                  {
-                    category.subtitle
-                  }
+                  {category.subtitle}
                 </span>
               </p>
             </div>
