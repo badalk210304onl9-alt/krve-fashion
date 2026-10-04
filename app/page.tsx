@@ -18,6 +18,7 @@ export const dynamic =
 export const metadata = {
   title:
     "KRVE — The Fashion Studio",
+
   description:
     "Luxury fashion, intelligent fit and AI-powered personal styling.",
 };
@@ -138,6 +139,10 @@ export default async function HomePage() {
 
   return (
     <main>
+      {/* =====================================================
+          HERO
+      ===================================================== */}
+
       <section className="hero">
         <div className="hero-silk" />
 
@@ -149,6 +154,7 @@ export default async function HomePage() {
 
           <h1>
             FASHION THAT
+
             <strong>
               UNDERSTANDS YOU
             </strong>
@@ -200,6 +206,10 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* =====================================================
+          BENEFITS
+      ===================================================== */}
+
       <section className="benefits">
         {[
           [
@@ -207,21 +217,25 @@ export default async function HomePage() {
             "FREE WORLDWIDE SHIPPING",
             "On all orders above $200",
           ],
+
           [
             "◌",
             "EASY RETURNS",
             "30-day return policy",
           ],
+
           [
             "♜",
             "PREMIUM QUALITY",
             "Finest materials",
           ],
+
           [
             "♙",
             "AI PERSONAL STYLIST",
             "Style that matches you",
           ],
+
           [
             "▣",
             "SECURE SHOPPING",
@@ -233,7 +247,9 @@ export default async function HomePage() {
             title,
             text,
           ]) => (
-            <div key={title}>
+            <div
+              key={title}
+            >
               <span>
                 {icon}
               </span>
@@ -252,6 +268,10 @@ export default async function HomePage() {
         )}
       </section>
 
+      {/* =====================================================
+          NEW ARRIVALS
+      ===================================================== */}
+
       <section className="new-arrivals">
         <div className="section-heading">
           <div>
@@ -265,17 +285,24 @@ export default async function HomePage() {
             </small>
           </div>
 
-          <Link href="/collections">
+          <Link
+            href="/collections"
+          >
             VIEW ALL →
           </Link>
         </div>
 
         <div className="arrival-layout">
+
+          {/* PRODUCTS */}
+
           <div className="product-grid">
             {newArrivalProducts.length >
             0 ? (
               newArrivalProducts.map(
-                (product) => (
+                (
+                  product,
+                ) => (
                   <ProductCard
                     key={
                       product.id
@@ -302,9 +329,9 @@ export default async function HomePage() {
                     Publish a product
                     from KEOS Center
                     with New Arrival
-                    enabled and it will
-                    automatically appear
-                    here.
+                    enabled and it
+                    will automatically
+                    appear here.
                   </p>
 
                   <Link
@@ -318,6 +345,8 @@ export default async function HomePage() {
               </div>
             )}
           </div>
+
+          {/* AI TRY ON */}
 
           <article className="tryon-card">
             <div>
@@ -360,8 +389,13 @@ export default async function HomePage() {
               />
             </div>
           </article>
+
         </div>
       </section>
+
+      {/* =====================================================
+          BOTTOM BRAND STRIP
+      ===================================================== */}
 
       <section className="bottom-strip">
         {[
@@ -370,16 +404,19 @@ export default async function HomePage() {
             "EXCLUSIVE COLLECTIONS",
             "Unique & limited designs",
           ],
+
           [
             "◇",
             "LUXURY MATERIALS",
             "Premium & sustainable",
           ],
+
           [
             "✤",
             "CRAFTED TO PERFECTION",
             "Attention to every detail",
           ],
+
           [
             "♙",
             "TRUSTED BY THOUSANDS",
@@ -391,7 +428,9 @@ export default async function HomePage() {
             title,
             text,
           ]) => (
-            <div key={title}>
+            <div
+              key={title}
+            >
               <span>
                 {icon}
               </span>
