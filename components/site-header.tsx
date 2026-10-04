@@ -17,9 +17,7 @@ import {
   useCart,
 } from "@/components/cart-provider";
 
-import {
-  products,
-} from "@/lib/catalog";
+import type { KrveProduct } from "@/lib/api";
 
 type IconProps = {
   size?: number;
@@ -264,47 +262,140 @@ export default function SiteHeader() {
       null,
     );
 
-  const filteredProducts =
-    useMemo(() => {
-      const query =
-        searchQuery
-          .trim()
-          .toLowerCase();
+  const [
+    liveProducts,
+    setLiveProducts,
+  ] = useState<KrveProduct[]>([]);
 
-      if (!query) {
-        return products.slice(
-          0,
-          5,
-        );
-      }
+  const [
+    searchLoading,
+    setSearchLoading,
+  ] = useState(false);
 
-      return products
-        .filter(
-          (
-            product,
-          ) => {
-            const searchableText =
-              [
-                product.name,
-                product.category,
-                product.id,
-              ]
-                .filter(Boolean)
-                .join(" ")
-                .toLowerCase();
+  useEffect(() => {
+    if (!searchOpen) {
+      return;
+    }
 
-            return searchableText.includes(
-              query,
+    const controller =
+      new AbortController();
+
+    const timer =
+      window.setTimeout(
+        async () => {
+          setSearchLoading(true);
+
+          try {
+            const parameters =
+              new URLSearchParams({
+                status:
+                  "published",
+                limit:
+                  "6",
+              });
+
+            if (searchQuery.trim()) {
+              parameters.set(
+                "search",
+                searchQuery.trim(),
+              );
+            }
+
+            const response =
+              await fetch(
+                `/api/products?${parameters.toString()}`,
+                {
+                  method:
+                    "GET",
+                  headers: {
+                    Accept:
+                      "application/json",
+                  },
+                  cache:
+                    "no-store",
+                  signal:
+                    controller.signal,
+                },
+              );
+
+            if (!response.ok) {
+              throw new Error(
+                `Product request failed with status ${response.status}.`,
+              );
+            }
+
+            const result =
+              (await response.json()) as {
+                success?: boolean;
+                data?: {
+                  products?: KrveProduct[];
+                };
+              };
+
+            if (
+              !result.success ||
+              !Array.isArray(
+                result.data?.products,
+              )
+            ) {
+              throw new Error(
+                "Invalid KRVE product response.",
+              );
+            }
+
+            setLiveProducts(
+              result.data.products,
             );
-          },
-        )
-        .slice(
+          } catch (error) {
+            if (
+              error instanceof DOMException &&
+              error.name ===
+                "AbortError"
+            ) {
+              return;
+            }
+
+            console.error(
+              "KRVE_SEARCH_PRODUCTS_ERROR",
+              error,
+            );
+
+            setLiveProducts([]);
+          } finally {
+            if (
+              !controller.signal.aborted
+            ) {
+              setSearchLoading(false);
+            }
+          }
+        },
+        searchQuery.trim()
+          ? 180
+          : 0,
+      );
+
+    return () => {
+      window.clearTimeout(
+        timer,
+      );
+      controller.abort();
+    };
+  }, [
+    searchOpen,
+    searchQuery,
+  ]);
+
+  const filteredProducts =
+    useMemo(
+      () =>
+        liveProducts.slice(
           0,
           6,
-        );
-    }, [
-      searchQuery,
-    ]);
+        ),
+      [
+        liveProducts,
+      ],
+    );
 
   useEffect(() => {
     if (!searchOpen) {
@@ -427,7 +518,7 @@ export default function SiteHeader() {
         filteredProducts[0];
 
       window.location.href =
-        `/product/${firstProduct.id}`;
+        `/product/${firstProduct.slug || firstProduct.id}`;
     }
   }
 
@@ -769,7 +860,22 @@ export default function SiteHeader() {
               </Link>
             </div>
 
-            {filteredProducts.length >
+            {searchLoading ? (
+              <div className="search-empty-state">
+                <div className="search-empty-icon">
+                  <SearchIcon size={31} />
+                </div>
+
+                <p>SEARCHING KRVE</p>
+
+                <h3>Finding live products.</h3>
+
+                <span>
+                  Searching the products currently
+                  published in the KRVE store.
+                </span>
+              </div>
+            ) : filteredProducts.length >
             0 ? (
               <div className="search-results">
                 {filteredProducts.map(
@@ -781,7 +887,7 @@ export default function SiteHeader() {
                       key={
                         product.id
                       }
-                      href={`/product/${product.id}`}
+                      href={`/product/${product.slug || product.id}`}
                       className="search-result-item"
                       onClick={
                         closeSearch
