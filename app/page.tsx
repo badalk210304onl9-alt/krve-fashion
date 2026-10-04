@@ -12,10 +12,12 @@ import type {
   Product,
 } from "@/lib/catalog";
 
-export const dynamic = "force-dynamic";
+export const dynamic =
+  "force-dynamic";
 
 export const metadata = {
-  title: "KRVE — The Fashion Studio",
+  title:
+    "KRVE — The Fashion Studio",
   description:
     "Luxury fashion, intelligent fit and AI-powered personal styling.",
 };
@@ -23,15 +25,6 @@ export const metadata = {
 function convertToProductCardProduct(
   product: KrveProduct,
 ): Product {
-  const fallbackImage =
-    "/images/products/product-1.jpg";
-
-  const primaryImage =
-    product.image ||
-    product.imageUrl ||
-    product.gallery?.[0] ||
-    fallbackImage;
-
   return {
     id:
       product.slug ||
@@ -54,15 +47,25 @@ function convertToProductCardProduct(
       product.currency,
 
     image:
-      primaryImage,
+      product.image ||
+      product.imageUrl ||
+      product.gallery?.[0] ||
+      "/images/products/product-1.jpg",
 
     imageUrl:
-      primaryImage,
+      product.image ||
+      product.imageUrl ||
+      product.gallery?.[0] ||
+      "/images/products/product-1.jpg",
 
     gallery:
       product.gallery?.length
         ? product.gallery
-        : [primaryImage],
+        : [
+            product.image ||
+              product.imageUrl ||
+              "/images/products/product-1.jpg",
+          ],
 
     category:
       product.category,
@@ -109,12 +112,12 @@ function convertToProductCardProduct(
   };
 }
 
-async function loadNewArrivals(): Promise<
-  Product[]
-> {
+async function loadNewArrivals() {
   try {
     const liveProducts =
-      await getNewArrivalProducts(4);
+      await getNewArrivalProducts(
+        4,
+      );
 
     return liveProducts.map(
       convertToProductCardProduct,
@@ -135,10 +138,6 @@ export default async function HomePage() {
 
   return (
     <main>
-      {/* =====================================================
-          HERO
-      ===================================================== */}
-
       <section className="hero">
         <div className="hero-silk" />
 
@@ -167,7 +166,8 @@ export default async function HomePage() {
               href="/collections"
               className="button solid"
             >
-              EXPLORE COLLECTIONS →
+              EXPLORE COLLECTIONS
+              →
             </Link>
 
             <Link
@@ -200,10 +200,6 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* =====================================================
-          BENEFITS
-      ===================================================== */}
-
       <section className="benefits">
         {[
           [
@@ -232,31 +228,40 @@ export default async function HomePage() {
             "100% protected checkout",
           ],
         ].map(
-          ([icon, title, text]) => (
+          ([
+            icon,
+            title,
+            text,
+          ]) => (
             <div key={title}>
-              <span>{icon}</span>
+              <span>
+                {icon}
+              </span>
 
               <p>
-                <strong>{title}</strong>
+                <strong>
+                  {title}
+                </strong>
 
-                <small>{text}</small>
+                <small>
+                  {text}
+                </small>
               </p>
             </div>
           ),
         )}
       </section>
 
-      {/* =====================================================
-          NEW ARRIVALS
-      ===================================================== */}
-
       <section className="new-arrivals">
         <div className="section-heading">
           <div>
-            <h2>NEW ARRIVALS</h2>
+            <h2>
+              NEW ARRIVALS
+            </h2>
 
             <small>
-              LIVE FROM KEOS CENTER
+              LIVE FROM KEOS
+              CENTER
             </small>
           </div>
 
@@ -266,21 +271,26 @@ export default async function HomePage() {
         </div>
 
         <div className="arrival-layout">
-          {/* PRODUCTS */}
-
           <div className="product-grid">
-            {newArrivalProducts.length > 0 ? (
+            {newArrivalProducts.length >
+            0 ? (
               newArrivalProducts.map(
                 (product) => (
                   <ProductCard
-                    key={product.id}
-                    product={product}
+                    key={
+                      product.id
+                    }
+                    product={
+                      product
+                    }
                   />
                 ),
               )
             ) : (
               <div className="homepage-products-empty">
-                <span>✦</span>
+                <span>
+                  ✦
+                </span>
 
                 <div>
                   <strong>
@@ -292,9 +302,9 @@ export default async function HomePage() {
                     Publish a product
                     from KEOS Center
                     with New Arrival
-                    enabled and it
-                    will automatically
-                    appear here.
+                    enabled and it will
+                    automatically appear
+                    here.
                   </p>
 
                   <Link
@@ -308,8 +318,6 @@ export default async function HomePage() {
               </div>
             )}
           </div>
-
-          {/* AI TRY ON */}
 
           <article className="tryon-card">
             <div>
@@ -344,16 +352,16 @@ export default async function HomePage() {
                 src="/images/try-on.jpg"
                 alt="AI virtual try-on"
                 fill
-                sizes="(max-width: 900px) 100vw, 380px"
+                sizes="
+                  (max-width: 900px)
+                  100vw,
+                  380px
+                "
               />
             </div>
           </article>
         </div>
       </section>
-
-      {/* =====================================================
-          BOTTOM BRAND STRIP
-      ===================================================== */}
 
       <section className="bottom-strip">
         {[
@@ -378,14 +386,24 @@ export default async function HomePage() {
             "★★★★★ 4.9/5",
           ],
         ].map(
-          ([icon, title, text]) => (
+          ([
+            icon,
+            title,
+            text,
+          ]) => (
             <div key={title}>
-              <span>{icon}</span>
+              <span>
+                {icon}
+              </span>
 
               <p>
-                <strong>{title}</strong>
+                <strong>
+                  {title}
+                </strong>
 
-                <small>{text}</small>
+                <small>
+                  {text}
+                </small>
               </p>
             </div>
           ),
