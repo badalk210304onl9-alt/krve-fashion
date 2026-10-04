@@ -336,25 +336,18 @@ export default function SiteHeader() {
               await fetch(
                 `/api/products?${parameters.toString()}`,
                 {
-                  method:
-                    "GET",
-
+                  method: "GET",
                   headers: {
                     Accept:
                       "application/json",
                   },
-
-                  cache:
-                    "no-store",
-
+                  cache: "no-store",
                   signal:
                     controller.signal,
                 },
               );
 
-            if (
-              !response.ok
-            ) {
+            if (!response.ok) {
               throw new Error(
                 `Product request failed with status ${response.status}.`,
               );
@@ -363,13 +356,10 @@ export default function SiteHeader() {
             const result =
               (await response.json()) as {
                 success?: boolean;
-
                 data?: {
                   products?: KrveProduct[];
                 };
-
                 products?: KrveProduct[];
-
                 message?: string;
               };
 
@@ -399,22 +389,16 @@ export default function SiteHeader() {
               );
             }
 
-            /*
-             * Only real products returned by
-             * the KRVE Central API are displayed.
-             *
-             * There is intentionally NO demo
-             * product fallback here.
-             */
-
             setLiveProducts(
               products.filter(
                 (
                   product,
                 ) =>
-                  product &&
-                  product.id &&
-                  product.name,
+                  Boolean(
+                    product &&
+                      product.id &&
+                      product.name,
+                  ),
               ),
             );
           } catch (error) {
@@ -494,13 +478,8 @@ export default function SiteHeader() {
         return;
       }
 
-      setSearchOpen(
-        false,
-      );
-
-      setMobileMenuOpen(
-        false,
-      );
+      setSearchOpen(false);
+      setMobileMenuOpen(false);
     }
 
     window.addEventListener(
@@ -540,31 +519,15 @@ export default function SiteHeader() {
   ]);
 
   function openSearch() {
-    setMobileMenuOpen(
-      false,
-    );
-
-    setSearchOpen(
-      true,
-    );
+    setMobileMenuOpen(false);
+    setSearchOpen(true);
   }
 
   function closeSearch() {
-    setSearchOpen(
-      false,
-    );
-
-    setSearchQuery(
-      "",
-    );
-
-    setLiveProducts(
-      [],
-    );
-
-    setSearchError(
-      false,
-    );
+    setSearchOpen(false);
+    setSearchQuery("");
+    setLiveProducts([]);
+    setSearchError(false);
   }
 
   function handleSearchChange(
@@ -581,10 +544,8 @@ export default function SiteHeader() {
       KeyboardEvent<HTMLInputElement>,
   ) {
     if (
-      event.key !==
-        "Enter" ||
-      liveProducts.length ===
-        0
+      event.key !== "Enter" ||
+      liveProducts.length === 0
     ) {
       return;
     }
@@ -592,9 +553,7 @@ export default function SiteHeader() {
     const firstProduct =
       liveProducts[0];
 
-    if (
-      !firstProduct
-    ) {
+    if (!firstProduct) {
       return;
     }
 
@@ -613,9 +572,7 @@ export default function SiteHeader() {
   }
 
   function closeMobileMenu() {
-    setMobileMenuOpen(
-      false,
-    );
+    setMobileMenuOpen(false);
   }
 
   const accountLabel =
@@ -656,9 +613,7 @@ export default function SiteHeader() {
           type="button"
           className="mobile-menu-button"
           onClick={() =>
-            setMobileMenuOpen(
-              true,
-            )
+            setMobileMenuOpen(true)
           }
           aria-label="Open navigation menu"
         >
@@ -709,9 +664,7 @@ export default function SiteHeader() {
               icon-button
               search-action
             "
-            onClick={
-              openSearch
-            }
+            onClick={openSearch}
             aria-label="Open product search"
           >
             <SearchIcon />
@@ -756,9 +709,7 @@ export default function SiteHeader() {
                   src={
                     user.imageUrl
                   }
-                  alt={
-                    accountLabel
-                  }
+                  alt={accountLabel}
                   fill
                   sizes="38px"
                 />
@@ -779,11 +730,9 @@ export default function SiteHeader() {
           >
             <HeartIcon />
 
-            {wishlist.length >
-              0 && (
+            {wishlist.length > 0 && (
               <span className="count-badge">
-                {wishlist.length >
-                99
+                {wishlist.length > 99
                   ? "99+"
                   : wishlist.length}
               </span>
@@ -822,9 +771,7 @@ export default function SiteHeader() {
           <button
             type="button"
             className="search-overlay-backdrop"
-            onClick={
-              closeSearch
-            }
+            onClick={closeSearch}
             aria-label="Close search"
           />
 
@@ -848,9 +795,7 @@ export default function SiteHeader() {
               <button
                 type="button"
                 className="search-close-button"
-                onClick={
-                  closeSearch
-                }
+                onClick={closeSearch}
                 aria-label="Close search"
               >
                 <CloseIcon />
@@ -875,18 +820,12 @@ export default function SiteHeader() {
             </div>
 
             <div className="luxury-search-field">
-              <SearchIcon
-                size={25}
-              />
+              <SearchIcon size={25} />
 
               <input
-                ref={
-                  searchInputRef
-                }
+                ref={searchInputRef}
                 type="search"
-                value={
-                  searchQuery
-                }
+                value={searchQuery}
                 onChange={
                   handleSearchChange
                 }
@@ -903,15 +842,11 @@ export default function SiteHeader() {
                   type="button"
                   className="clear-search-button"
                   onClick={() =>
-                    setSearchQuery(
-                      "",
-                    )
+                    setSearchQuery("")
                   }
                   aria-label="Clear search"
                 >
-                  <CloseIcon
-                    size={17}
-                  />
+                  <CloseIcon size={17} />
                 </button>
               )}
             </div>
@@ -940,9 +875,7 @@ export default function SiteHeader() {
 
               <Link
                 href="/collections"
-                onClick={
-                  closeSearch
-                }
+                onClick={closeSearch}
               >
                 VIEW ALL
 
@@ -953,9 +886,7 @@ export default function SiteHeader() {
             {searchLoading ? (
               <div className="search-empty-state">
                 <div className="search-empty-icon">
-                  <SearchIcon
-                    size={31}
-                  />
+                  <SearchIcon size={31} />
                 </div>
 
                 <p>
@@ -974,9 +905,7 @@ export default function SiteHeader() {
             ) : searchError ? (
               <div className="search-empty-state">
                 <div className="search-empty-icon">
-                  <CloseIcon
-                    size={31}
-                  />
+                  <CloseIcon size={31} />
                 </div>
 
                 <p>
@@ -990,25 +919,8 @@ export default function SiteHeader() {
                 <span>
                   Please try again in a moment.
                 </span>
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    setSearchQuery(
-                      (
-                        current,
-                      ) =>
-                        current,
-                      ),
-                  }
-                >
-                  TRY AGAIN
-
-                  <ArrowIcon />
-                </button>
               </div>
-            ) : liveProducts.length >
-              0 ? (
+            ) : liveProducts.length > 0 ? (
               <div className="search-results">
                 {liveProducts.map(
                   (
@@ -1026,16 +938,12 @@ export default function SiteHeader() {
 
                     return (
                       <Link
-                        key={
-                          product.id
-                        }
+                        key={product.id}
                         href={`/product/${encodeURIComponent(
                           identifier,
                         )}`}
                         className="search-result-item"
-                        onClick={
-                          closeSearch
-                        }
+                        onClick={closeSearch}
                       >
                         <div className="search-result-number">
                           {String(
@@ -1049,9 +957,7 @@ export default function SiteHeader() {
                         <div className="search-result-image">
                           {image ? (
                             <Image
-                              src={
-                                image
-                              }
+                              src={image}
                               alt={
                                 product.name
                               }
@@ -1096,9 +1002,7 @@ export default function SiteHeader() {
             ) : (
               <div className="search-empty-state">
                 <div className="search-empty-icon">
-                  <SearchIcon
-                    size={31}
-                  />
+                  <SearchIcon size={31} />
                 </div>
 
                 <p>
@@ -1116,14 +1020,12 @@ export default function SiteHeader() {
                 <span>
                   {searchQuery
                     ? "Try another product name, collection or category."
-                    : "Publish products from the KRVE store and they will appear here automatically."}
+                    : "No published products are currently available in the KRVE store."}
                 </span>
 
                 <Link
                   href="/collections"
-                  onClick={
-                    closeSearch
-                  }
+                  onClick={closeSearch}
                 >
                   EXPLORE COLLECTIONS
 
@@ -1150,9 +1052,7 @@ export default function SiteHeader() {
                   ) => (
                     <button
                       type="button"
-                      key={
-                        suggestion
-                      }
+                      key={suggestion}
                       onClick={() =>
                         setSearchQuery(
                           suggestion,
