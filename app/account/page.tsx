@@ -30,6 +30,7 @@ import {
   MapPin,
   PackageCheck,
   Settings,
+  ShoppingBag,
   ShieldCheck,
   Sparkles,
   TicketPercent,
