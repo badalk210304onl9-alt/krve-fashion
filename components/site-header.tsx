@@ -4,7 +4,6 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   useEffect,
-  useMemo,
   useRef,
   useState,
   type ChangeEvent,
@@ -38,7 +37,6 @@ function SearchIcon({
         cy="10.8"
         r="6.4"
       />
-
       <path d="m15.7 15.7 4.3 4.3" />
     </svg>
   );
@@ -95,7 +93,6 @@ function SparkleIcon({
           4.5-.9 6.1-2.5 7-7Z
         "
       />
-
       <path
         d="
           M18.8 15.5
@@ -124,7 +121,6 @@ function AccountIcon({
         cy="7.6"
         r="3.25"
       />
-
       <path
         d="
           M5.7 20
@@ -182,7 +178,6 @@ function BagIcon({
           L5.4 8.5Z
         "
       />
-
       <path
         d="
           M8.7 8.5
@@ -222,6 +217,35 @@ const money =
     },
   );
 
+function getProductImage(
+  product: KrveProduct,
+) {
+  if (
+    product.image &&
+    product.image.trim()
+  ) {
+    return product.image;
+  }
+
+  if (
+    product.imageUrl &&
+    product.imageUrl.trim()
+  ) {
+    return product.imageUrl;
+  }
+
+  if (
+    Array.isArray(
+      product.gallery,
+    ) &&
+    product.gallery.length > 0
+  ) {
+    return product.gallery[0];
+  }
+
+  return "";
+}
+
 export default function SiteHeader() {
   const {
     cartCount,
@@ -237,39 +261,38 @@ export default function SiteHeader() {
   const [
     searchOpen,
     setSearchOpen,
-  ] =
-    useState(false);
+  ] = useState(false);
 
   const [
     mobileMenuOpen,
     setMobileMenuOpen,
-  ] =
-    useState(false);
+  ] = useState(false);
 
   const [
     searchQuery,
     setSearchQuery,
-  ] =
-    useState("");
+  ] = useState("");
 
   const searchInputRef =
     useRef<HTMLInputElement | null>(
       null,
     );
 
-  const headerRef =
-    useRef<HTMLElement | null>(
-      null,
-    );
-
   const [
     liveProducts,
     setLiveProducts,
-  ] = useState<KrveProduct[]>([]);
+  ] = useState<KrveProduct[]>(
+    [],
+  );
 
   const [
     searchLoading,
     setSearchLoading,
+  ] = useState(false);
+
+  const [
+    searchError,
+    setSearchError,
   ] = useState(false);
 
   useEffect(() => {
@@ -284,17 +307,25 @@ export default function SiteHeader() {
       window.setTimeout(
         async () => {
           setSearchLoading(true);
+          setSearchError(false);
 
           try {
             const parameters =
-              new URLSearchParams({
-                status:
-                  "published",
-                limit:
-                  "6",
-              });
+              new URLSearchParams();
 
-            if (searchQuery.trim()) {
+            parameters.set(
+              "status",
+              "published",
+            );
+
+            parameters.set(
+              "limit",
+              "6",
+            );
+
+            if (
+              searchQuery.trim()
+            ) {
               parameters.set(
                 "search",
                 searchQuery.trim(),
@@ -307,18 +338,23 @@ export default function SiteHeader() {
                 {
                   method:
                     "GET",
+
                   headers: {
                     Accept:
                       "application/json",
                   },
+
                   cache:
                     "no-store",
+
                   signal:
                     controller.signal,
                 },
               );
 
-            if (!response.ok) {
+            if (
+              !response.ok
+            ) {
               throw new Error(
                 `Product request failed with status ${response.status}.`,
               );
@@ -327,15 +363,35 @@ export default function SiteHeader() {
             const result =
               (await response.json()) as {
                 success?: boolean;
+
                 data?: {
                   products?: KrveProduct[];
                 };
+
+                products?: KrveProduct[];
+
+                message?: string;
               };
 
             if (
-              !result.success ||
+              result.success ===
+              false
+            ) {
+              throw new Error(
+                result.message ||
+                  "Unable to load KRVE products.",
+              );
+            }
+
+            const products =
+              result.data
+                ?.products ??
+              result.products ??
+              [];
+
+            if (
               !Array.isArray(
-                result.data?.products,
+                products,
               )
             ) {
               throw new Error(
@@ -343,12 +399,28 @@ export default function SiteHeader() {
               );
             }
 
+            /*
+             * Only real products returned by
+             * the KRVE Central API are displayed.
+             *
+             * There is intentionally NO demo
+             * product fallback here.
+             */
+
             setLiveProducts(
-              result.data.products,
+              products.filter(
+                (
+                  product,
+                ) =>
+                  product &&
+                  product.id &&
+                  product.name,
+              ),
             );
           } catch (error) {
             if (
-              error instanceof DOMException &&
+              error instanceof
+                DOMException &&
               error.name ===
                 "AbortError"
             ) {
@@ -361,11 +433,14 @@ export default function SiteHeader() {
             );
 
             setLiveProducts([]);
+            setSearchError(true);
           } finally {
             if (
               !controller.signal.aborted
             ) {
-              setSearchLoading(false);
+              setSearchLoading(
+                false,
+              );
             }
           }
         },
@@ -378,24 +453,13 @@ export default function SiteHeader() {
       window.clearTimeout(
         timer,
       );
+
       controller.abort();
     };
   }, [
     searchOpen,
     searchQuery,
   ]);
-
-  const filteredProducts =
-    useMemo(
-      () =>
-        liveProducts.slice(
-          0,
-          6,
-        ),
-      [
-        liveProducts,
-      ],
-    );
 
   useEffect(() => {
     if (!searchOpen) {
@@ -493,6 +557,14 @@ export default function SiteHeader() {
     setSearchQuery(
       "",
     );
+
+    setLiveProducts(
+      [],
+    );
+
+    setSearchError(
+      false,
+    );
   }
 
   function handleSearchChange(
@@ -509,17 +581,35 @@ export default function SiteHeader() {
       KeyboardEvent<HTMLInputElement>,
   ) {
     if (
-      event.key ===
-        "Enter" &&
-      filteredProducts.length >
+      event.key !==
+        "Enter" ||
+      liveProducts.length ===
         0
     ) {
-      const firstProduct =
-        filteredProducts[0];
-
-      window.location.href =
-        `/product/${firstProduct.slug || firstProduct.id}`;
+      return;
     }
+
+    const firstProduct =
+      liveProducts[0];
+
+    if (
+      !firstProduct
+    ) {
+      return;
+    }
+
+    const identifier =
+      firstProduct.slug ||
+      firstProduct.id;
+
+    if (!identifier) {
+      return;
+    }
+
+    window.location.href =
+      `/product/${encodeURIComponent(
+        identifier,
+      )}`;
   }
 
   function closeMobileMenu() {
@@ -561,10 +651,7 @@ export default function SiteHeader() {
         </span>
       </Link>
 
-      <header
-        ref={headerRef}
-        className="header krve-header"
-      >
+      <header className="header krve-header">
         <button
           type="button"
           className="mobile-menu-button"
@@ -834,17 +921,20 @@ export default function SiteHeader() {
                 <p>
                   {searchQuery
                     ? "SEARCH RESULTS"
-                    : "FEATURED DISCOVERIES"}
+                    : "LIVE STORE PRODUCTS"}
                 </p>
 
                 <span>
-                  {
-                    filteredProducts.length
-                  }{" "}
-                  {filteredProducts.length ===
-                  1
-                    ? "piece"
-                    : "pieces"}
+                  {searchLoading
+                    ? "Loading..."
+                    : searchError
+                      ? "Unable to load"
+                      : `${liveProducts.length} ${
+                          liveProducts.length ===
+                          1
+                            ? "piece"
+                            : "pieces"
+                        }`}
                 </span>
               </div>
 
@@ -863,79 +953,144 @@ export default function SiteHeader() {
             {searchLoading ? (
               <div className="search-empty-state">
                 <div className="search-empty-icon">
-                  <SearchIcon size={31} />
+                  <SearchIcon
+                    size={31}
+                  />
                 </div>
 
-                <p>SEARCHING KRVE</p>
+                <p>
+                  SEARCHING KRVE
+                </p>
 
-                <h3>Finding live products.</h3>
+                <h3>
+                  Finding live products.
+                </h3>
 
                 <span>
-                  Searching the products currently
+                  Searching products currently
                   published in the KRVE store.
                 </span>
               </div>
-            ) : filteredProducts.length >
-            0 ? (
+            ) : searchError ? (
+              <div className="search-empty-state">
+                <div className="search-empty-icon">
+                  <CloseIcon
+                    size={31}
+                  />
+                </div>
+
+                <p>
+                  STORE CONNECTION ERROR
+                </p>
+
+                <h3>
+                  Products could not be loaded.
+                </h3>
+
+                <span>
+                  Please try again in a moment.
+                </span>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setSearchQuery(
+                      (
+                        current,
+                      ) =>
+                        current,
+                      ),
+                  }
+                >
+                  TRY AGAIN
+
+                  <ArrowIcon />
+                </button>
+              </div>
+            ) : liveProducts.length >
+              0 ? (
               <div className="search-results">
-                {filteredProducts.map(
+                {liveProducts.map(
                   (
                     product,
                     index,
-                  ) => (
-                    <Link
-                      key={
-                        product.id
-                      }
-                      href={`/product/${product.slug || product.id}`}
-                      className="search-result-item"
-                      onClick={
-                        closeSearch
-                      }
-                    >
-                      <div className="search-result-number">
-                        {String(
-                          index + 1,
-                        ).padStart(
-                          2,
-                          "0",
-                        )}
-                      </div>
+                  ) => {
+                    const image =
+                      getProductImage(
+                        product,
+                      );
 
-                      <div className="search-result-image">
-                        <Image
-                          src={
-                            product.image
-                          }
-                          alt={
-                            product.name
-                          }
-                          fill
-                          sizes="76px"
-                        />
-                      </div>
+                    const identifier =
+                      product.slug ||
+                      product.id;
 
-                      <div className="search-result-copy">
-                        <p>
-                          {product.category}
-                        </p>
-
-                        <h3>
-                          {product.name}
-                        </h3>
-
-                        <strong>
-                          {money.format(
-                            product.price,
+                    return (
+                      <Link
+                        key={
+                          product.id
+                        }
+                        href={`/product/${encodeURIComponent(
+                          identifier,
+                        )}`}
+                        className="search-result-item"
+                        onClick={
+                          closeSearch
+                        }
+                      >
+                        <div className="search-result-number">
+                          {String(
+                            index + 1,
+                          ).padStart(
+                            2,
+                            "0",
                           )}
-                        </strong>
-                      </div>
+                        </div>
 
-                      <span className="search-result-arrow">
-                        <ArrowIcon />
-                      </span>
-                    </Link>
-                  ),
+                        <div className="search-result-image">
+                          {image ? (
+                            <Image
+                              src={
+                                image
+                              }
+                              alt={
+                                product.name
+                              }
+                              fill
+                              sizes="76px"
+                            />
+                          ) : (
+                            <span
+                              aria-hidden="true"
+                            />
+                          )}
+                        </div>
+
+                        <div className="search-result-copy">
+                          <p>
+                            {
+                              product.category
+                            }
+                          </p>
+
+                          <h3>
+                            {
+                              product.name
+                            }
+                          </h3>
+
+                          <strong>
+                            {money.format(
+                              product.price,
+                            )}
+                          </strong>
+                        </div>
+
+                        <span className="search-result-arrow">
+                          <ArrowIcon />
+                        </span>
+                      </Link>
+                    );
+                  },
                 )}
               </div>
             ) : (
@@ -947,17 +1102,21 @@ export default function SiteHeader() {
                 </div>
 
                 <p>
-                  NO MATCHES FOUND
+                  {searchQuery
+                    ? "NO MATCHES FOUND"
+                    : "NO LIVE PRODUCTS"}
                 </p>
 
                 <h3>
-                  We could not find that
-                  piece.
+                  {searchQuery
+                    ? "We could not find that piece."
+                    : "No published products are available."}
                 </h3>
 
                 <span>
-                  Try another product name,
-                  collection or category.
+                  {searchQuery
+                    ? "Try another product name, collection or category."
+                    : "Publish products from the KRVE store and they will appear here automatically."}
                 </span>
 
                 <Link
