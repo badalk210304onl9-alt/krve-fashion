@@ -10,7 +10,6 @@ import {
   FormEvent,
   Suspense,
   useEffect,
-  useMemo,
   useState,
 } from "react";
 
@@ -30,20 +29,11 @@ import {
   MapPin,
   PackageCheck,
   Settings,
-  ShoppingBag,
   ShieldCheck,
   Sparkles,
   TicketPercent,
   UserRound,
 } from "lucide-react";
-
-import type {
-  User,
-} from "@supabase/supabase-js";
-
-import {
-  createClient,
-} from "@/lib/supabase/client";
 
 import styles from "./account.module.css";
 
@@ -58,6 +48,21 @@ type FormState = {
   email: string;
   password: string;
   confirmPassword: string;
+};
+
+type AccountUser = {
+  id: string;
+  email?: string | null;
+  user_metadata?: {
+    first_name?: string | null;
+    last_name?: string | null;
+    full_name?: string | null;
+    [key: string]: unknown;
+  } | null;
+  firstName?: string | null;
+  lastName?: string | null;
+  name?: string | null;
+  fullName?: string | null;
 };
 
 type AccountOrder = {
@@ -187,18 +192,75 @@ const accountLinks = [
   },
 ];
 
+function normalizeAccountUser(raw: any): AccountUser {
+  const metadata = raw?.user_metadata ?? raw?.metadata ?? {};
+  const firstName = raw?.firstName ?? raw?.first_name ?? metadata?.first_name ?? null;
+  const lastName = raw?.lastName ?? raw?.last_name ?? metadata?.last_name ?? null;
+  const fullName = raw?.fullName ?? raw?.full_name ?? metadata?.full_name ?? raw?.name ?? null;
+
+  return {
+    ...raw,
+    id: String(raw?.id ?? raw?.customerId ?? raw?.customer_id ?? ""),
+    email: raw?.email ?? raw?.customerEmail ?? raw?.customer_email ?? null,
+    firstName,
+    lastName,
+    fullName,
+    name: raw?.name ?? fullName ?? null,
+    user_metadata: {
+      ...metadata,
+      first_name: firstName,
+      last_name: lastName,
+      full_name: fullName,
+    },
+  };
+}
+
+async function readAuthResponse(response: Response) {
+  let data: any = null;
+  try {
+    data = await response.json();
+  } catch {
+    data = null;
+  }
+
+  if (!response.ok || data?.success === false) {
+    throw new Error(
+      data?.message || data?.error || "Authentication request failed.",
+    );
+  }
+
+  return data;
+}
+
+async function getCurrentAccountUser(): Promise<AccountUser | null> {
+  const response = await fetch("/api/auth/me", {
+    method: "GET",
+    credentials: "include",
+    headers: { Accept: "application/json" },
+    cache: "no-store",
+  });
+
+  if (response.status === 401) {
+    return null;
+  }
+
+  const data = await readAuthResponse(response);
+  const rawUser =
+    data?.user ??
+    data?.customer ??
+    data?.data?.user ??
+    data?.data?.customer ??
+    null;
+
+  return rawUser ? normalizeAccountUser(rawUser) : null;
+}
+
 function AccountContent() {
   const router =
     useRouter();
 
   const searchParams =
     useSearchParams();
-
-  const supabase =
-    useMemo(
-      () => createClient(),
-      [],
-    );
 
   const [
     mode,
@@ -220,7 +282,7 @@ function AccountContent() {
     user,
     setUser,
   ] =
-    useState<User | null>(
+    useState<AccountUser | null>(
       null,
     );
 
@@ -267,112 +329,70 @@ function AccountContent() {
     useState("");
 
   useEffect(() => {
-    let mounted =
-      true;
+    let mounted = true;
 
     async function loadUser() {
       try {
-        const {
-          data,
-        } =
-          await supabase.auth.getUser();
+        const response = await fetch("/api/auth/me", {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            Accept: "application/json",
+          },
+          cache: "no-store",
+        });
+
+        let data: any = null;
+        try {
+          data = await response.json();
+        } catch {
+          data = null;
+        }
 
         if (!mounted) {
           return;
         }
 
-        const activeUser =
-          data.user ??
+        if (!response.ok) {
+          setUser(null);
+          return;
+        }
+
+        const rawUser =
+          data?.user ??
+          data?.customer ??
+          data?.data?.user ??
+          data?.data?.customer ??
           null;
 
-        setUser(
-          activeUser,
-        );
-
-        /*
-          If user is already authenticated,
-          remove old expired auth parameters
-          from the URL.
-        */
-
-        if (
-          activeUser &&
-          window.location.search
-        ) {
-          router.replace(
-            "/account",
-          );
+        if (!rawUser) {
+          setUser(null);
+          return;
         }
 
-        if (!activeUser) {
-          const authError =
-            searchParams.get(
-              "error_description",
-            );
+        setUser(normalizeAccountUser(rawUser));
 
-          if (authError) {
-            setMessage(
-              authError
-                .replace(
-                  /\+/g,
-                  " ",
-                )
-                .trim(),
-            );
-          }
+        if (window.location.search) {
+          router.replace("/account");
         }
       } catch (error) {
-        console.error(
-          "KRVE_ACCOUNT_LOAD_ERROR",
-          error,
-        );
+        console.error("KRVE_ACCOUNT_AUTH_LOAD_ERROR", error);
+        if (mounted) {
+          setUser(null);
+        }
       } finally {
         if (mounted) {
-          setAuthLoaded(
-            true,
-          );
+          setAuthLoaded(true);
         }
       }
     }
 
     void loadUser();
 
-    const {
-      data: {
-        subscription,
-      },
-    } =
-      supabase.auth.onAuthStateChange(
-        (
-          _event,
-          session,
-        ) => {
-          if (!mounted) {
-            return;
-          }
-
-          setUser(
-            session?.user ??
-              null,
-          );
-
-          setAuthLoaded(
-            true,
-          );
-        },
-      );
-
     return () => {
-      mounted =
-        false;
-
-      subscription.unsubscribe();
+      mounted = false;
     };
-  }, [
-    router,
-    searchParams,
-    supabase,
-  ]);
+  }, [router, searchParams]);
 
   useEffect(() => {
     if (!user) {
@@ -481,185 +501,124 @@ function AccountContent() {
   }
 
   async function login(
-    event:
-      FormEvent<HTMLFormElement>,
+    event: FormEvent<HTMLFormElement>,
   ) {
     event.preventDefault();
-
     setMessage("");
 
-    const email =
-      form.email
-        .trim()
-        .toLowerCase();
-
-    if (
-      !email ||
-      !form.password
-    ) {
-      setMessage(
-        "Please enter your email address and password.",
-      );
-
+    const email = form.email.trim().toLowerCase();
+    if (!email || !form.password) {
+      setMessage("Please enter your email address and password.");
       return;
     }
 
-    setBusy(
-      true,
-    );
-
+    setBusy(true);
     try {
-      const {
-        error,
-      } =
-        await supabase.auth.signInWithPassword(
-          {
-            email,
-            password:
-              form.password,
-          },
-        );
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({ email, password: form.password }),
+      });
 
-      if (error) {
-        throw error;
+      await readAuthResponse(response);
+      const currentUser = await getCurrentAccountUser();
+
+      if (!currentUser) {
+        throw new Error(
+          "Login succeeded, but the KRVE session could not be created. Please try again.",
+        );
       }
 
-      router.replace(
-        "/account",
-      );
-
+      setUser(currentUser);
+      setForm(initialForm);
+      router.replace("/account");
       router.refresh();
     } catch (error) {
       setMessage(
-        error instanceof Error
-          ? error.message
-          : "Unable to sign in.",
+        error instanceof Error ? error.message : "Unable to sign in.",
       );
     } finally {
-      setBusy(
-        false,
-      );
+      setBusy(false);
     }
   }
 
   async function register(
-    event:
-      FormEvent<HTMLFormElement>,
+    event: FormEvent<HTMLFormElement>,
   ) {
     event.preventDefault();
-
     setMessage("");
 
-    const firstName =
-      form.firstName.trim();
+    const firstName = form.firstName.trim();
+    const lastName = form.lastName.trim();
+    const email = form.email.trim().toLowerCase();
 
-    const lastName =
-      form.lastName.trim();
-
-    const email =
-      form.email
-        .trim()
-        .toLowerCase();
-
-    if (
-      !firstName ||
-      !lastName
-    ) {
-      setMessage(
-        "Please enter your first and last name.",
-      );
-
+    if (!firstName || !lastName) {
+      setMessage("Please enter your first and last name.");
+      return;
+    }
+    if (!email.includes("@")) {
+      setMessage("Please enter a valid email address.");
+      return;
+    }
+    if (form.password.length < 8) {
+      setMessage("Password must contain at least 8 characters.");
+      return;
+    }
+    if (form.password !== form.confirmPassword) {
+      setMessage("Passwords do not match.");
       return;
     }
 
-    if (
-      !email.includes(
-        "@",
-      )
-    ) {
-      setMessage(
-        "Please enter a valid email address.",
-      );
-
-      return;
-    }
-
-    if (
-      form.password.length <
-      8
-    ) {
-      setMessage(
-        "Password must contain at least 8 characters.",
-      );
-
-      return;
-    }
-
-    if (
-      form.password !==
-      form.confirmPassword
-    ) {
-      setMessage(
-        "Passwords do not match.",
-      );
-
-      return;
-    }
-
-    setBusy(
-      true,
-    );
-
+    setBusy(true);
     try {
-      const redirectTo =
-        `${window.location.origin}/auth/callback?next=/account`;
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          firstName,
+          lastName,
+          email,
+          password: form.password,
+          confirmPassword: form.confirmPassword,
+        }),
+      });
 
-      const {
-        data,
-        error,
-      } =
-        await supabase.auth.signUp(
-          {
-            email,
-            password:
-              form.password,
+      const data = await readAuthResponse(response);
+      const rawUser =
+        data?.user ??
+        data?.customer ??
+        data?.data?.user ??
+        data?.data?.customer ??
+        null;
+      const currentUser = rawUser
+        ? normalizeAccountUser(rawUser)
+        : await getCurrentAccountUser();
 
-            options: {
-              emailRedirectTo:
-                redirectTo,
-
-              data: {
-                first_name:
-                  firstName,
-
-                last_name:
-                  lastName,
-
-                full_name:
-                  `${firstName} ${lastName}`,
-              },
-            },
-          },
-        );
-
-      if (error) {
-        throw error;
-      }
-
-      if (
-        data.session
-      ) {
-        router.replace(
-          "/account",
-        );
-
+      if (currentUser) {
+        setUser(currentUser);
+        setForm(initialForm);
+        router.replace("/account");
         router.refresh();
-
         return;
       }
 
+      setMode("login");
+      setForm((current) => ({
+        ...current,
+        password: "",
+        confirmPassword: "",
+      }));
       setMessage(
-        "Account created. Please check your email and confirm your KRVE account.",
+        data?.message ||
+          "Account created successfully. Please sign in to continue.",
       );
     } catch (error) {
       setMessage(
@@ -668,120 +627,44 @@ function AccountContent() {
           : "Unable to create your account.",
       );
     } finally {
-      setBusy(
-        false,
-      );
+      setBusy(false);
     }
   }
 
   async function forgotPassword(
-    event:
-      FormEvent<HTMLFormElement>,
+    event: FormEvent<HTMLFormElement>,
   ) {
     event.preventDefault();
-
-    setMessage("");
-
-    const email =
-      form.email
-        .trim()
-        .toLowerCase();
-
-    if (
-      !email.includes(
-        "@",
-      )
-    ) {
-      setMessage(
-        "Enter the email address connected to your KRVE account.",
-      );
-
-      return;
-    }
-
-    setBusy(
-      true,
+    setMessage(
+      "Password recovery will be connected after the KRVE Central reset-password endpoint is added.",
     );
-
-    try {
-      const {
-        error,
-      } =
-        await supabase.auth.resetPasswordForEmail(
-          email,
-          {
-            redirectTo:
-              `${window.location.origin}/account/update-password`,
-          },
-        );
-
-      if (error) {
-        throw error;
-      }
-
-      setMessage(
-        "Password reset email sent. Open the link in your inbox to set a new password.",
-      );
-    } catch (error) {
-      setMessage(
-        error instanceof Error
-          ? error.message
-          : "Unable to send password reset email.",
-      );
-    } finally {
-      setBusy(
-        false,
-      );
-    }
   }
 
   async function googleLogin() {
-    setMessage("");
-    setBusy(true);
-
-    try {
-      const {
-        error,
-      } =
-        await supabase.auth.signInWithOAuth(
-          {
-            provider:
-              "google",
-
-            options: {
-              redirectTo:
-                `${window.location.origin}/auth/callback?next=/account`,
-            },
-          },
-        );
-
-      if (error) {
-        throw error;
-      }
-    } catch (error) {
-      setMessage(
-        error instanceof Error
-          ? error.message
-          : "Google sign-in could not start.",
-      );
-
-      setBusy(false);
-    }
+    setMessage(
+      "Google sign-in is not enabled in the current KRVE Central authentication API yet. Please use email and password.",
+    );
   }
 
   async function signOut() {
     setBusy(true);
 
     try {
-      await supabase.auth.signOut();
+      const response = await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+        headers: { Accept: "application/json" },
+      });
 
+      await readAuthResponse(response);
       setUser(null);
-
-      router.replace(
-        "/account",
-      );
-
+      setRecentOrders([]);
+      router.replace("/account");
       router.refresh();
+    } catch (error) {
+      setMessage(
+        error instanceof Error ? error.message : "Unable to sign out.",
+      );
     } finally {
       setBusy(false);
     }
@@ -1454,7 +1337,7 @@ function AccountContent() {
                     Protected
                     authentication
                     powered by
-                    Supabase.
+                    KRVE Central.
                   </span>
                 </div>
               </article>
