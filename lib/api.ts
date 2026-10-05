@@ -648,12 +648,112 @@ export async function getAllProducts(): Promise<
 }
 
 /* =========================================================
+   HOMEPAGE PRODUCTS
+   ---------------------------------------------------------
+   Used by the customer-facing homepage.
+
+   Priority:
+   1. New arrivals
+   2. Featured products
+   3. Latest published products
+
+   This function NEVER requires the product to have
+   newArrival=true in order to appear on the homepage.
+========================================================= */
+
+export async function getHomepageProducts(
+  limit = 4,
+): Promise<KrveProduct[]> {
+  const safeLimit =
+    Math.max(
+      1,
+      Math.floor(
+        limit,
+      ),
+    );
+
+  const result =
+    await getProducts({
+      status:
+        "published",
+
+      limit:
+        100,
+
+      offset:
+        0,
+    });
+
+  const publishedProducts =
+    result.products.filter(
+      (product) =>
+        product.status ===
+        "published",
+    );
+
+  if (
+    publishedProducts.length ===
+    0
+  ) {
+    return [];
+  }
+
+  const sortedProducts =
+    [...publishedProducts].sort(
+      (
+        first,
+        second,
+      ) => {
+        if (
+          first.newArrival !==
+          second.newArrival
+        ) {
+          return first.newArrival
+            ? -1
+            : 1;
+        }
+
+        if (
+          first.featured !==
+          second.featured
+        ) {
+          return first.featured
+            ? -1
+            : 1;
+        }
+
+        const firstDate =
+          new Date(
+            first.createdAt ||
+              0,
+          ).getTime();
+
+        const secondDate =
+          new Date(
+            second.createdAt ||
+              0,
+          ).getTime();
+
+        return (
+          secondDate -
+          firstDate
+        );
+      },
+    );
+
+  return sortedProducts.slice(
+    0,
+    safeLimit,
+  );
+}
+
+/* =========================================================
    NEW ARRIVALS
 ========================================================= */
 
 export async function getNewArrivalProducts(
   limit = 4,
-) {
+): Promise<KrveProduct[]> {
   const safeLimit =
     Math.max(
       1,
@@ -696,7 +796,7 @@ export async function getNewArrivalProducts(
 
 export async function getFeaturedProducts(
   limit = 8,
-) {
+): Promise<KrveProduct[]> {
   const safeLimit =
     Math.max(
       1,
@@ -741,7 +841,7 @@ export async function getProductsByCategory(
   category:
     ProductCategory,
   limit = 100,
-) {
+): Promise<KrveProduct[]> {
   const safeLimit =
     Math.max(
       1,
@@ -778,7 +878,7 @@ export async function getProductsByCategory(
 export async function searchProducts(
   search: string,
   limit = 20,
-) {
+): Promise<KrveProduct[]> {
   const cleanedSearch =
     search.trim();
 
@@ -981,7 +1081,7 @@ export async function getProductBySlug(
 
 export async function getProduct(
   idOrSlug: string,
-) {
+): Promise<KrveProduct | null> {
   return getProductBySlug(
     idOrSlug,
   );
