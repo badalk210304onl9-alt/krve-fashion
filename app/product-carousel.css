@@ -1,47 +1,22 @@
-
 .home-product-strip {
-  box-sizing: border-box;
   width: 100%;
-  padding: 12px 3.4% 16px;
+  padding: 8px 0;
+  margin: 0;
   color: #f7f1e6;
-  background: #0b0906;
-  border-bottom: 1px solid #49371d;
+  background: #050505;
+  border: none;
 }
 
 .home-strip-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 10px;
-}
-
-.home-strip-heading span {
-  color: #d9b45e;
-  font-size: 9px;
-  letter-spacing: 2px;
-}
-
-.home-strip-heading h2 {
-  margin: 3px 0 0;
-  font-family: Georgia, serif;
-  font-size: clamp(17px, 1.8vw, 23px);
-  font-weight: 400;
-}
-
-.home-strip-heading > a {
-  flex-shrink: 0;
-  color: #e8c46f;
-  font-size: 11px;
-  text-decoration: none;
+  display: none;
 }
 
 .home-strip-viewport {
   width: 100%;
   overflow: hidden;
-  border: 1px solid #49371d;
-  border-radius: 4px;
-  background: #100d08;
+  border: none;
+  border-radius: 0;
+  background: transparent;
 }
 
 .home-strip-track {
@@ -56,15 +31,14 @@
 
 .home-strip-card {
   display: flex;
-  flex: 0 0 285px;
-  width: 285px;
+  flex: 0 0 340px;
+  width: 340px;
   height: 124px;
-  min-width: 0;
   box-sizing: border-box;
   align-items: center;
   gap: 12px;
-  padding: 8px;
-  border-right: 1px solid #352818;
+  padding: 8px 14px;
+  border: none;
   overflow: hidden;
 }
 
@@ -75,18 +49,8 @@
   width: 100px;
   height: 106px;
   overflow: hidden;
-  box-sizing: border-box;
-  background: #19150f;
-  border: 1px solid #302517;
-}
-
-.home-strip-photo > span {
-  display: grid;
-  width: 100%;
-  height: 100%;
-  place-items: center;
-  color: #d9b45e;
-  font-family: Georgia, serif;
+  background: transparent;
+  border: none;
 }
 
 .home-strip-info {
@@ -100,7 +64,7 @@
 
 .home-strip-tag {
   color: #d9b45e;
-  font-size: 8px;
+  font-size: 9px;
   letter-spacing: 1px;
 }
 
@@ -109,10 +73,9 @@
   width: 100%;
   overflow: hidden;
   color: #f7f1e6;
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.35;
   text-decoration: none;
-  overflow-wrap: anywhere;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
 }
@@ -121,58 +84,41 @@
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: 5px;
+  gap: 6px;
   color: #e8c46f;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
 }
 
 .home-strip-price del {
-  color: #9d9588;
+  color: #999;
   font-size: 10px;
   font-weight: 400;
 }
 
 .home-strip-shop {
   color: #f7f1e6;
-  font-size: 9px;
-  letter-spacing: 0.5px;
+  font-size: 10px;
   text-decoration: none;
 }
 
-.home-strip-shop:hover {
-  color: #e8c46f;
-}
-
 @keyframes home-strip-slide {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
-  }
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
 }
 
 @media (max-width: 600px) {
-  .home-product-strip {
-    padding: 11px 12px 14px;
-  }
-
   .home-strip-card {
-    flex-basis: 250px;
-    width: 250px;
-    height: 116px;
-    gap: 9px;
+    flex-basis: 290px;
+    width: 290px;
+    height: 112px;
+    gap: 10px;
   }
 
   .home-strip-photo {
     flex-basis: 88px;
     width: 88px;
-    height: 98px;
-  }
-
-  .home-strip-track {
-    animation-duration: 30s;
+    height: 96px;
   }
 }
 
