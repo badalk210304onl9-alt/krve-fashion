@@ -1,14 +1,17 @@
 import Image from "next/image";
 import Link from "next/link";
+
 import ProductCard from "@/components/product-card";
+import FestivalTheme from "@/components/festival-theme";
+
 import {
   getNewArrivalProducts,
   type KrveProduct,
 } from "@/lib/api";
+
 import type { Product } from "@/lib/catalog";
 
 import "./dussehra.css";
-import "./product-carousel.css";
 
 export const dynamic = "force-dynamic";
 
@@ -18,19 +21,6 @@ export const metadata = {
     "Luxury fashion, intelligent fit and AI-powered personal styling.",
 };
 
-async function loadNewArrivals(): Promise<KrveProduct[]> {
-  try {
-    const products = await getNewArrivalProducts(8);
-    return Array.isArray(products) ? products : [];
-  } catch (error) {
-    console.error("KRVE product loading error:", error);
-    return [];
-  }
-}
-
-/**
- * Keep the API product fields mapped explicitly for ProductCard.
- */
 function convertToProductCardProduct(
   product: KrveProduct,
 ): Product {
@@ -41,8 +31,8 @@ function convertToProductCardProduct(
     "/images/products/product-1.jpg";
 
   return {
-    id: product.id,
-    slug: product.slug,
+    id: product.slug || product.id,
+    slug: product.slug || product.id,
     name: product.name,
     price: product.price,
     compareAtPrice: product.compareAtPrice,
@@ -53,9 +43,16 @@ function convertToProductCardProduct(
       ? product.gallery
       : [image],
     category: product.category,
-    description: product.description,
-    sizes: product.sizes,
-    colours: product.colours,
+    description:
+      product.description ||
+      product.shortDescription ||
+      "A refined piece from the KRVE private collection.",
+    shortDescription:
+      product.shortDescription ||
+      product.description ||
+      "A refined piece from the KRVE private collection.",
+    sizes: product.sizes || [],
+    colours: product.colours || [],
     sku: product.sku,
     stockQuantity: product.stockQuantity,
     inStock: product.inStock,
@@ -64,147 +61,63 @@ function convertToProductCardProduct(
     status: product.status,
     createdAt: product.createdAt,
     updatedAt: product.updatedAt,
-  } as Product;
+  };
 }
 
-/* Original scrolling product strip */
-function HomeProductStrip({
-  products,
-}: {
-  products: KrveProduct[];
-}) {
-  if (!products.length) return null;
-
-  const items = [...products.slice(0, 8), ...products.slice(0, 8)];
-
-  return (
-    <section className="bottom-strip" aria-label="The KRVE edit">
-      <div className="strip-heading">
-        <span>THE KRVE EDIT</span>
-        <p>Fresh Fits. Signature Style.</p>
-      </div>
-
-      <div className="product-marquee">
-        <div className="product-marquee-track">
-          {items.map((product, index) => {
-            const image =
-              product.image ||
-              product.imageUrl ||
-              product.gallery?.[0] ||
-              "/images/products/product-1.jpg";
-
-            return (
-              <Link
-                className="strip-product"
-                href={`/products/${product.slug || product.id}`}
-                key={`${product.id}-${index}`}
-              >
-                <div className="strip-product-image">
-                  <Image
-                    src={image}
-                    alt={product.name}
-                    width={160}
-                    height={190}
-                    unoptimized
-                  />
-                </div>
-
-                <div className="strip-product-info">
-                  <span>{product.name}</span>
-                  <strong>
-                    {product.currency || "INR"}{" "}
-                    {Number(product.price || 0).toLocaleString("en-IN")}
-                  </strong>
-                  <small>SHOP NOW →</small>
-                </div>
-              </Link>
-            );
-          })}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function BenefitsSection() {
-  const benefits = [
-    {
-      title: "SIGNATURE STYLE",
-      description: "Distinctive looks for your everyday identity.",
-    },
-    {
-      title: "THOUGHTFUL DETAILS",
-      description: "Style built around the details that matter.",
-    },
-    {
-      title: "YOUR STYLE, YOUR WAY",
-      description: "Discover pieces that feel like you.",
-    },
-    {
-      title: "VIRTUAL TRY-ON",
-      description: "Explore your look with our digital styling experience.",
-    },
-    {
-      title: "THE KRVE EXPERIENCE",
-      description: "A more personal way to discover fashion.",
-    },
-  ];
-
-  return (
-    <section className="benefits">
-      {benefits.map((benefit, index) => (
-        <div className="benefit-item" key={benefit.title}>
-          <span className="benefit-number">
-            {String(index + 1).padStart(2, "0")}
-          </span>
-          <div>
-            <h3>{benefit.title}</h3>
-            <p>{benefit.description}</p>
-          </div>
-        </div>
-      ))}
-    </section>
-  );
+async function loadNewArrivals(): Promise<Product[]> {
+  try {
+    const products = await getNewArrivalProducts(4);
+    return products.map(convertToProductCardProduct);
+  } catch (error) {
+    console.error("HOME_NEW_ARRIVALS_ERROR", error);
+    return [];
+  }
 }
 
 export default async function HomePage() {
-  const products = await loadNewArrivals();
-  const arrivals = products.slice(0, 4);
+  const newArrivalProducts = await loadNewArrivals();
 
   return (
     <main className="krve-dussehra-home">
-      {/* Original product strip */}
-      <HomeProductStrip products={products} />
+      <FestivalTheme />
 
-      {/* Original hero — Dussehra greeting intentionally removed */}
       <section className="hero krve-dussehra-hero">
-        <div className="hero-silk" aria-hidden="true" />
-        <div className="krve-dussehra-glow" aria-hidden="true" />
+        <div className="hero-silk" />
+
+        <div
+          className="krve-dussehra-glow"
+          aria-hidden="true"
+        />
 
         <div className="hero-copy">
-          <span className="hero-eyebrow">AI-POWERED FASHION</span>
+          <div className="eyebrow">
+            <span />
+            AI-POWERED FASHION
+          </div>
 
           <h1>
             FASHION THAT
-            <br />
-            UNDERSTANDS YOU
+            <strong>UNDERSTANDS YOU</strong>
           </h1>
 
           <p>
-            Discover distinctive fashion, intelligent fit and
-            a personal styling experience designed around you.
+            Experience the future of luxury fashion with
+            AI-powered style recommendations.
           </p>
 
-          <div className="hero-actions">
-            <Link href="/collections" className="button button-primary">
-              EXPLORE COLLECTION
+          <div className="hero-buttons">
+            <Link
+              href="/collections"
+              className="button solid"
+            >
+              EXPLORE COLLECTIONS →
             </Link>
 
             <Link
               href="/virtual-try-on"
-              className="button button-outline"
+              className="button ghost"
             >
-              VIRTUAL TRY-ON
+              VIRTUAL TRY-ON ✦
             </Link>
           </div>
         </div>
@@ -212,108 +125,196 @@ export default async function HomePage() {
         <div className="hero-model">
           <Image
             src="/images/hero-model.jpg"
-            alt="KRVE fashion collection"
+            alt="KRVE luxury fashion model"
             fill
             priority
-            sizes="(max-width: 880px) 100vw, 55vw"
+            sizes="(max-width: 760px) 100vw, 70vw"
           />
         </div>
 
         <div className="crest">
           <Image
             src="/images/crest.jpg"
-            alt="KRVE signature emblem"
-            width={100}
-            height={100}
+            alt="KRVE crest"
+            fill
+            sizes="220px"
           />
         </div>
+
+        <aside className="krve-dussehra-greeting">
+          <span className="krve-greeting-ornament">✦</span>
+
+          <p className="krve-greeting-eyebrow">
+            THE FESTIVE EDITION
+          </p>
+
+          <h2>
+            Happy
+            <strong>Dussehra</strong>
+          </h2>
+
+          <span className="krve-greeting-divider">
+            ✧ ━━━━━━━━━ ✧
+          </span>
+
+          <p className="krve-greeting-message">
+            May the victory of good over evil inspire
+            you always.
+          </p>
+
+          <span className="krve-greeting-ornament">✦</span>
+        </aside>
       </section>
 
-      {/* Original benefits section */}
-      <BenefitsSection />
+      <section className="benefits">
+        {[
+          [
+            "◎",
+            "FREE WORLDWIDE SHIPPING",
+            "On all orders above $200",
+          ],
+          [
+            "◌",
+            "EASY RETURNS",
+            "30-day return policy",
+          ],
+          [
+            "♜",
+            "PREMIUM QUALITY",
+            "Finest materials",
+          ],
+          [
+            "♙",
+            "AI PERSONAL STYLIST",
+            "Style that matches you",
+          ],
+          [
+            "▣",
+            "SECURE SHOPPING",
+            "100% protected checkout",
+          ],
+        ].map(([icon, title, text]) => (
+          <div key={title}>
+            <span>{icon}</span>
+            <p>
+              <strong>{title}</strong>
+              <small>{text}</small>
+            </p>
+          </div>
+        ))}
+      </section>
 
-      {/* Original new arrivals */}
-      <section className="new-arrivals page-shell">
+      <section className="new-arrivals krve-festive-section">
         <div className="section-heading">
           <div>
-            <span className="section-kicker">THE LATEST FROM KRVE</span>
             <h2>NEW ARRIVALS</h2>
-            <p>Discover your next signature look.</p>
+            <small>LIVE FROM KEOS CENTER</small>
           </div>
 
-          <Link href="/collections" className="text-link">
-            VIEW ALL →
-          </Link>
+          <Link href="/collections">VIEW ALL →</Link>
         </div>
 
-        {arrivals.length > 0 ? (
-          <div className="arrival-layout">
-            <div className="product-grid">
-              {arrivals.map((product) => (
+        <div className="arrival-layout">
+          <div className="product-grid">
+            {newArrivalProducts.length > 0 ? (
+              newArrivalProducts.map((product) => (
                 <ProductCard
                   key={product.id}
-                  product={convertToProductCardProduct(product)}
+                  product={product}
                 />
-              ))}
+              ))
+            ) : (
+              <div className="homepage-products-empty">
+                <span>✦</span>
+
+                <div>
+                  <strong>
+                    NEW COLLECTION COMING SOON
+                  </strong>
+
+                  <p>
+                    Publish a product from KEOS Center
+                    with New Arrival enabled and it will
+                    automatically appear here.
+                  </p>
+
+                  <Link
+                    href="/collections"
+                    className="button ghost"
+                  >
+                    EXPLORE COLLECTIONS →
+                  </Link>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <article className="tryon-card">
+            <div>
+              <p className="gold-label">
+                AI VIRTUAL TRY-ON STUDIO
+              </p>
+
+              <h3>
+                See how every look feels before you wear it.
+              </h3>
+
+              <p>
+                Upload your photo and preview refined
+                KRVE outfits in real time.
+              </p>
+
+              <Link
+                href="/virtual-try-on"
+                className="button ghost"
+              >
+                TRY NOW →
+              </Link>
             </div>
-          </div>
-        ) : (
-          <div className="empty-products">
-            <h3>New styles are on the way.</h3>
-            <p>Explore the KRVE collection in the meantime.</p>
-            <Link href="/collections" className="button button-primary">
-              EXPLORE COLLECTION
-            </Link>
-          </div>
-        )}
-      </section>
 
-      {/* Original Virtual Try-On promotion */}
-      <section className="tryon-card page-shell">
-        <div className="tryon-image">
-          <Image
-            src="/images/try-on.jpg"
-            alt="KRVE virtual try-on experience"
-            fill
-            sizes="(max-width: 880px) 100vw, 50vw"
-          />
-        </div>
-
-        <div className="tryon-copy">
-          <span className="section-kicker">STYLE MEETS TECHNOLOGY</span>
-          <h2>
-            YOUR STYLE.
-            <br />
-            YOUR VISION.
-          </h2>
-          <p>
-            Discover a new way to explore your look with KRVE
-            Virtual Try-On.
-          </p>
-          <Link href="/virtual-try-on" className="button button-primary">
-            TRY VIRTUAL TRY-ON →
-          </Link>
+            <div className="tryon-image">
+              <Image
+                src="/images/try-on.jpg"
+                alt="AI virtual try-on"
+                fill
+                sizes="(max-width: 900px) 100vw, 380px"
+              />
+            </div>
+          </article>
         </div>
       </section>
 
-      {/* Original bottom highlights */}
-      <section className="bottom-strip bottom-highlights">
-        <div className="bottom-highlight">
-          <span>01</span>
-          <p>THE KRVE EDIT</p>
-        </div>
-        <div className="bottom-highlight">
-          <span>02</span>
-          <p>FRESH FITS</p>
-        </div>
-        <div className="bottom-highlight">
-          <span>03</span>
-          <p>SIGNATURE STYLE</p>
-        </div>
-        <div className="bottom-highlight">
-          <span>04</span>
-          <p>YOUR STYLE, YOUR WAY</p>
-        </div>
+      <section className="bottom-strip krve-festive-section">
+        {[
+          [
+            "◈",
+            "EXCLUSIVE COLLECTIONS",
+            "Unique & limited designs",
+          ],
+          [
+            "◇",
+            "LUXURY MATERIALS",
+            "Premium & sustainable",
+          ],
+          [
+            "✤",
+            "CRAFTED TO PERFECTION",
+            "Attention to every detail",
+          ],
+          [
+            "♙",
+            "TRUSTED BY THOUSANDS",
+            "★★★★★ 4.9/5",
+          ],
+        ].map(([icon, title, text]) => (
+          <div key={title}>
+            <span>{icon}</span>
+            <p>
+              <strong>{title}</strong>
+              <small>{text}</small>
+            </p>
+          </div>
+        ))}
       </section>
     </main>
   );
