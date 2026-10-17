@@ -15,128 +15,46 @@ export const dynamic = "force-dynamic";
 export const metadata = {
   title: "KRVE — The Fashion Studio",
   description:
-    "Discover contemporary fashion, signature styles and AI-powered personal styling at KRVE Fashion Studio.",
+    "Discover distinctive fashion, signature styles and personal styling at KRVE.",
 };
-
-function convertToProductCardProduct(
-  product: KrveProduct,
-): Product {
-  return {
-    ...product,
-  } as Product;
-}
 
 async function loadNewArrivals(): Promise<KrveProduct[]> {
   try {
-    const result = await getNewArrivalProducts(8);
-    return Array.isArray(result) ? result : [];
+    const products = await getNewArrivalProducts(8);
+    return Array.isArray(products) ? products : [];
   } catch (error) {
-    console.error("Unable to load KRVE new arrivals:", error);
+    console.error("KRVE product loading error:", error);
     return [];
   }
 }
 
-function HomeProductStrip({
-  products,
-}: {
-  products: KrveProduct[];
-}) {
-  if (products.length === 0) {
-    return null;
-  }
-
-  const stripProducts = [...products, ...products];
-
-  return (
-    <section className="krve-home-strip" aria-label="KRVE new arrivals">
-      <div className="krve-home-strip-heading">
-        <span>THE KRVE EDIT</span>
-        <span>FRESH FITS. SIGNATURE STYLE.</span>
-      </div>
-
-      <div className="krve-home-strip-window">
-        <div className="krve-home-strip-track">
-          {stripProducts.map((product, index) => {
-            const imageSrc =
-              product.imageUrl ||
-              product.image ||
-              product.gallery?.[0] ||
-              "/images/hero-model.jpg";
-
-            return (
-              <Link
-                key={`${product.id}-${index}`}
-                href={`/products/${product.slug || product.id}`}
-                className="krve-home-strip-item"
-              >
-                <div className="krve-home-strip-image">
-                  <Image
-                    src={imageSrc}
-                    alt={product.name || "KRVE fashion"}
-                    width={110}
-                    height={130}
-                    sizes="110px"
-                  />
-                </div>
-
-                <div className="krve-home-strip-info">
-                  <span className="krve-home-strip-label">
-                    NEW ARRIVAL
-                  </span>
-
-                  <span className="krve-home-strip-name">
-                    {product.name}
-                  </span>
-
-                  <span className="krve-home-strip-price">
-                    {product.currency || "INR"}{" "}
-                    {Number(product.price || 0).toLocaleString("en-IN")}
-                  </span>
-
-                  <span className="krve-home-strip-cta">
-                    SHOP NOW ↗
-                  </span>
-                </div>
-              </Link>
-            );
-          })}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function ShopByCategory() {
+function CategorySection() {
   const categories = [
     {
-      number: "01",
-      name: "MEN",
-      description: "EVERYDAY ICONS",
+      title: "MEN",
+      subtitle: "TIMELESS ESSENTIALS",
       image: "/images/hero-model.jpg",
     },
     {
-      number: "02",
-      name: "WOMEN",
-      description: "MODERN EXPRESSION",
+      title: "WOMEN",
+      subtitle: "MODERN EXPRESSION",
       image: "/images/try-on.jpg",
     },
     {
-      number: "03",
-      name: "STREETWEAR",
-      description: "MAKE YOUR STATEMENT",
+      title: "STREETWEAR",
+      subtitle: "MAKE YOUR STATEMENT",
       image: "/images/hero-model.jpg",
     },
     {
-      number: "04",
-      name: "ACCESSORIES",
-      description: "THE FINISHING TOUCH",
+      title: "ACCESSORIES",
+      subtitle: "THE FINISHING TOUCH",
       image: "/images/crest.jpg",
     },
   ];
 
   return (
-    <section className="krve-category-section">
-      <div className="krve-editorial-heading">
+    <section className="krve-section krve-categories">
+      <div className="krve-section-heading">
         <span className="krve-eyebrow">FIND YOUR SIGNATURE</span>
         <h2>
           SHOP BY <span>CATEGORY</span>
@@ -149,25 +67,21 @@ function ShopByCategory() {
           <Link
             href="/collections"
             className="krve-category-card"
-            key={category.name}
+            key={category.title}
           >
             <Image
               src={category.image}
-              alt={`${category.name} fashion at KRVE`}
+              alt={`${category.title} collection`}
               fill
-              sizes="(max-width: 700px) 100vw, 50vw"
+              sizes="(max-width: 600px) 100vw, (max-width: 900px) 50vw, 25vw"
             />
 
-            <span className="krve-category-shade" />
+            <span className="krve-category-overlay" />
 
-            <div className="krve-category-copy">
-              <span>
-                {category.number} / {category.description}
-              </span>
-              <h3>{category.name}</h3>
-              <span className="krve-category-link">
-                EXPLORE COLLECTION ↗
-              </span>
+            <div className="krve-category-text">
+              <span>{category.subtitle}</span>
+              <h3>{category.title}</h3>
+              <b>EXPLORE COLLECTION ↗</b>
             </div>
           </Link>
         ))}
@@ -176,29 +90,20 @@ function ShopByCategory() {
   );
 }
 
-function KrveEditorial() {
+function EditorialSection() {
   return (
-    <section className="krve-edit-section">
-      <div className="krve-edit-image">
+    <section className="krve-editorial">
+      <div className="krve-editorial-photo">
         <Image
           src="/images/hero-model.jpg"
-          alt="The KRVE fashion editorial"
+          alt="KRVE fashion campaign"
           fill
-          sizes="(max-width: 800px) 100vw, 55vw"
-          priority={false}
+          sizes="(max-width: 760px) 100vw, 50vw"
         />
-
-        <div className="krve-edit-image-overlay" />
-
-        <span className="krve-edit-image-label">
-          KRVE FASHION STUDIO
-        </span>
       </div>
 
-      <div className="krve-edit-content">
-        <span className="krve-eyebrow">
-          A DIFFERENT POINT OF VIEW
-        </span>
+      <div className="krve-editorial-copy">
+        <span className="krve-eyebrow">THE KRVE EDIT</span>
 
         <h2>
           MORE THAN
@@ -208,83 +113,32 @@ function KrveEditorial() {
           <span>IT&apos;S KRVE.</span>
         </h2>
 
-        <div className="krve-edit-line" />
+        <div className="krve-gold-rule" />
 
         <p>
           Style is more than what you wear. It is how you express
-          yourself. Discover considered designs, distinctive details
-          and a look that feels unmistakably yours.
+          yourself. Discover distinctive designs and a look that
+          feels unmistakably yours.
         </p>
 
-        <Link href="/collections" className="krve-edit-cta">
+        <Link href="/collections" className="krve-button">
           EXPLORE THE COLLECTION <span>↗</span>
         </Link>
-
-        <span className="krve-edit-index">
-          THE KRVE EDIT — 001
-        </span>
       </div>
     </section>
   );
 }
 
-function BrandBenefits() {
-  const benefits = [
-    {
-      symbol: "✳",
-      title: "THOUGHTFUL STYLE",
-      description: "Made to express your individuality",
-    },
-    {
-      symbol: "◇",
-      title: "SIGNATURE DETAILS",
-      description: "A distinct point of view",
-    },
-    {
-      symbol: "✦",
-      title: "PERSONAL STYLING",
-      description: "Explore AI-powered styling",
-    },
-    {
-      symbol: "↗",
-      title: "YOUR NEXT LOOK",
-      description: "Discover something new",
-    },
-  ];
-
-  return (
-    <section className="krve-benefits-section">
-      {benefits.map((benefit) => (
-        <div className="krve-benefit-item" key={benefit.title}>
-          <span className="krve-benefit-symbol">
-            {benefit.symbol}
-          </span>
-          <div>
-            <h3>{benefit.title}</h3>
-            <p>{benefit.description}</p>
-          </div>
-        </div>
-      ))}
-    </section>
-  );
-}
-
 export default async function HomePage() {
-  const newArrivalProducts = await loadNewArrivals();
+  const products = await loadNewArrivals();
 
   return (
-    <main className="krve-dussehra-home krve-premium-home">
-      {/* Minimal product strip */}
-      <HomeProductStrip products={newArrivalProducts} />
-
-      {/* Premium hero */}
-      <section className="hero krve-dussehra-hero krve-premium-hero">
-        <div className="hero-silk" aria-hidden="true" />
-        <div className="krve-dussehra-glow" aria-hidden="true" />
-
-        <div className="hero-copy">
-          <span className="krve-premium-eyebrow">
-            — THE ART OF EVERYDAY STYLE
+    <main className="krve-premium-page">
+      {/* Hero */}
+      <section className="krve-hero">
+        <div className="krve-hero-copy">
+          <span className="krve-eyebrow">
+            THE ART OF EVERYDAY STYLE
           </span>
 
           <h1>
@@ -298,14 +152,14 @@ export default async function HomePage() {
             that feels like you.
           </p>
 
-          <div className="krve-hero-actions">
-            <Link href="/collections" className="krve-premium-primary">
-              EXPLORE COLLECTIONS <span>↗</span>
+          <div className="krve-hero-buttons">
+            <Link href="/collections" className="krve-button">
+              SHOP COLLECTIONS <span>↗</span>
             </Link>
 
             <Link
               href="/virtual-try-on"
-              className="krve-premium-secondary"
+              className="krve-button krve-button-outline"
             >
               VIRTUAL TRY-ON <span>✦</span>
             </Link>
@@ -316,119 +170,106 @@ export default async function HomePage() {
           </span>
         </div>
 
-        <div className="hero-model krve-premium-model">
+        <div className="krve-hero-photo">
           <Image
             src="/images/hero-model.jpg"
-            alt="KRVE contemporary fashion campaign"
+            alt="KRVE contemporary fashion"
             fill
             priority
             sizes="(max-width: 760px) 100vw, 55vw"
           />
         </div>
-
-        <div className="krve-hero-side-label" aria-hidden="true">
-          <span>MEN</span>
-          <span>WOMEN</span>
-          <span>STREETWEAR</span>
-          <span>ACCESSORIES</span>
-        </div>
-
-        <div className="krve-scroll-indicator" aria-hidden="true">
-          <span>SCROLL TO DISCOVER</span>
-          <span className="krve-scroll-line" />
-        </div>
       </section>
 
-      {/* Brand benefits */}
-      <BrandBenefits />
+      {/* Brand introduction */}
+      <section className="krve-brand-intro">
+        <span>DESIGNED FOR YOUR POINT OF VIEW</span>
+        <p>
+          Your style. Your identity. <strong>Your KRVE.</strong>
+        </p>
+      </section>
 
       {/* Categories */}
-      <ShopByCategory />
+      <CategorySection />
 
-      {/* Existing product data */}
-      <HomeProductStrip products={newArrivalProducts} />
-
-      {/* Editorial brand story */}
-      <KrveEditorial />
-
-      {/* New Arrivals */}
-      <section className="new-arrivals krve-premium-arrivals">
-        <div className="section-heading">
+      {/* New arrivals */}
+      <section className="krve-section krve-arrivals">
+        <div className="krve-arrivals-heading">
           <div>
-            <span className="krve-eyebrow">CURATED FOR YOU</span>
+            <span className="krve-eyebrow">JUST DISCOVERED</span>
             <h2>NEW ARRIVALS</h2>
-            <p>Discover the latest additions to the KRVE collection.</p>
+            <p>Fresh styles. Your next favourite.</p>
           </div>
 
-          <Link href="/collections" className="krve-view-all">
-            VIEW ALL <span>↗</span>
+          <Link href="/collections" className="krve-text-link">
+            VIEW ALL ↗
           </Link>
         </div>
 
-        {newArrivalProducts.length > 0 ? (
-          <div className="product-grid">
-            {newArrivalProducts.slice(0, 4).map((product) => (
-              <ProductCard
-                key={product.id}
-                product={convertToProductCardProduct(product)}
-              />
+        {products.length > 0 ? (
+          <div className="krve-product-grid">
+            {products.slice(0, 4).map((product) => (
+              <div className="krve-product-item" key={product.id}>
+                <ProductCard product={product as Product} />
+              </div>
             ))}
           </div>
         ) : (
-          <div className="krve-empty-arrivals">
-            <span className="krve-eyebrow">THE NEXT EDIT IS COMING</span>
-            <h3>Something worth wearing.</h3>
-            <p>
-              New pieces will appear here as soon as they are available.
-            </p>
-            <Link href="/collections" className="krve-premium-primary">
-              EXPLORE COLLECTIONS <span>↗</span>
+          <div className="krve-empty-state">
+            <h3>The next edit is coming.</h3>
+            <p>Explore our collection to discover your style.</p>
+            <Link href="/collections" className="krve-button">
+              EXPLORE COLLECTIONS ↗
             </Link>
           </div>
         )}
       </section>
 
-      {/* Virtual Try-On */}
-      <section className="krve-tryon-section">
-        <div className="krve-tryon-image">
+      {/* Editorial */}
+      <EditorialSection />
+
+      {/* Virtual try-on */}
+      <section className="krve-tryon">
+        <div className="krve-tryon-photo">
           <Image
             src="/images/try-on.jpg"
-            alt="Explore virtual styling at KRVE"
+            alt="KRVE virtual styling experience"
             fill
             sizes="(max-width: 760px) 100vw, 50vw"
           />
         </div>
 
         <div className="krve-tryon-copy">
-          <span className="krve-eyebrow">STYLE MEETS TECHNOLOGY</span>
+          <span className="krve-eyebrow">
+            STYLE MEETS TECHNOLOGY
+          </span>
+
           <h2>
             YOUR STYLE.
             <br />
-            YOUR <span>VISION.</span>
+            <span>YOUR VISION.</span>
           </h2>
+
           <p>
-            Explore a new way to discover your look with the KRVE
-            Virtual Try-On experience.
+            Explore a new way to discover your look with KRVE
+            Virtual Try-On.
           </p>
-          <Link
-            href="/virtual-try-on"
-            className="krve-premium-primary"
-          >
-            TRY IT YOURSELF <span>↗</span>
+
+          <Link href="/virtual-try-on" className="krve-button">
+            TRY IT YOURSELF ↗
           </Link>
         </div>
       </section>
 
-      {/* Closing brand statement */}
-      <section className="krve-closing-section">
+      {/* Closing statement */}
+      <section className="krve-closing">
         <span className="krve-eyebrow">THE KRVE PHILOSOPHY</span>
         <h2>
-          WEAR YOUR
-          <span> CONFIDENCE.</span>
+          WEAR YOUR <span>CONFIDENCE.</span>
         </h2>
         <p>Not just another look. Your own point of view.</p>
-        <Link href="/collections" className="krve-closing-link">
-          FIND YOUR STYLE <span>↗</span>
+        <Link href="/collections" className="krve-text-link">
+          FIND YOUR STYLE ↗
         </Link>
       </section>
     </main>
