@@ -2833,3 +2833,419 @@ img {
     grid-template-columns: 1fr;
   }
 }
+
+/* =========================================================
+   KRVE — FULL WEBSITE DUSSEHRA FESTIVE THEME
+   Append at the end of app/globals.css
+========================================================= */
+
+html.krve-festival-dussehra {
+  --krve-festival-gold: #ffc34d;
+  --krve-festival-orange: #ff8b19;
+  --krve-festival-glow: rgba(255, 154, 26, 0.24);
+}
+
+html.krve-festival-dussehra body {
+  background:
+    radial-gradient(
+      ellipse at 50% 8%,
+      rgba(255, 131, 15, 0.17),
+      transparent 48%
+    ),
+    radial-gradient(
+      ellipse at 0% 35%,
+      rgba(255, 143, 22, 0.12),
+      transparent 35%
+    ),
+    radial-gradient(
+      ellipse at 100% 62%,
+      rgba(255, 116, 12, 0.11),
+      transparent 36%
+    ),
+    radial-gradient(
+      ellipse at 50% 100%,
+      rgba(201, 125, 15, 0.10),
+      transparent 45%
+    ),
+    #030201;
+}
+
+/* Golden festive glow across the complete website */
+
+html.krve-festival-dussehra body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  pointer-events: none;
+
+  background-image:
+    radial-gradient(
+      circle,
+      rgba(255, 222, 137, 0.95) 0 1px,
+      rgba(255, 166, 36, 0.65) 2px,
+      transparent 5px
+    ),
+    radial-gradient(
+      circle,
+      rgba(255, 174, 48, 0.8) 0 1px,
+      transparent 4px
+    ),
+    radial-gradient(
+      circle,
+      rgba(255, 218, 117, 0.8) 0 1px,
+      transparent 3px
+    );
+
+  background-size:
+    173px 197px,
+    241px 223px,
+    127px 163px;
+
+  background-position:
+    12px 22px,
+    71px 93px,
+    43px 51px;
+
+  opacity: 0.48;
+
+  animation: krve-festive-particles 12s ease-in-out infinite alternate;
+}
+
+/* Glowing fairy lights along the top of the screen */
+
+html.krve-festival-dussehra body::after {
+  content: "";
+  position: fixed;
+  z-index: 9999;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 13px;
+
+  pointer-events: none;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 171, 43, 0.22),
+      transparent
+    ),
+    radial-gradient(
+      ellipse at center,
+      #fff5c5 0,
+      #ffd36a 2px,
+      rgba(255, 156, 27, 0.8) 4px,
+      transparent 9px
+    );
+
+  background-size:
+    100% 100%,
+    58px 13px;
+
+  background-repeat: repeat-x;
+
+  box-shadow:
+    0 2px 12px rgba(255, 173, 43, 0.38),
+    0 0 26px rgba(255, 125, 18, 0.13);
+}
+
+/* Keep all interactive elements usable */
+
+html.krve-festival-dussehra
+button,
+html.krve-festival-dussehra
+a,
+html.krve-festival-dussehra
+input,
+html.krve-festival-dussehra
+select,
+html.krve-festival-dussehra
+textarea {
+  position: relative;
+}
+
+/* Announcement and festive banners */
+
+html.krve-festival-dussehra .topbar,
+html.krve-festival-dussehra .krve-festive-banner {
+  background:
+    radial-gradient(
+      ellipse at 50% 0,
+      rgba(255, 178, 51, 0.34),
+      transparent 65%
+    ),
+    linear-gradient(
+      90deg,
+      #160803,
+      #48200a,
+      #291004,
+      #160803
+    );
+
+  border-top-color: rgba(255, 211, 112, 0.72);
+  border-bottom-color: rgba(255, 184, 54, 0.82);
+
+  box-shadow:
+    0 0 20px rgba(255, 139, 23, 0.13),
+    inset 0 0 22px rgba(255, 176, 53, 0.08);
+}
+
+/* Luxury header remains black and gold */
+
+html.krve-festival-dussehra .header,
+html.krve-festival-dussehra .krve-header {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(15, 8, 2, 0.96),
+      rgba(2, 2, 2, 0.97)
+    );
+
+  border-bottom-color: rgba(255, 181, 49, 0.55);
+
+  box-shadow:
+    0 8px 32px rgba(255, 133, 16, 0.08);
+}
+
+/* Hero gets a richer Dussehra glow */
+
+html.krve-festival-dussehra .hero {
+  background:
+    radial-gradient(
+      ellipse at 67% 55%,
+      rgba(255, 115, 12, 0.20),
+      transparent 43%
+    ),
+    radial-gradient(
+      ellipse at 5% 100%,
+      rgba(255, 144, 19, 0.16),
+      transparent 40%
+    ),
+    #030201;
+
+  border-bottom-color: rgba(255, 183, 47, 0.7);
+
+  box-shadow:
+    inset 0 1px rgba(255, 201, 90, 0.12),
+    inset 0 -24px 55px rgba(255, 120, 10, 0.045);
+}
+
+html.krve-festival-dussehra .hero-silk {
+  background:
+    radial-gradient(
+      ellipse at 20% 90%,
+      rgba(255, 121, 15, 0.13),
+      transparent 60%
+    ),
+    linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.97),
+      rgba(12, 5, 1, 0.82)
+    ),
+    repeating-linear-gradient(
+      116deg,
+      #030201 0 15px,
+      #0d0804 15px 28px,
+      #040302 28px 45px
+    );
+}
+
+html.krve-festival-dussehra .hero h1 strong {
+  color: #ffc43f;
+
+  text-shadow:
+    0 0 20px rgba(255, 158, 22, 0.13);
+}
+
+html.krve-festival-dussehra .eyebrow {
+  color: #ffc34b;
+}
+
+/* Benefits and trust strips */
+
+html.krve-festival-dussehra .benefits,
+html.krve-festival-dussehra .bottom-strip {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(23, 12, 3, 0.96),
+      rgba(3, 3, 2, 0.98)
+    );
+
+  border-top-color: rgba(255, 177, 45, 0.44);
+  border-bottom-color: rgba(255, 177, 45, 0.44);
+}
+
+html.krve-festival-dussehra .benefits > div,
+html.krve-festival-dussehra .bottom-strip > div {
+  border-color: rgba(255, 177, 45, 0.20);
+}
+
+html.krve-festival-dussehra .benefits > div > span,
+html.krve-festival-dussehra .bottom-strip > div > span {
+  color: #ffc13c;
+
+  filter:
+    drop-shadow(0 0 7px rgba(255, 163, 26, 0.45));
+}
+
+/* Product collection sections */
+
+html.krve-festival-dussehra .new-arrivals {
+  background:
+    radial-gradient(
+      ellipse at 50% 0,
+      rgba(255, 139, 20, 0.075),
+      transparent 60%
+    ),
+    rgba(3, 3, 2, 0.97);
+
+  border-bottom-color: rgba(255, 176, 44, 0.30);
+}
+
+html.krve-festival-dussehra .section-heading h2 {
+  color: #ffc443;
+
+  text-shadow:
+    0 0 16px rgba(255, 158, 23, 0.12);
+}
+
+html.krve-festival-dussehra .product-card {
+  border-color: rgba(255, 176, 44, 0.45);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(31, 17, 5, 0.95),
+      rgba(4, 3, 2, 0.98)
+    );
+
+  box-shadow:
+    inset 0 0 18px rgba(255, 154, 23, 0.025);
+}
+
+html.krve-festival-dussehra .product-card:hover {
+  border-color: #ffc34d;
+
+  box-shadow:
+    0 0 22px rgba(255, 153, 22, 0.13),
+    0 14px 32px rgba(0, 0, 0, 0.4);
+}
+
+/* Virtual try-on promotion */
+
+html.krve-festival-dussehra .tryon-card {
+  border-color: rgba(255, 179, 48, 0.52);
+
+  background:
+    radial-gradient(
+      ellipse at 90% 0,
+      rgba(255, 146, 21, 0.16),
+      transparent 60%
+    ),
+    linear-gradient(
+      145deg,
+      #100903,
+      #030302
+    );
+}
+
+/* Gold buttons */
+
+html.krve-festival-dussehra .button.solid {
+  background:
+    linear-gradient(
+      135deg,
+      #ffe08a,
+      #ffc13b 45%,
+      #d78a12
+    );
+
+  border-color: #ffdc79;
+
+  box-shadow:
+    0 0 16px rgba(255, 167, 29, 0.13);
+}
+
+html.krve-festival-dussehra .button.ghost {
+  border-color: rgba(255, 193, 60, 0.82);
+}
+
+/* Footer matches the festive palette */
+
+html.krve-festival-dussehra .footer {
+  background:
+    radial-gradient(
+      ellipse at 50% 0,
+      rgba(255, 137, 17, 0.10),
+      transparent 60%
+    ),
+    #030302;
+
+  border-top-color: rgba(255, 179, 48, 0.44);
+}
+
+/* Keep overlays and shopping panels readable */
+
+html.krve-festival-dussehra .search-panel,
+html.krve-festival-dussehra .mobile-navigation-drawer {
+  background:
+    radial-gradient(
+      ellipse at 90% 0,
+      rgba(255, 150, 24, 0.12),
+      transparent 40%
+    ),
+    linear-gradient(
+      145deg,
+      #0a0703,
+      #020202 72%
+    );
+}
+
+/* Floating golden particles */
+
+@keyframes krve-festive-particles {
+  0% {
+    opacity: 0.24;
+    background-position:
+      12px 22px,
+      71px 93px,
+      43px 51px;
+  }
+
+  100% {
+    opacity: 0.62;
+    background-position:
+      42px -18px,
+      31px 53px,
+      83px 11px;
+  }
+}
+
+/* Respect reduced-motion preferences */
+
+@media (prefers-reduced-motion: reduce) {
+  html.krve-festival-dussehra body::before {
+    animation: none;
+  }
+}
+
+/* Mobile festive styling */
+
+@media (max-width: 880px) {
+  html.krve-festival-dussehra .hero {
+    background:
+      radial-gradient(
+        ellipse at 50% 70%,
+        rgba(255, 125, 14, 0.20),
+        transparent 58%
+      ),
+      #030201;
+  }
+
+  html.krve-festival-dussehra .product-card {
+    box-shadow:
+      inset 0 0 12px rgba(255, 154, 23, 0.035);
+  }
+}
