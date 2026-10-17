@@ -9,46 +9,79 @@ type ProductCarouselProps = {
   products: Product[];
 };
 
+type ProductWithImages = Product & {
+  images?: Array<string | { url?: string; src?: string }>;
+  thumbnail?: string;
+  featuredImage?: string;
+  image_url?: string;
+  imageUrl?: string;
+  gallery?: Array<string | { url?: string; src?: string }>;
+};
+
+function findImage(product: Product): string {
+  const p = product as ProductWithImages;
+
+  const candidates = [
+    p.image,
+    p.imageUrl,
+    p.image_url,
+    p.thumbnail,
+    p.featuredImage,
+    ...(p.gallery || []),
+    ...(p.images || []),
+  ];
+
+  for (const item of candidates) {
+    if (typeof item === "string" && item.trim()) return item;
+
+    if (item && typeof item === "object") {
+      if (typeof item.url === "string" && item.url.trim()) {
+        return item.url;
+      }
+      if (typeof item.src === "string" && item.src.trim()) {
+        return item.src;
+      }
+    }
+  }
+
+  return "";
+}
+
 export default function ProductCarousel({
   products,
 }: ProductCarouselProps) {
-  if (!products || products.length === 0) return null;
+  if (!products?.length) return null;
 
   const formatPrice = (price: number | string) =>
     Number(price).toLocaleString("en-IN");
 
-  const getImage = (product: Product) =>
-    product.image || product.imageUrl || product.gallery?.[0] || "";
-
   return (
-    <section className="krve-carousel">
-      <div className="krve-carousel-heading">
+    <section className="krve-products">
+      <div className="krve-products-heading">
         <div>
-          <span className="krve-carousel-eyebrow">
-            THE KRVE EDIT
-          </span>
+          <span>THE KRVE EDIT</span>
           <h2>Fresh Fits. Signature Style.</h2>
         </div>
 
-        <Link href="/collections" className="krve-carousel-all">
-          VIEW ALL <span>→</span>
+        <Link href="/collections" className="krve-products-all">
+          VIEW ALL →
         </Link>
       </div>
 
-      <div className="krve-carousel-viewport">
-        <div className="krve-carousel-track">
+      <div className="krve-products-window">
+        <div className="krve-products-track">
           {[...products, ...products].map((product, index) => {
-            const image = getImage(product);
-            const productUrl = `/products/${product.slug || product.id}`;
+            const image = findImage(product);
+            const href = `/products/${product.slug || product.id}`;
 
             return (
               <article
-                className="krve-carousel-card"
+                className="krve-product-card"
                 key={`${product.id}-${index}`}
               >
                 <Link
-                  href={productUrl}
-                  className="krve-carousel-photo"
+                  href={href}
+                  className="krve-product-photo"
                   aria-label={`Shop ${product.name}`}
                 >
                   {image ? (
@@ -56,48 +89,40 @@ export default function ProductCarousel({
                       src={image}
                       alt={product.name}
                       fill
-                      sizes="(max-width: 600px) 100px, 120px"
+                      sizes="180px"
                       style={{ objectFit: "contain" }}
+                      unoptimized
                     />
                   ) : (
-                    <span className="krve-carousel-placeholder">
+                    <span className="krve-product-no-image">
                       KRVE
                     </span>
                   )}
                 </Link>
 
-                <div className="krve-carousel-info">
-                  <span className="krve-carousel-label">
+                <div className="krve-product-info">
+                  <span className="krve-product-tag">
                     NEW ARRIVAL
                   </span>
 
-                  <Link
-                    href={productUrl}
-                    className="krve-carousel-name"
-                  >
+                  <Link href={href} className="krve-product-name">
                     {product.name}
                   </Link>
 
-                  <div className="krve-carousel-prices">
-                    <span className="krve-carousel-price">
-                      {product.currency || "₹"}
-                      {formatPrice(product.price)}
-                    </span>
-
+                  <div className="krve-product-price">
+                    {product.currency || "₹"}
+                    {formatPrice(product.price)}
                     {product.compareAtPrice &&
                       Number(product.compareAtPrice) >
                         Number(product.price) && (
-                        <del className="krve-carousel-old-price">
+                        <del>
                           {product.currency || "₹"}
                           {formatPrice(product.compareAtPrice)}
                         </del>
                       )}
                   </div>
 
-                  <Link
-                    href={productUrl}
-                    className="krve-carousel-shop"
-                  >
+                  <Link href={href} className="krve-product-button">
                     SHOP NOW →
                   </Link>
                 </div>
@@ -108,99 +133,83 @@ export default function ProductCarousel({
       </div>
 
       <style jsx>{`
-        .krve-carousel {
+        .krve-products {
           width: 100%;
           box-sizing: border-box;
-          margin: 0 auto;
           padding: 14px 3.4% 18px;
           color: #f7f1e6;
           background: #0b0906;
-          border-bottom: 1px solid #403018;
+          border-bottom: 1px solid #49371d;
         }
 
-        .krve-carousel-heading {
+        .krve-products-heading {
           display: flex;
           align-items: center;
           justify-content: space-between;
           gap: 12px;
-          margin-bottom: 10px;
+          margin-bottom: 12px;
         }
 
-        .krve-carousel-eyebrow {
-          display: block;
+        .krve-products-heading span {
           color: #d9b45e;
           font-size: 9px;
           letter-spacing: 2px;
-          line-height: 1.5;
         }
 
-        .krve-carousel-heading h2 {
-          margin: 2px 0 0;
-          color: #f7f1e6;
+        .krve-products-heading h2 {
+          margin: 3px 0 0;
           font-family: Georgia, serif;
-          font-size: clamp(16px, 1.7vw, 23px);
+          font-size: clamp(17px, 1.8vw, 23px);
           font-weight: 400;
-          line-height: 1.25;
         }
 
-        .krve-carousel-all {
+        .krve-products-all {
           flex-shrink: 0;
-          color: #e5c16c;
+          color: #e8c46f;
           font-size: 11px;
           text-decoration: none;
-          white-space: nowrap;
         }
 
-        .krve-carousel-all span {
-          font-size: 16px;
-        }
-
-        .krve-carousel-viewport {
+        .krve-products-window {
           width: 100%;
           overflow: hidden;
-          border: 1px solid #403018;
+          border: 1px solid #49371d;
           border-radius: 4px;
           background: #100d08;
         }
 
-        .krve-carousel-track {
+        .krve-products-track {
           display: flex;
           width: max-content;
-          animation: krve-carousel-scroll 35s linear infinite;
-          will-change: transform;
+          animation: krve-product-scroll 38s linear infinite;
         }
 
-        .krve-carousel-viewport:hover .krve-carousel-track {
+        .krve-products-window:hover .krve-products-track {
           animation-play-state: paused;
         }
 
-        .krve-carousel-card {
-          display: flex;
-          flex: 0 0 270px;
-          width: 270px;
-          height: 132px;
+        .krve-product-card {
+          flex: 0 0 190px;
+          width: 190px;
+          min-width: 0;
           box-sizing: border-box;
-          align-items: center;
-          gap: 12px;
           padding: 9px;
           border-right: 1px solid #352818;
-          overflow: hidden;
         }
 
-        .krve-carousel-photo {
+        .krve-product-photo {
           position: relative;
           display: block;
-          flex: 0 0 104px;
-          width: 104px;
+          width: 100%;
           height: 112px;
-          box-sizing: border-box;
           overflow: hidden;
+          box-sizing: border-box;
           background: #19150f;
           border: 1px solid #302517;
           border-radius: 3px;
         }
 
-        .krve-carousel-placeholder {
+        .krve-product-no-image {
           display: flex;
           width: 100%;
           height: 100%;
@@ -208,109 +217,95 @@ export default function ProductCarousel({
           justify-content: center;
           color: #d9b45e;
           font-family: Georgia, serif;
-          font-size: 18px;
+          font-size: 21px;
         }
 
-        .krve-carousel-info {
+        .krve-product-info {
           display: flex;
-          flex: 1;
-          min-width: 0;
           flex-direction: column;
           align-items: flex-start;
-          gap: 5px;
+          gap: 6px;
+          padding-top: 9px;
         }
 
-        .krve-carousel-label {
+        .krve-product-tag {
           color: #d9b45e;
           font-size: 8px;
-          letter-spacing: 1.2px;
-          white-space: nowrap;
+          letter-spacing: 1.1px;
         }
 
-        .krve-carousel-name {
+        .krve-product-name {
           display: -webkit-box;
           width: 100%;
+          min-height: 32px;
           overflow: hidden;
           color: #f7f1e6;
-          font-size: 12px;
-          line-height: 1.35;
+          font-size: 11px;
+          line-height: 1.4;
           text-decoration: none;
           overflow-wrap: anywhere;
           -webkit-box-orient: vertical;
           -webkit-line-clamp: 2;
         }
 
-        .krve-carousel-prices {
+        .krve-product-price {
           display: flex;
           flex-wrap: wrap;
           align-items: baseline;
           gap: 6px;
-        }
-
-        .krve-carousel-price {
           color: #e8c46f;
           font-size: 12px;
           font-weight: 600;
         }
 
-        .krve-carousel-old-price {
-          color: #a39b8d;
+        .krve-product-price del {
+          color: #9d9588;
           font-size: 10px;
+          font-weight: 400;
         }
 
-        .krve-carousel-shop {
-          margin-top: 2px;
+        .krve-product-button {
           color: #f7f1e6;
           font-size: 9px;
-          letter-spacing: 0.8px;
+          letter-spacing: 0.7px;
           text-decoration: none;
-          white-space: nowrap;
         }
 
-        .krve-carousel-shop:hover {
+        .krve-product-button:hover {
           color: #e8c46f;
         }
 
-        @keyframes krve-carousel-scroll {
+        @keyframes krve-product-scroll {
           from {
             transform: translateX(0);
           }
-
           to {
             transform: translateX(-50%);
           }
         }
 
         @media (max-width: 600px) {
-          .krve-carousel {
-            padding: 11px 12px 14px;
+          .krve-products {
+            padding: 12px;
           }
 
-          .krve-carousel-card {
-            flex-basis: 238px;
-            width: 238px;
-            height: 118px;
-            gap: 9px;
+          .krve-product-card {
+            flex-basis: 165px;
+            width: 165px;
             padding: 7px;
           }
 
-          .krve-carousel-photo {
-            flex-basis: 88px;
-            width: 88px;
-            height: 102px;
+          .krve-product-photo {
+            height: 105px;
           }
 
-          .krve-carousel-track {
-            animation-duration: 30s;
-          }
-
-          .krve-carousel-name {
-            font-size: 11px;
+          .krve-products-track {
+            animation-duration: 32s;
           }
         }
 
         @media (prefers-reduced-motion: reduce) {
-          .krve-carousel-track {
+          .krve-products-track {
             animation: none;
           }
         }
