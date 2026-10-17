@@ -67,7 +67,7 @@ function convertToProductCardProduct(
 
 async function loadNewArrivals(): Promise<Product[]> {
   try {
-    const products = await getNewArrivalProducts(4);
+    const products = await getNewArrivalProducts(8);
 
     return products.map(convertToProductCardProduct);
   } catch (error) {
@@ -81,6 +81,10 @@ export default async function HomePage() {
 
   return (
     <main className="krve-dussehra-home">
+      {/* AUTO-SLIDING PRODUCT BANNER */}
+      <ProductCarousel products={newArrivalProducts} />
+
+      {/* MAIN HERO */}
       <section className="hero krve-dussehra-hero">
         <div className="hero-silk" />
 
@@ -170,6 +174,7 @@ export default async function HomePage() {
         </aside>
       </section>
 
+      {/* CUSTOMER BENEFITS */}
       <section className="benefits">
         {[
           [
@@ -209,6 +214,7 @@ export default async function HomePage() {
         ))}
       </section>
 
+      {/* NEW ARRIVALS */}
       <section className="new-arrivals krve-festive-section">
         <div className="section-heading">
           <div>
@@ -224,7 +230,7 @@ export default async function HomePage() {
         <div className="arrival-layout">
           <div className="product-grid">
             {newArrivalProducts.length > 0 ? (
-              newArrivalProducts.map((product) => (
+              newArrivalProducts.slice(0, 4).map((product) => (
                 <ProductCard
                   key={product.id}
                   product={product}
@@ -291,6 +297,7 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* BRAND HIGHLIGHTS */}
       <section className="bottom-strip krve-festive-section">
         {[
           [
