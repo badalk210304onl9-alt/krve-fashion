@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import type { Product } from "@/lib/catalog";
 
 type ProductCarouselProps = {
@@ -12,252 +11,273 @@ type ProductCarouselProps = {
 export default function ProductCarousel({
   products,
 }: ProductCarouselProps) {
-  const [active, setActive] = useState(0);
-
-  useEffect(() => {
-    if (products.length < 2) return;
-
-    const timer = window.setInterval(() => {
-      setActive((current) => (current + 1) % products.length);
-    }, 3800);
-
-    return () => window.clearInterval(timer);
-  }, [products.length]);
-
   if (!products.length) return null;
 
-  const product = products[active];
-  const image =
-    product.image || product.imageUrl || product.gallery?.[0];
+  const formatPrice = (price: number | string) =>
+    Number(price).toLocaleString("en-IN");
 
   return (
-    <section className="krve-product-carousel">
-      <div className="krve-carousel-heading">
-        <span>THE KRVE EDIT</span>
-        <span>NEW SEASON · NEW STYLE</span>
-      </div>
-
-      <div className="krve-carousel-slide">
-        <div className="krve-carousel-photo">
-          {image ? (
-            <Image
-              src={image}
-              alt={product.name}
-              fill
-              priority
-              sizes="(max-width: 700px) 100vw, 55vw"
-            />
-          ) : (
-            <div className="krve-carousel-no-image">
-              KRVE
-            </div>
-          )}
+    <section className="krve-running-carousel">
+      <div className="krve-running-heading">
+        <div>
+          <span className="krve-running-kicker">THE KRVE EDIT</span>
+          <h2>Fresh Fits. Signature Style.</h2>
         </div>
 
-        <div className="krve-carousel-info">
-          <span className="krve-carousel-label">
-            NEW ARRIVAL
-          </span>
+        <Link href="/collections" className="krve-view-all">
+          VIEW ALL →
+        </Link>
+      </div>
 
-          <h2>{product.name}</h2>
+      <div className="krve-running-window">
+        <div className="krve-running-track">
+          {[...products, ...products].map((product, index) => {
+            const image =
+              product.image ||
+              product.imageUrl ||
+              product.gallery?.[0];
 
-          <p className="krve-carousel-description">
-            Discover your next signature look with KRVE.
-          </p>
+            return (
+              <article
+                className="krve-running-card"
+                key={`${product.id}-${index}`}
+              >
+                <Link
+                  href={`/products/${product.slug || product.id}`}
+                  className="krve-running-image"
+                  aria-label={`Shop ${product.name}`}
+                >
+                  {image ? (
+                    <Image
+                      src={image}
+                      alt={product.name}
+                      fill
+                      sizes="120px"
+                    />
+                  ) : (
+                    <span className="krve-running-placeholder">
+                      KRVE
+                    </span>
+                  )}
+                </Link>
 
-          <div className="krve-carousel-price">
-            {product.currency || "₹"}{" "}
-            {Number(product.price).toLocaleString("en-IN")}
+                <div className="krve-running-details">
+                  <span className="krve-running-tag">
+                    NEW ARRIVAL
+                  </span>
 
-            {product.compareAtPrice &&
-              Number(product.compareAtPrice) > Number(product.price) && (
-                <del>
-                  {" "}
-                  {product.currency || "₹"}{" "}
-                  {Number(product.compareAtPrice).toLocaleString("en-IN")}
-                </del>
-              )}
-          </div>
+                  <Link
+                    href={`/products/${product.slug || product.id}`}
+                    className="krve-running-name"
+                  >
+                    {product.name}
+                  </Link>
 
-          <Link
-            href={`/products/${product.slug || product.id}`}
-            className="krve-carousel-shop"
-          >
-            SHOP NOW <span>→</span>
-          </Link>
+                  <div className="krve-running-price">
+                    {product.currency || "₹"}{" "}
+                    {formatPrice(product.price)}
+                  </div>
 
-          <div className="krve-carousel-controls">
-            <button
-              type="button"
-              aria-label="Previous product"
-              onClick={() =>
-                setActive((active - 1 + products.length) % products.length)
-              }
-            >
-              ←
-            </button>
+                  {product.compareAtPrice &&
+                    Number(product.compareAtPrice) >
+                      Number(product.price) && (
+                      <del className="krve-running-old-price">
+                        {product.currency || "₹"}{" "}
+                        {formatPrice(product.compareAtPrice)}
+                      </del>
+                    )}
 
-            <span>
-              {String(active + 1).padStart(2, "0")} /{" "}
-              {String(products.length).padStart(2, "0")}
-            </span>
-
-            <button
-              type="button"
-              aria-label="Next product"
-              onClick={() =>
-                setActive((active + 1) % products.length)
-              }
-            >
-              →
-            </button>
-          </div>
+                  <Link
+                    href={`/products/${product.slug || product.id}`}
+                    className="krve-running-shop"
+                  >
+                    SHOP NOW →
+                  </Link>
+                </div>
+              </article>
+            );
+          })}
         </div>
       </div>
 
       <style jsx>{`
-        .krve-product-carousel {
-          margin: 22px auto;
-          padding: 0 5%;
-          color: #f8f3e9;
+        .krve-running-carousel {
+          margin: 12px auto 18px;
+          padding: 0 3.5%;
+          color: #f7f1e6;
         }
 
-        .krve-carousel-heading {
+        .krve-running-heading {
           display: flex;
+          align-items: center;
           justify-content: space-between;
           gap: 12px;
-          padding-bottom: 12px;
-          color: #c8a96b;
-          font-size: 10px;
+          margin-bottom: 10px;
+        }
+
+        .krve-running-kicker {
+          color: #d6b15f;
+          font-size: 9px;
           letter-spacing: 2px;
         }
 
-        .krve-carousel-slide {
-          display: grid;
-          grid-template-columns: 55% 45%;
-          min-height: 330px;
-          overflow: hidden;
-          background: #111;
-          border: 1px solid #493b25;
-        }
-
-        .krve-carousel-photo {
-          position: relative;
-          min-height: 330px;
-          background: #1b1915;
-        }
-
-        .krve-carousel-photo :global(img) {
-          object-fit: cover;
-          object-position: center;
-        }
-
-        .krve-carousel-no-image {
-          display: grid;
-          height: 100%;
-          min-height: 330px;
-          place-items: center;
-          color: #c8a96b;
-          font-size: 42px;
-          letter-spacing: 8px;
-        }
-
-        .krve-carousel-info {
-          display: flex;
-          flex-direction: column;
-          align-items: flex-start;
-          justify-content: center;
-          padding: clamp(20px, 4vw, 55px);
-        }
-
-        .krve-carousel-label {
-          color: #c8a96b;
-          font-size: 10px;
-          letter-spacing: 3px;
-        }
-
-        .krve-carousel-info h2 {
-          margin: 16px 0 10px;
+        .krve-running-heading h2 {
+          margin: 3px 0 0;
           font-family: Georgia, serif;
-          font-size: clamp(25px, 4vw, 46px);
+          font-size: clamp(16px, 2vw, 22px);
           font-weight: 400;
         }
 
-        .krve-carousel-description {
-          color: #bcb8af;
-          font-size: 13px;
-          line-height: 1.8;
-        }
-
-        .krve-carousel-price {
-          margin: 12px 0 22px;
-          font-size: 18px;
-        }
-
-        .krve-carousel-price del {
-          color: #999;
-          font-size: 12px;
-        }
-
-        .krve-carousel-shop {
-          display: inline-flex;
-          gap: 24px;
-          align-items: center;
-          padding: 13px 20px;
-          border: 1px solid #c8a96b;
-          color: #f8f3e9;
-          font-size: 11px;
-          letter-spacing: 1.5px;
+        .krve-view-all {
+          color: #e3bf6b;
+          font-size: 10px;
+          white-space: nowrap;
           text-decoration: none;
         }
 
-        .krve-carousel-shop:hover {
-          background: #c8a96b;
-          color: #111;
+        .krve-running-window {
+          overflow: hidden;
+          border: 1px solid #5c4724;
+          border-radius: 5px;
+          background: #0c0b09;
         }
 
-        .krve-carousel-controls {
+        .krve-running-track {
+          display: flex;
+          width: max-content;
+          animation: krve-marquee 32s linear infinite;
+        }
+
+        .krve-running-window:hover .krve-running-track {
+          animation-play-state: paused;
+        }
+
+        .krve-running-card {
           display: flex;
           align-items: center;
-          gap: 18px;
-          margin-top: 24px;
-          color: #c8a96b;
-          font-size: 11px;
+          gap: 12px;
+          width: 285px;
+          min-height: 142px;
+          padding: 10px;
+          border-right: 1px solid #332818;
+          box-sizing: border-box;
         }
 
-        .krve-carousel-controls button {
-          width: 34px;
-          height: 34px;
-          border: 1px solid #5a4a30;
-          background: transparent;
-          color: #f8f3e9;
-          cursor: pointer;
+        .krve-running-image {
+          position: relative;
+          display: block;
+          flex: 0 0 108px;
+          width: 108px;
+          height: 120px;
+          overflow: hidden;
+          background: #191713;
+          border: 1px solid #332818;
+          border-radius: 3px;
         }
 
-        @media (max-width: 650px) {
-          .krve-product-carousel {
-            padding: 0 4%;
+        .krve-running-image :global(img) {
+          object-fit: cover;
+          transition: transform 0.3s ease;
+        }
+
+        .krve-running-image:hover :global(img) {
+          transform: scale(1.06);
+        }
+
+        .krve-running-placeholder {
+          display: grid;
+          width: 100%;
+          height: 100%;
+          place-items: center;
+          color: #d6b15f;
+          font-family: Georgia, serif;
+        }
+
+        .krve-running-details {
+          display: flex;
+          flex: 1;
+          min-width: 0;
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 5px;
+        }
+
+        .krve-running-tag {
+          color: #d6b15f;
+          font-size: 8px;
+          letter-spacing: 1.3px;
+        }
+
+        .krve-running-name {
+          display: -webkit-box;
+          overflow: hidden;
+          color: #f7f1e6;
+          font-size: 12px;
+          line-height: 1.35;
+          text-decoration: none;
+          -webkit-box-orient: vertical;
+          -webkit-line-clamp: 2;
+        }
+
+        .krve-running-price {
+          color: #e8c46f;
+          font-size: 12px;
+          font-weight: 600;
+        }
+
+        .krve-running-old-price {
+          color: #999;
+          font-size: 10px;
+        }
+
+        .krve-running-shop {
+          margin-top: 2px;
+          color: #f7f1e6;
+          font-size: 9px;
+          letter-spacing: 0.8px;
+          text-decoration: none;
+        }
+
+        .krve-running-shop:hover {
+          color: #e8c46f;
+        }
+
+        @keyframes krve-marquee {
+          from {
+            transform: translateX(0);
+          }
+          to {
+            transform: translateX(-50%);
+          }
+        }
+
+        @media (max-width: 600px) {
+          .krve-running-carousel {
+            margin: 10px auto 14px;
+            padding: 0 12px;
           }
 
-          .krve-carousel-heading {
-            font-size: 8px;
-            letter-spacing: 1px;
+          .krve-running-card {
+            width: 255px;
+            min-height: 124px;
+            padding: 8px;
+            gap: 9px;
           }
 
-          .krve-carousel-slide {
-            grid-template-columns: 1fr;
+          .krve-running-image {
+            flex-basis: 92px;
+            width: 92px;
+            height: 106px;
           }
 
-          .krve-carousel-photo {
-            min-height: 280px;
+          .krve-running-track {
+            animation-duration: 26s;
           }
+        }
 
-          .krve-carousel-info {
-            padding: 24px;
-          }
-
-          .krve-carousel-info h2 {
-            font-size: 30px;
+        @media (prefers-reduced-motion: reduce) {
+          .krve-running-track {
+            animation: none;
           }
         }
       `}</style>
