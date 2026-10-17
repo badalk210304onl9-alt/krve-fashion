@@ -1,620 +1,624 @@
+/* KRVE PREMIUM HOMEPAGE */
 
-/* =====================================================
-   KRVE — DUSSEHRA PREMIUM FESTIVE THEME
-   Luxury black, antique gold and warm festive lights
-===================================================== */
+.krve-premium-page {
+  --krve-black: #070707;
+  --krve-gold: #c99726;
+  --krve-ivory: #f5f0e7;
+  --krve-muted: #aaa49a;
 
-.krve-dussehra-home {
-  position: relative;
-  isolation: isolate;
-  min-height: 100vh;
-  overflow-x: clip;
-  color: #fff8e9;
-  background:
-    radial-gradient(
-      ellipse at 50% 10%,
-      rgba(126, 67, 15, 0.12),
-      transparent 48%
-    ),
-    #050403;
-}
-
-.krve-dussehra-home::before {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  inset: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(
-      circle at 12% 15%,
-      rgba(255, 189, 77, 0.07),
-      transparent 20%
-    ),
-    radial-gradient(
-      circle at 88% 36%,
-      rgba(255, 136, 37, 0.07),
-      transparent 25%
-    ),
-    radial-gradient(
-      circle at 42% 76%,
-      rgba(205, 144, 37, 0.045),
-      transparent 30%
-    );
-}
-
-.krve-dussehra-home .hero.krve-dussehra-hero {
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
-  box-sizing: border-box;
-  width: 100%;
-  max-width: 100%;
-}
-
-.krve-dussehra-glow {
-  position: absolute;
-  z-index: 0;
-  inset: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(
-      ellipse at 76% 32%,
-      rgba(255, 157, 41, 0.18),
-      transparent 34%
-    ),
-    radial-gradient(
-      ellipse at 10% 90%,
-      rgba(187, 76, 13, 0.14),
-      transparent 42%
-    );
-}
-
-.krve-dussehra-hero .hero-copy,
-.krve-dussehra-hero .hero-model,
-.krve-dussehra-hero .crest {
-  z-index: 1;
-}
-
-.krve-dussehra-greeting {
-  position: absolute;
-  z-index: 4;
-  top: 50%;
-  right: clamp(16px, 2vw, 32px);
-  left: auto;
-  box-sizing: border-box;
-  width: clamp(200px, 18vw, 250px);
-  max-width: calc(100% - 32px);
-  padding: 24px 14px;
-  transform: translateY(-50%);
-  text-align: center;
-  color: #f8d67d;
-  background:
-    radial-gradient(
-      ellipse at center,
-      rgba(103, 48, 11, 0.42),
-      rgba(7, 5, 4, 0.94) 75%
-    );
-  border: 1px solid rgba(229, 180, 72, 0.6);
-  box-shadow:
-    0 0 28px rgba(222, 139, 29, 0.18),
-    inset 0 0 24px rgba(244, 189, 70, 0.07);
-  overflow-wrap: break-word;
-  animation: krve-greeting-glow 4s ease-in-out infinite alternate;
-}
-
-.krve-dussehra-greeting h2 {
-  margin: 12px 0;
-  color: #fff0c9;
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(22px, 2.2vw, 36px);
-  font-weight: 400;
-  line-height: 1.12;
-  text-shadow: 0 0 16px rgba(255, 181, 49, 0.35);
-}
-
-.krve-dussehra-greeting h2 strong {
-  display: block;
-  color: #ffca55;
-  font-weight: 400;
-}
-
-.krve-greeting-ornament {
-  display: block;
-  color: #ffda83;
-  font-size: 20px;
-  text-shadow: 0 0 14px #e8a72d;
-}
-
-.krve-dussehra-greeting .krve-greeting-eyebrow {
-  margin: 10px 0;
-  color: #f1ca76;
-  font-size: 10px;
-  letter-spacing: 0.12em;
-}
-
-.krve-greeting-divider {
-  display: block;
-  overflow: hidden;
-  color: #d99d36;
-  font-size: 10px;
-  white-space: nowrap;
-}
-
-.krve-dussehra-greeting .krve-greeting-message {
-  margin: 12px 0;
-  color: #f3e5c7;
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 13px;
-  line-height: 1.65;
-  letter-spacing: 0;
-}
-
-.krve-festive-section {
-  position: relative;
-  isolation: isolate;
-}
-
-.krve-dussehra-home .benefits,
-.krve-dussehra-home .new-arrivals,
-.krve-dussehra-home .bottom-strip {
-  border-color: rgba(215, 166, 57, 0.3);
-}
-
-.krve-dussehra-home .section-heading h2 {
-  text-shadow: 0 0 18px rgba(226, 165, 48, 0.19);
-}
-
-.krve-dussehra-home .section-heading a {
-  transition:
-    color 0.25s ease,
-    text-shadow 0.25s ease;
-}
-
-.krve-dussehra-home .section-heading a:hover {
-  color: #ffe09a;
-  text-shadow: 0 0 12px rgba(255, 192, 68, 0.5);
-}
-
-.krve-dussehra-home .product-grid > * {
-  outline: 1px solid rgba(218, 164, 60, 0.12);
-  outline-offset: -1px;
-  transition:
-    outline-color 0.3s ease,
-    box-shadow 0.3s ease;
-}
-
-.krve-dussehra-home .product-grid > *:hover {
-  outline-color: rgba(235, 189, 87, 0.45);
-  box-shadow: 0 0 24px rgba(220, 157, 44, 0.08);
-}
-
-.krve-dussehra-home .tryon-card {
-  border-color: rgba(215, 166, 57, 0.35);
-  box-shadow: 0 0 24px rgba(194, 128, 27, 0.06);
-}
-
-.krve-dussehra-home .benefits > div > span,
-.krve-dussehra-home .bottom-strip > div > span {
-  text-shadow: 0 0 12px rgba(255, 192, 57, 0.5);
-}
-
-@keyframes krve-greeting-glow {
-  from {
-    box-shadow:
-      0 0 16px rgba(222, 139, 29, 0.1),
-      inset 0 0 15px rgba(244, 189, 70, 0.035);
-  }
-
-  to {
-    box-shadow:
-      0 0 30px rgba(222, 139, 29, 0.24),
-      inset 0 0 24px rgba(244, 189, 70, 0.09);
-  }
-}
-
-/* Medium screens */
-@media (min-width: 761px) and (max-width: 1100px) {
-  .krve-dussehra-greeting {
-    right: 16px;
-    width: 200px;
-    padding: 16px 10px;
-  }
-
-  .krve-dussehra-greeting h2 {
-    font-size: 26px;
-  }
-
-  .krve-dussehra-greeting .krve-greeting-eyebrow {
-    font-size: 9px;
-  }
-
-  .krve-dussehra-greeting .krve-greeting-message {
-    font-size: 11px;
-  }
-}
-
-/* Mobile screens */
-@media (max-width: 760px) {
-  .krve-dussehra-home {
-    overflow-x: clip;
-  }
-
-  .krve-dussehra-home .hero.krve-dussehra-hero {
-    overflow: hidden;
-  }
-
-  .krve-dussehra-greeting {
-    position: relative;
-    top: auto;
-    right: auto;
-    left: auto;
-    width: calc(100% - 32px);
-    max-width: 360px;
-    margin: 20px auto;
-    padding: 20px 16px;
-    transform: none;
-  }
-
-  .krve-dussehra-greeting h2 {
-    font-size: 32px;
-  }
-
-  .krve-dussehra-greeting .krve-greeting-message {
-    font-size: 13px;
-  }
-}
-
-/* Accessibility: reduce motion when requested */
-@media (prefers-reduced-motion: reduce) {
-  .krve-dussehra-greeting {
-    animation: none;
-  }
-
-  .krve-dussehra-home .product-grid > *,
-  .krve-dussehra-home .section-heading a {
-    transition: none;
-  }
-}
-
-
-/* =====================================
-   KRVE LAYOUT FIX — WIDTH & IMAGE SIZES
-   ===================================== */
-
-.krve-premium-home,
-.krve-premium-home * {
-  box-sizing: border-box;
-}
-
-.krve-premium-home {
   width: 100%;
   max-width: 100%;
   min-width: 0;
   overflow-x: clip;
+  background: var(--krve-black);
+  color: var(--krve-ivory);
+  box-sizing: border-box;
 }
 
-.krve-premium-home img {
+.krve-premium-page *,
+.krve-premium-page *::before,
+.krve-premium-page *::after {
+  box-sizing: border-box;
+}
+
+.krve-premium-page img {
   max-width: 100%;
 }
 
-/* Keep sections within the viewport */
-.krve-premium-home > section {
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
+.krve-premium-page a {
+  color: inherit;
+  text-decoration: none;
 }
 
-/* HERO */
-.krve-premium-home .krve-premium-hero {
-  position: relative;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  align-items: center;
-  width: 100%;
-  min-height: 600px;
-  max-height: 760px;
-  overflow: hidden;
-  isolation: isolate;
+.krve-premium-page h1,
+.krve-premium-page h2,
+.krve-premium-page h3,
+.krve-premium-page p {
+  margin-top: 0;
 }
 
-.krve-premium-home .krve-premium-hero .hero-copy {
-  position: relative;
-  z-index: 3;
-  width: 100%;
-  max-width: 650px;
-  min-width: 0;
-  padding: 70px clamp(24px, 5vw, 80px);
-}
-
-.krve-premium-home .krve-premium-hero .hero-copy h1 {
-  max-width: 650px;
-  font-size: clamp(36px, 5vw, 76px);
-  line-height: 1.04;
-  overflow-wrap: break-word;
-}
-
-.krve-premium-home .krve-premium-hero .hero-copy p {
-  max-width: 440px;
+.krve-eyebrow {
+  display: block;
+  color: var(--krve-gold);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
   line-height: 1.8;
 }
 
-.krve-premium-home .krve-premium-model {
+/* HERO */
+
+.krve-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: stretch;
   position: relative;
   width: 100%;
-  height: 100%;
   min-width: 0;
-  min-height: 600px;
+  min-height: 570px;
+  max-height: 760px;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 15% 40%, #241c0e 0%, transparent 48%),
+    #070707;
+}
+
+.krve-hero-copy {
+  position: relative;
+  z-index: 2;
+  align-self: center;
+  min-width: 0;
+  width: 100%;
+  padding: 65px clamp(24px, 5vw, 76px);
+}
+
+.krve-hero-copy h1 {
+  margin: 20px 0;
+  font-family: var(--font-display, Georgia, serif);
+  font-size: clamp(36px, 4.6vw, 70px);
+  font-weight: 400;
+  line-height: 1.04;
+  letter-spacing: -0.025em;
+  overflow-wrap: break-word;
+}
+
+.krve-hero-copy h1 span,
+.krve-editorial-copy h2 span,
+.krve-tryon-copy h2 span,
+.krve-closing h2 span {
+  color: var(--krve-gold);
+}
+
+.krve-hero-copy p {
+  max-width: 420px;
+  color: var(--krve-muted);
+  font-size: 14px;
+  line-height: 1.9;
+}
+
+.krve-hero-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.krve-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  max-width: 100%;
+  min-height: 46px;
+  padding: 13px 19px;
+  border: 1px solid var(--krve-gold);
+  background: var(--krve-gold);
+  color: #090909 !important;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  transition: background 180ms ease, color 180ms ease;
+}
+
+.krve-button:hover {
+  background: #e1b64d;
+}
+
+.krve-button-outline {
+  background: transparent;
+  color: var(--krve-ivory) !important;
+}
+
+.krve-button-outline:hover {
+  background: var(--krve-gold);
+  color: #090909 !important;
+}
+
+.krve-hero-caption {
+  display: block;
+  margin-top: 38px;
+  color: #79736a;
+  font-size: 9px;
+  letter-spacing: 0.2em;
+}
+
+.krve-hero-photo {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  min-height: 570px;
   overflow: hidden;
 }
 
-.krve-premium-home .krve-premium-model img {
+.krve-hero-photo::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    #070707 0%,
+    rgba(7, 7, 7, 0.1) 28%,
+    transparent 65%,
+    rgba(7, 7, 7, 0.12) 100%
+  );
+}
+
+.krve-hero-photo img {
   object-fit: cover;
   object-position: center top;
 }
 
-/* Product strip: horizontal scrolling, not page stretching */
-.krve-premium-home .krve-home-strip {
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
-  overflow: hidden;
-  padding: 28px 0;
+/* INTRO */
+
+.krve-brand-intro {
+  padding: 28px 20px;
+  text-align: center;
+  border-top: 1px solid rgba(201, 151, 38, 0.2);
+  border-bottom: 1px solid rgba(201, 151, 38, 0.2);
+  background: #0a0a09;
 }
 
-.krve-premium-home .krve-home-strip-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 0 5%;
-  margin-bottom: 20px;
+.krve-brand-intro > span {
+  color: var(--krve-gold);
+  font-size: 9px;
+  letter-spacing: 0.2em;
 }
 
-.krve-premium-home .krve-home-strip-window {
-  width: 100%;
-  max-width: 100%;
-  overflow-x: auto;
-  overflow-y: hidden;
-  scrollbar-width: thin;
+.krve-brand-intro p {
+  margin: 9px 0 0;
+  color: #b8b1a5;
+  font-family: var(--font-display, Georgia, serif);
+  font-size: clamp(20px, 3vw, 30px);
 }
 
-.krve-premium-home .krve-home-strip-track {
-  display: flex;
-  width: max-content;
-  max-width: none;
-  gap: 24px;
-  padding: 0 5%;
+.krve-brand-intro strong {
+  color: var(--krve-ivory);
+  font-weight: 400;
 }
 
-.krve-premium-home .krve-home-strip-item {
-  display: flex;
-  flex: 0 0 280px;
-  width: 280px;
-  min-width: 0;
-  gap: 14px;
-  align-items: center;
-  text-decoration: none;
-}
+/* SHARED SECTION */
 
-.krve-premium-home .krve-home-strip-image {
-  position: relative;
-  flex: 0 0 100px;
-  width: 100px;
-  height: 120px;
-  overflow: hidden;
-}
-
-.krve-premium-home .krve-home-strip-image img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.krve-premium-home .krve-home-strip-info {
-  display: flex;
-  flex: 1;
-  min-width: 0;
-  flex-direction: column;
-  gap: 7px;
-}
-
-.krve-premium-home .krve-home-strip-name {
-  display: -webkit-box;
-  overflow: hidden;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  overflow-wrap: anywhere;
-}
-
-.krve-premium-home .krve-home-strip-price {
-  overflow-wrap: anywhere;
-}
-
-/* Category images */
-.krve-premium-home .krve-category-grid {
+.krve-section {
   width: 100%;
   max-width: 1440px;
-  margin-inline: auto;
+  min-width: 0;
+  margin: 0 auto;
+  padding: 82px clamp(18px, 5vw, 72px);
 }
 
-.krve-premium-home .krve-category-card {
+.krve-section-heading {
+  margin-bottom: 35px;
+  text-align: center;
+}
+
+.krve-section-heading h2,
+.krve-arrivals-heading h2 {
+  margin: 10px 0;
+  font-family: var(--font-display, Georgia, serif);
+  font-size: clamp(30px, 4vw, 48px);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+}
+
+.krve-section-heading h2 span {
+  color: var(--krve-gold);
+}
+
+.krve-section-heading p,
+.krve-arrivals-heading p {
+  margin-bottom: 0;
+  color: var(--krve-muted);
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+/* CATEGORY GRID */
+
+.krve-category-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  width: 100%;
+  min-width: 0;
+}
+
+.krve-category-card {
   position: relative;
+  display: block;
+  width: 100%;
   min-width: 0;
+  height: clamp(300px, 36vw, 470px);
   overflow: hidden;
+  background: #151515;
 }
 
-.krve-premium-home .krve-category-card img {
-  width: 100%;
-  height: 100%;
+.krve-category-card img {
   object-fit: cover;
+  transition: transform 500ms ease;
 }
 
-/* Editorial image */
-.krve-premium-home .krve-edit-section {
-  width: 100%;
+.krve-category-card:hover img {
+  transform: scale(1.035);
+}
+
+.krve-category-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    transparent 20%,
+    rgba(0, 0, 0, 0.12) 42%,
+    rgba(0, 0, 0, 0.85) 100%
+  );
+}
+
+.krve-category-text {
+  position: absolute;
+  right: 22px;
+  bottom: 25px;
+  left: 22px;
+  z-index: 1;
   min-width: 0;
-  overflow: hidden;
 }
 
-.krve-premium-home .krve-edit-image {
-  position: relative;
-  min-width: 0;
-  overflow: hidden;
+.krve-category-text > span {
+  display: block;
+  margin-bottom: 9px;
+  color: #e1bd70;
+  font-size: 9px;
+  letter-spacing: 0.16em;
 }
 
-.krve-premium-home .krve-edit-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+.krve-category-text h3 {
+  margin-bottom: 14px;
+  font-family: var(--font-display, Georgia, serif);
+  font-size: clamp(30px, 4.2vw, 54px);
+  font-weight: 400;
+  overflow-wrap: anywhere;
 }
 
-/* Product grid */
-.krve-premium-home .product-grid {
+.krve-category-text b {
+  display: inline-block;
+  padding-bottom: 7px;
+  border-bottom: 1px solid var(--krve-gold);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+}
+
+/* NEW ARRIVALS */
+
+.krve-arrivals-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.krve-text-link {
+  display: inline-block;
+  flex: 0 0 auto;
+  padding-bottom: 7px;
+  border-bottom: 1px solid var(--krve-gold);
+  color: var(--krve-ivory) !important;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.krve-product-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
   width: 100%;
   min-width: 0;
-  gap: 20px;
 }
 
-.krve-premium-home .product-grid > * {
+.krve-product-item {
+  width: 100%;
   min-width: 0;
+  overflow: hidden;
+}
+
+.krve-product-item > * {
   max-width: 100%;
 }
 
-/* Virtual try-on */
-.krve-premium-home .krve-tryon-section {
+.krve-empty-state {
+  padding: 55px 20px;
+  border: 1px solid rgba(201, 151, 38, 0.2);
+  text-align: center;
+}
+
+.krve-empty-state h3 {
+  font-family: var(--font-display, Georgia, serif);
+  font-size: 28px;
+  font-weight: 400;
+}
+
+.krve-empty-state p {
+  margin-bottom: 24px;
+  color: var(--krve-muted);
+  font-size: 13px;
+}
+
+/* EDITORIAL */
+
+.krve-editorial {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: stretch;
   width: 100%;
   min-width: 0;
   overflow: hidden;
+  background: #0b0b0a;
 }
 
-.krve-premium-home .krve-tryon-image {
+.krve-editorial-photo {
+  position: relative;
+  min-width: 0;
+  min-height: 560px;
+  overflow: hidden;
+}
+
+.krve-editorial-photo img {
+  object-fit: cover;
+  object-position: center top;
+}
+
+.krve-editorial-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  min-width: 0;
+  padding: clamp(35px, 6vw, 86px);
+}
+
+.krve-editorial-copy h2 {
+  margin: 22px 0;
+  font-family: var(--font-display, Georgia, serif);
+  font-size: clamp(42px, 5.5vw, 74px);
+  font-weight: 400;
+  line-height: 0.98;
+  overflow-wrap: break-word;
+}
+
+.krve-gold-rule {
+  width: 55px;
+  height: 1px;
+  margin-bottom: 22px;
+  background: var(--krve-gold);
+}
+
+.krve-editorial-copy p,
+.krve-tryon-copy p {
+  max-width: 390px;
+  margin-bottom: 26px;
+  color: var(--krve-muted);
+  font-size: 13px;
+  line-height: 1.9;
+}
+
+/* VIRTUAL TRY-ON */
+
+.krve-tryon {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: stretch;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  border-top: 1px solid rgba(201, 151, 38, 0.16);
+  border-bottom: 1px solid rgba(201, 151, 38, 0.16);
+}
+
+.krve-tryon-photo {
   position: relative;
   min-width: 0;
   min-height: 420px;
   overflow: hidden;
 }
 
-.krve-premium-home .krve-tryon-image img {
-  width: 100%;
-  height: 100%;
+.krve-tryon-photo img {
   object-fit: cover;
 }
 
-.krve-premium-home .krve-tryon-copy {
+.krve-tryon-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
   min-width: 0;
-  padding: clamp(28px, 5vw, 70px);
+  padding: clamp(30px, 6vw, 80px);
 }
 
-/* Prevent long text from expanding sections */
-.krve-premium-home h1,
-.krve-premium-home h2,
-.krve-premium-home h3,
-.krve-premium-home p,
-.krve-premium-home a {
-  overflow-wrap: break-word;
+.krve-tryon-copy h2 {
+  margin: 20px 0;
+  font-family: var(--font-display, Georgia, serif);
+  font-size: clamp(38px, 4.5vw, 60px);
+  font-weight: 400;
+  line-height: 1;
+}
+
+/* CLOSING */
+
+.krve-closing {
+  padding: 90px 20px;
+  text-align: center;
+  background:
+    radial-gradient(ellipse at center, #17130b 0%, #070707 68%);
+}
+
+.krve-closing h2 {
+  margin: 18px 0;
+  font-family: var(--font-display, Georgia, serif);
+  font-size: clamp(32px, 5vw, 60px);
+  font-weight: 400;
+}
+
+.krve-closing p {
+  margin-bottom: 26px;
+  color: var(--krve-muted);
+  font-size: 13px;
 }
 
 /* TABLET */
+
 @media (max-width: 900px) {
-  .krve-premium-home .krve-premium-hero {
-    min-height: 520px;
+  .krve-hero {
+    min-height: 490px;
     max-height: none;
   }
 
-  .krve-premium-home .krve-premium-hero .hero-copy {
-    padding: 45px 28px;
+  .krve-hero-copy {
+    padding: 35px 25px;
   }
 
-  .krve-premium-home .krve-premium-model {
-    min-height: 520px;
+  .krve-hero-photo {
+    min-height: 490px;
   }
 
-  .krve-premium-home .product-grid {
+  .krve-product-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .krve-editorial-photo {
+    min-height: 450px;
+  }
+
+  .krve-editorial-copy {
+    padding: 35px;
   }
 }
 
 /* MOBILE */
+
 @media (max-width: 600px) {
-  .krve-premium-home .krve-premium-hero {
+  .krve-hero {
     display: flex;
     flex-direction: column;
     min-height: 0;
     max-height: none;
   }
 
-  .krve-premium-home .krve-premium-hero .hero-copy {
-    order: 1;
+  .krve-hero-copy {
     width: 100%;
-    max-width: 100%;
-    padding: 55px 22px 35px;
+    padding: 48px 22px 35px;
   }
 
-  .krve-premium-home .krve-premium-hero .hero-copy h1 {
-    font-size: clamp(36px, 10vw, 54px);
+  .krve-hero-copy h1 {
+    font-size: clamp(34px, 9vw, 48px);
   }
 
-  .krve-premium-home .krve-premium-model {
-    order: 2;
+  .krve-hero-copy p {
+    font-size: 13px;
+  }
+
+  .krve-hero-buttons {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .krve-hero-buttons .krve-button {
     width: 100%;
-    height: 420px;
+  }
+
+  .krve-hero-photo {
+    width: 100%;
+    height: 390px;
     min-height: 0;
     flex: none;
   }
 
-  .krve-premium-home .krve-hero-side-label,
-  .krve-premium-home .krve-scroll-indicator {
-    display: none;
+  .krve-hero-photo img {
+    object-position: center 25%;
   }
 
-  .krve-premium-home .krve-home-strip-heading {
+  .krve-section {
+    padding: 55px 16px;
+  }
+
+  .krve-category-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 13px;
+  }
+
+  .krve-category-card {
+    height: 370px;
+  }
+
+  .krve-arrivals-heading {
     align-items: flex-start;
     flex-direction: column;
   }
 
-  .krve-premium-home .krve-category-grid {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .krve-premium-home .krve-category-card {
-    min-height: 360px;
-  }
-
-  .krve-premium-home .krve-edit-section {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .krve-premium-home .krve-edit-image {
-    min-height: 400px;
-  }
-
-  .krve-premium-home .product-grid {
+  .krve-product-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 12px;
   }
 
-  .krve-premium-home .krve-tryon-section {
+  .krve-editorial {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .krve-premium-home .krve-tryon-image {
+  .krve-editorial-photo {
+    min-height: 380px;
+  }
+
+  .krve-editorial-copy {
+    padding: 48px 24px;
+  }
+
+  .krve-editorial-copy h2 {
+    font-size: clamp(43px, 11vw, 58px);
+  }
+
+  .krve-tryon {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .krve-tryon-photo {
     min-height: 320px;
+  }
+
+  .krve-tryon-copy {
+    padding: 42px 24px;
+  }
+
+  .krve-closing {
+    padding: 65px 18px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .krve-premium-home *,
-  .krve-premium-home *::before,
-  .krve-premium-home *::after {
-    animation-duration: 0.01ms !important;
+  .krve-premium-page *,
+  .krve-premium-page *::before,
+  .krve-premium-page *::after {
     scroll-behavior: auto !important;
+    animation: none !important;
+    transition: none !important;
   }
 }
-
-
