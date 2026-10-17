@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import ProductCard from "@/components/product-card";
+import ProductCarousel from "./product-carousel";
 
 import {
   getNewArrivalProducts,
