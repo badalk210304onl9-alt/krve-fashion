@@ -1,192 +1,2835 @@
+:root {
+  --background: #020202;
+  --surface: #070707;
+  --surface-soft: #0b0b0b;
+  --surface-raised: #101010;
+
+  --gold: #c99726;
+  --gold-bright: #efbd43;
+  --gold-deep: #8d6415;
+
+  --gold-line: rgba(201, 151, 38, 0.42);
+  --gold-soft-line: rgba(201, 151, 38, 0.18);
+
+  --ivory: #f5f0e7;
+  --muted: #b8b0a4;
+  --muted-dark: #837b70;
+
+  --font-display:
+    "Cormorant Garamond",
+    Georgia,
+    serif;
+
+  --font-body:
+    "Manrope",
+    Arial,
+    sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+
+  background: var(--background);
+
+  color-scheme: dark;
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+
+  min-width: 320px;
+  min-height: 100vh;
+
+  overflow-x: hidden;
+
+  background:
+    radial-gradient(
+      circle at 82% 5%,
+      rgba(201, 151, 38, 0.055),
+      transparent 27%
+    ),
+    var(--background);
+
+  color: var(--ivory);
+
+  font-family: var(--font-body);
+
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+img {
+  max-width: 100%;
+}
 
 /* =========================================================
-   KRVE — FULL WEBSITE DUSSEHRA ATMOSPHERE
-   Existing layout and components remain unchanged.
+   ANNOUNCEMENT BAR
 ========================================================= */
 
-html.krve-festival-dussehra {
-  --krve-festival-gold: #ffc34d;
-  --krve-festival-orange: #ff8b19;
-  --krve-festival-glow: rgba(255, 154, 26, 0.22);
-  --krve-festival-line: rgba(255, 180, 48, 0.55);
+.topbar {
+  min-height: 42px;
+
+  padding: 8px 18px;
+
+  border-top: 1px solid rgba(201, 151, 38, 0.35);
+  border-bottom: 1px solid rgba(201, 151, 38, 0.38);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 11px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #020202,
+      #080704,
+      #020202
+    );
+
+  color: var(--gold-bright);
+
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+
+  letter-spacing: 0.02em;
+
+  transition:
+    color 0.2s ease,
+    background 0.2s ease;
 }
 
-html.krve-festival-dussehra body {
-  background-color: #080502;
-  background-image:
-    radial-gradient(
-      ellipse at 50% 8%,
-      rgba(120, 48, 8, 0.22),
-      transparent 42%
-    ),
-    radial-gradient(
-      ellipse at 0% 45%,
-      rgba(255, 111, 12, 0.08),
-      transparent 34%
-    ),
-    radial-gradient(
-      ellipse at 100% 70%,
-      rgba(255, 166, 24, 0.07),
-      transparent 36%
+.topbar:hover {
+  color: #f7d277;
+
+  background:
+    linear-gradient(
+      90deg,
+      #030303,
+      #0c0903,
+      #030303
     );
 }
 
-/* Ambient festive lighting across the entire page */
+.topbar-star,
+.topbar-arrow {
+  flex: 0 0 auto;
 
-html.krve-festival-dussehra body::before {
+  font-family: var(--font-body);
+  font-size: 12px;
+}
+
+/* =========================================================
+   MAIN HEADER
+========================================================= */
+
+.header,
+.krve-header {
+  position: relative;
+  z-index: 500;
+
+  min-height: 92px;
+
+  padding: 0 52px;
+
+  border-bottom: 1px solid rgba(201, 151, 38, 0.4);
+
+  display: grid;
+
+  grid-template-columns:
+    210px
+    minmax(0, 1fr)
+    270px;
+
+  align-items: center;
+
+  gap: 24px;
+
+  background:
+    radial-gradient(
+      circle at 84% 0,
+      rgba(201, 151, 38, 0.055),
+      transparent 27%
+    ),
+    rgba(1, 1, 1, 0.985);
+
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+
+  box-shadow:
+    0 16px 45px
+    rgba(0, 0, 0, 0.22);
+}
+
+.brand {
+  display: inline-flex;
+
+  width: max-content;
+
+  flex-direction: column;
+  justify-content: center;
+
+  transition:
+    transform 0.22s ease,
+    filter 0.22s ease;
+}
+
+.brand:hover {
+  transform: translateY(-1px);
+
+  filter:
+    drop-shadow(
+      0 0 12px
+      rgba(239, 189, 67, 0.14)
+    );
+}
+
+.brand span {
+  color: var(--gold-bright);
+
+  font-family: var(--font-display);
+
+  font-size: 46px;
+  font-weight: 500;
+
+  line-height: 0.84;
+
+  letter-spacing: -0.045em;
+}
+
+.brand small {
+  margin-top: 12px;
+
+  color: var(--gold);
+
+  font-size: 8px;
+  font-weight: 800;
+
+  letter-spacing: 0.2em;
+}
+
+.desktop-navigation,
+.header nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap:
+    clamp(
+      22px,
+      2.8vw,
+      43px
+    );
+}
+
+.desktop-navigation a,
+.header nav a {
+  position: relative;
+
+  padding: 37px 0 34px;
+
+  color: #eee9e1;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  letter-spacing: 0.055em;
+
+  transition:
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.desktop-navigation a::after,
+.header nav a::after {
   content: "";
+
+  position: absolute;
+
+  left: 50%;
+  bottom: 26px;
+
+  width: 0;
+  height: 1px;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      var(--gold-bright),
+      transparent
+    );
+
+  transform: translateX(-50%);
+
+  transition: width 0.25s ease;
+}
+
+.desktop-navigation a:hover,
+.header nav a:hover {
+  color: var(--gold-bright);
+
+  transform: translateY(-1px);
+}
+
+.desktop-navigation a:hover::after,
+.header nav a:hover::after {
+  width: 100%;
+}
+
+/* =========================================================
+   HEADER ACTIONS
+========================================================= */
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+
+  gap: 8px;
+}
+
+.icon-button {
+  position: relative;
+
+  width: 43px;
+  height: 43px;
+
+  flex: 0 0 43px;
+
+  padding: 0;
+
+  border:
+    1px solid
+    transparent;
+
+  border-radius: 50%;
+
+  display: inline-grid;
+  place-items: center;
+
+  background: transparent;
+  color: #f4efe8;
+
+  cursor: pointer;
+
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.icon-button:hover {
+  border-color:
+    rgba(239, 189, 67, 0.48);
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(239, 189, 67, 0.12),
+      rgba(239, 189, 67, 0.025)
+    );
+
+  color: var(--gold-bright);
+
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 9px 24px
+    rgba(0, 0, 0, 0.35);
+}
+
+.icon-button:focus-visible {
+  outline:
+    1px solid
+    var(--gold-bright);
+
+  outline-offset: 3px;
+}
+
+.icon-button svg {
+  display: block;
+
+  fill: none;
+  stroke: currentColor;
+
+  stroke-width: 1.7;
+
+  stroke-linecap: round;
+  stroke-linejoin: round;
+
+  overflow: visible;
+
+  pointer-events: none;
+}
+
+.account-action {
+  border-color:
+    rgba(201, 151, 38, 0.28);
+}
+
+.ai-action {
+  color: var(--gold-bright);
+}
+
+.search-action {
+  color: #f5f0e7;
+}
+
+.header-user-image {
+  position: relative;
+
+  width: 34px;
+  height: 34px;
+
+  overflow: hidden;
+
+  border:
+    1px solid
+    rgba(239, 189, 67, 0.55);
+
+  border-radius: 50%;
+}
+
+.header-user-image img {
+  object-fit: cover;
+}
+
+.ai-label,
+.count-badge {
+  position: absolute;
+
+  top: -5px;
+  right: -3px;
+
+  min-width: 19px;
+  height: 19px;
+
+  padding: 0 5px;
+
+  border:
+    2px solid
+    #020202;
+
+  border-radius: 999px;
+
+  display: grid;
+  place-items: center;
+
+  background:
+    linear-gradient(
+      135deg,
+      #f1c754,
+      #c88c15
+    );
+
+  color: #050505;
+
+  font-size: 8px;
+  font-weight: 900;
+
+  line-height: 1;
+
+  box-shadow:
+    0 4px 12px
+    rgba(0, 0, 0, 0.35);
+}
+
+.action-tooltip {
+  position: absolute;
+
+  left: 50%;
+  top: calc(100% + 12px);
+
+  z-index: 20;
+
+  min-width: max-content;
+
+  padding: 7px 9px;
+
+  border:
+    1px solid
+    rgba(239, 189, 67, 0.3);
+
+  background:
+    rgba(4, 4, 4, 0.96);
+
+  color: #d9d1c7;
+
+  font-size: 8px;
+  font-weight: 700;
+
+  letter-spacing: 0.05em;
+
+  opacity: 0;
+
+  pointer-events: none;
+
+  transform:
+    translateX(-50%)
+    translateY(-4px);
+
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease;
+}
+
+.icon-button:hover
+.action-tooltip {
+  opacity: 1;
+
+  transform:
+    translateX(-50%)
+    translateY(0);
+}
+
+.mobile-menu-button {
+  display: none;
+}
+
+/* =========================================================
+   SEARCH OVERLAY
+========================================================= */
+
+.search-overlay {
   position: fixed;
+
+  z-index: 999990;
+
   inset: 0;
-  z-index: 30;
-  pointer-events: none;
-  background-image:
-    radial-gradient(
-      circle,
-      rgba(255, 222, 126, 0.95) 0 1px,
-      rgba(255, 166, 30, 0.5) 2px,
-      transparent 5px
-    ),
-    radial-gradient(
-      circle,
-      rgba(255, 169, 36, 0.8) 0 1px,
-      transparent 4px
-    ),
-    radial-gradient(
-      ellipse,
-      rgba(255, 131, 12, 0.09),
-      transparent 68%
-    );
-  background-size:
-    137px 151px,
-    193px 179px,
-    100% 100%;
-  background-position:
-    15px 20px,
-    70px 85px,
-    center;
-  animation: krve-ember-drift 16s linear infinite;
-  opacity: 0.62;
+
+  display: flex;
+  justify-content: flex-end;
+
+  animation:
+    krveOverlayIn
+    0.28s ease both;
 }
 
-/* Decorative gold frame around the viewport */
+.search-overlay-backdrop {
+  position: absolute;
 
-html.krve-festival-dussehra body::after {
-  content: "";
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+
+  padding: 0;
+  border: 0;
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.52),
+      rgba(0, 0, 0, 0.76)
+    );
+
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.search-panel {
+  position: relative;
+  z-index: 2;
+
+  width:
+    min(
+      100%,
+      620px
+    );
+
+  height: 100vh;
+
+  padding: 30px 32px 34px;
+
+  overflow-y: auto;
+
+  border-left:
+    1px solid
+    rgba(239, 189, 67, 0.66);
+
+  background:
+    radial-gradient(
+      circle at 90% 5%,
+      rgba(239, 189, 67, 0.09),
+      transparent 30%
+    ),
+    linear-gradient(
+      145deg,
+      #0a0a0a,
+      #020202 72%
+    );
+
+  box-shadow:
+    -45px 0 120px
+    rgba(0, 0, 0, 0.82);
+
+  scrollbar-width: thin;
+
+  scrollbar-color:
+    rgba(239, 189, 67, 0.5)
+    transparent;
+
+  animation:
+    searchPanelIn
+    0.42s
+    cubic-bezier(
+      0.16,
+      1,
+      0.3,
+      1
+    )
+    both;
+}
+
+.search-panel::-webkit-scrollbar {
+  width: 5px;
+}
+
+.search-panel::-webkit-scrollbar-thumb {
+  border-radius: 20px;
+
+  background:
+    rgba(239, 189, 67, 0.5);
+}
+
+.search-panel-top {
+  padding-bottom: 22px;
+
+  border-bottom:
+    1px solid
+    rgba(239, 189, 67, 0.4);
+
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 20px;
+}
+
+.search-panel-brand {
+  display: flex;
+  flex-direction: column;
+
+  width: max-content;
+}
+
+.search-panel-brand > span {
+  color: var(--gold-bright);
+
+  font-family: var(--font-display);
+
+  font-size: 39px;
+  font-weight: 500;
+
+  line-height: 0.86;
+}
+
+.search-panel-brand small {
+  margin-top: 10px;
+
+  color: var(--gold);
+
+  font-size: 7px;
+  font-weight: 800;
+
+  letter-spacing: 0.18em;
+}
+
+.search-close-button {
+  width: 48px;
+  height: 48px;
+
+  flex: 0 0 auto;
+
+  padding: 0;
+
+  border:
+    1px solid
+    rgba(239, 189, 67, 0.48);
+
+  border-radius: 50%;
+
+  display: grid;
+  place-items: center;
+
+  background:
+    rgba(0, 0, 0, 0.5);
+
+  color: var(--gold-bright);
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.search-close-button:hover {
+  background: var(--gold-bright);
+  color: #050505;
+
+  transform: rotate(4deg);
+}
+
+.search-close-button svg,
+.luxury-search-field svg,
+.search-result-heading svg,
+.search-result-arrow svg,
+.search-empty-state svg,
+.mobile-navigation-drawer svg {
+  fill: none;
+
+  stroke: currentColor;
+  stroke-width: 1.7;
+
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.search-heading {
+  padding:
+    30px 0 22px;
+}
+
+.search-heading > p {
+  margin:
+    0 0 11px;
+
+  color: var(--gold-bright);
+
+  font-size: 8px;
+  font-weight: 800;
+
+  letter-spacing: 0.15em;
+}
+
+.search-heading h2 {
+  max-width: 480px;
+
+  margin: 0;
+
+  color: #f5eee5;
+
+  font-family: var(--font-display);
+
+  font-size:
+    clamp(
+      39px,
+      4vw,
+      54px
+    );
+
+  font-weight: 500;
+
+  line-height: 0.96;
+}
+
+.search-heading > span {
+  display: block;
+
+  max-width: 450px;
+
+  margin-top: 13px;
+
+  color: #978f86;
+
+  font-size: 10px;
+
+  line-height: 1.65;
+}
+
+/* =========================================================
+   SEARCH INPUT
+========================================================= */
+
+.luxury-search-field {
+  position: relative;
+
+  min-height: 58px;
+
+  border:
+    1px solid
+    rgba(239, 189, 67, 0.48);
+
+  display: grid;
+
+  grid-template-columns:
+    55px
+    minmax(0, 1fr)
+    45px;
+
+  align-items: center;
+
+  background:
+    rgba(2, 2, 2, 0.84);
+
+  color: var(--gold-bright);
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+.luxury-search-field:focus-within {
+  border-color: var(--gold-bright);
+
+  background:
+    rgba(4, 4, 4, 0.98);
+
+  box-shadow:
+    0 0 0 3px
+    rgba(239, 189, 67, 0.07);
+}
+
+.luxury-search-field > svg {
+  margin: auto;
+}
+
+.luxury-search-field input {
+  width: 100%;
+  height: 56px;
+
+  padding:
+    0 12px 0 0;
+
+  border: 0;
+  outline: none;
+
+  background: transparent;
+
+  color: #f6efe7;
+
+  font-size: 12px;
+}
+
+.luxury-search-field input::placeholder {
+  color: #665f58;
+}
+
+.luxury-search-field input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.clear-search-button {
+  width: 36px;
+  height: 36px;
+
+  padding: 0;
+
+  border: 0;
+  border-radius: 50%;
+
+  display: grid;
+  place-items: center;
+
+  background:
+    rgba(239, 189, 67, 0.06);
+
+  color: #a47b1b;
+}
+
+.clear-search-button:hover {
+  color: var(--gold-bright);
+
+  background:
+    rgba(239, 189, 67, 0.12);
+}
+
+/* =========================================================
+   SEARCH RESULTS
+========================================================= */
+
+.search-result-heading {
+  margin-top: 27px;
+
+  padding-bottom: 13px;
+
+  border-bottom:
+    1px solid
+    rgba(239, 189, 67, 0.22);
+
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+
+  gap: 20px;
+}
+
+.search-result-heading p {
+  margin: 0 0 5px;
+
+  color: var(--gold-bright);
+
+  font-size: 8px;
+  font-weight: 800;
+
+  letter-spacing: 0.13em;
+}
+
+.search-result-heading div > span {
+  color: #777068;
+
+  font-size: 8px;
+}
+
+.search-result-heading > a {
+  display: inline-flex;
+  align-items: center;
+
+  gap: 8px;
+
+  color: #d6cec5;
+
+  font-size: 8px;
+  font-weight: 800;
+
+  letter-spacing: 0.08em;
+}
+
+.search-result-heading > a:hover {
+  color: var(--gold-bright);
+}
+
+.search-results {
+  display: flex;
+  flex-direction: column;
+}
+
+.search-result-item {
+  position: relative;
+
+  min-height: 105px;
+
+  padding: 13px 0;
+
+  border-bottom:
+    1px solid
+    rgba(239, 189, 67, 0.17);
+
+  display: grid;
+
+  grid-template-columns:
+    30px
+    78px
+    minmax(0, 1fr)
+    32px;
+
+  align-items: center;
+
+  gap: 13px;
+
+  transition:
+    background 0.2s ease,
+    padding 0.2s ease;
+}
+
+.search-result-item:hover {
+  padding-left: 9px;
+  padding-right: 9px;
+
+  background:
+    rgba(239, 189, 67, 0.045);
+}
+
+.search-result-number {
+  color: #76591a;
+
+  font-family: var(--font-display);
+
+  font-size: 16px;
+}
+
+.search-result-image {
+  position: relative;
+
+  width: 78px;
+  height: 82px;
+
+  overflow: hidden;
+
+  border:
+    1px solid
+    rgba(239, 189, 67, 0.3);
+
+  background: #0b0b0b;
+}
+
+.search-result-image img {
+  object-fit: cover;
+  object-position: center top;
+
+  transition:
+    transform 0.3s ease;
+}
+
+.search-result-item:hover
+.search-result-image img {
+  transform: scale(1.045);
+}
+
+.search-result-copy {
+  min-width: 0;
+}
+
+.search-result-copy p {
+  margin:
+    0 0 5px;
+
+  color: #7d766e;
+
+  font-size: 7px;
+  font-weight: 800;
+
+  letter-spacing: 0.08em;
+
+  text-transform: uppercase;
+}
+
+.search-result-copy h3 {
+  margin: 0;
+
+  color: #f0e9e1;
+
+  font-family: var(--font-display);
+
+  font-size: 21px;
+  font-weight: 500;
+
+  line-height: 1.05;
+}
+
+.search-result-copy strong {
+  display: block;
+
+  margin-top: 7px;
+
+  color: var(--gold-bright);
+
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.search-result-arrow {
+  width: 31px;
+  height: 31px;
+
+  border:
+    1px solid
+    rgba(239, 189, 67, 0.28);
+
+  border-radius: 50%;
+
+  display: grid;
+  place-items: center;
+
+  color: #9d7922;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.search-result-item:hover
+.search-result-arrow {
+  background: var(--gold-bright);
+  color: #050505;
+}
+
+/* =========================================================
+   SEARCH EMPTY STATE
+========================================================= */
+
+.search-empty-state {
+  min-height: 330px;
+
+  padding:
+    42px 20px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  text-align: center;
+}
+
+.search-empty-icon {
+  width: 82px;
+  height: 82px;
+
+  border:
+    1px solid
+    rgba(239, 189, 67, 0.38);
+
+  border-radius: 50%;
+
+  display: grid;
+  place-items: center;
+
+  color: var(--gold-bright);
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(239, 189, 67, 0.1),
+      transparent 70%
+    );
+}
+
+.search-empty-state > p {
+  margin:
+    20px 0 9px;
+
+  color: var(--gold-bright);
+
+  font-size: 8px;
+  font-weight: 800;
+
+  letter-spacing: 0.14em;
+}
+
+.search-empty-state h3 {
+  margin: 0;
+
+  color: #efe8df;
+
+  font-family: var(--font-display);
+
+  font-size: 30px;
+  font-weight: 500;
+}
+
+.search-empty-state > span {
+  display: block;
+
+  max-width: 320px;
+
+  margin-top: 10px;
+
+  color: #867f77;
+
+  font-size: 9px;
+
+  line-height: 1.6;
+}
+
+.search-empty-state > a {
+  min-height: 44px;
+
+  margin-top: 20px;
+  padding: 0 17px;
+
+  border:
+    1px solid
+    var(--gold-bright);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 10px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #ca8610,
+      #efbd43,
+      #d99e20
+    );
+
+  color: #050505;
+
+  font-size: 8px;
+  font-weight: 900;
+
+  letter-spacing: 0.1em;
+}
+
+/* =========================================================
+   SEARCH SUGGESTIONS
+========================================================= */
+
+.search-suggestions {
+  margin-top: 25px;
+
+  padding-top: 18px;
+
+  border-top:
+    1px solid
+    rgba(239, 189, 67, 0.2);
+}
+
+.search-suggestions > span {
+  color: #766f67;
+
+  font-size: 7px;
+  font-weight: 800;
+
+  letter-spacing: 0.12em;
+}
+
+.search-suggestions > div {
+  margin-top: 11px;
+
+  display: flex;
+  flex-wrap: wrap;
+
+  gap: 8px;
+}
+
+.search-suggestions button {
+  min-height: 30px;
+
+  padding: 0 11px;
+
+  border:
+    1px solid
+    rgba(239, 189, 67, 0.27);
+
+  background:
+    rgba(239, 189, 67, 0.025);
+
+  color: #a29a90;
+
+  font-size: 8px;
+  font-weight: 700;
+
+  letter-spacing: 0.04em;
+
+  transition:
+    border-color 0.2s ease,
+    color 0.2s ease,
+    background 0.2s ease;
+}
+
+.search-suggestions button:hover {
+  border-color: var(--gold-bright);
+
+  background:
+    rgba(239, 189, 67, 0.07);
+
+  color: var(--gold-bright);
+}
+
+/* =========================================================
+   MOBILE NAVIGATION DRAWER
+========================================================= */
+
+.mobile-navigation-overlay {
   position: fixed;
-  inset: 5px;
-  z-index: 31;
-  pointer-events: none;
-  border: 1px solid rgba(255, 184, 53, 0.2);
-  box-shadow:
-    inset 0 0 18px rgba(255, 145, 15, 0.055),
-    0 0 12px rgba(255, 170, 32, 0.04);
+
+  z-index: 999980;
+
+  inset: 0;
+
+  display: flex;
+  justify-content: flex-start;
+
+  animation:
+    krveOverlayIn
+    0.26s ease both;
 }
 
-/* Gold glow on existing site sections */
+.mobile-navigation-backdrop {
+  position: absolute;
 
-html.krve-festival-dussehra .hero {
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+
+  padding: 0;
+  border: 0;
+
+  background:
+    rgba(0, 0, 0, 0.68);
+
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+}
+
+.mobile-navigation-drawer {
+  position: relative;
+  z-index: 2;
+
+  width:
+    min(
+      90%,
+      420px
+    );
+
+  height: 100vh;
+
+  padding:
+    25px 22px 28px;
+
+  overflow-y: auto;
+
+  border-right:
+    1px solid
+    rgba(239, 189, 67, 0.62);
+
   background:
     radial-gradient(
-      ellipse at 54% 70%,
-      rgba(255, 111, 12, 0.2),
-      transparent 48%
+      circle at 10% 5%,
+      rgba(239, 189, 67, 0.08),
+      transparent 30%
     ),
-    radial-gradient(
-      ellipse at 15% 100%,
-      rgba(122, 43, 8, 0.24),
-      transparent 52%
-    ),
-    #080502;
-}
+    linear-gradient(
+      145deg,
+      #090909,
+      #020202
+    );
 
-html.krve-festival-dussehra .hero-silk {
-  opacity: 0.9;
-  filter: sepia(0.2) saturate(1.3);
-}
-
-html.krve-festival-dussehra .benefits,
-html.krve-festival-dussehra .bottom-strip {
-  border-color: var(--krve-festival-line);
   box-shadow:
-    inset 0 1px rgba(255, 213, 110, 0.035),
-    0 0 20px rgba(255, 144, 16, 0.035);
+    35px 0 100px
+    rgba(0, 0, 0, 0.8);
+
+  animation:
+    mobileDrawerIn
+    0.4s
+    cubic-bezier(
+      0.16,
+      1,
+      0.3,
+      1
+    )
+    both;
 }
 
-html.krve-festival-dussehra .new-arrivals {
+.mobile-navigation-header {
+  padding-bottom: 20px;
+
+  border-bottom:
+    1px solid
+    rgba(239, 189, 67, 0.38);
+
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 20px;
+}
+
+.mobile-navigation-brand {
+  display: flex;
+  flex-direction: column;
+
+  width: max-content;
+}
+
+.mobile-navigation-brand span {
+  color: var(--gold-bright);
+
+  font-family: var(--font-display);
+
+  font-size: 40px;
+  font-weight: 500;
+
+  line-height: 0.85;
+}
+
+.mobile-navigation-brand small {
+  margin-top: 10px;
+
+  color: var(--gold);
+
+  font-size: 7px;
+  font-weight: 800;
+
+  letter-spacing: 0.18em;
+}
+
+.mobile-navigation-close {
+  width: 45px;
+  height: 45px;
+
+  padding: 0;
+
+  border:
+    1px solid
+    rgba(239, 189, 67, 0.45);
+
+  border-radius: 50%;
+
+  display: grid;
+  place-items: center;
+
   background:
-    radial-gradient(
-      ellipse at 50% 0%,
-      rgba(255, 145, 20, 0.065),
-      transparent 60%
+    rgba(0, 0, 0, 0.42);
+
+  color: var(--gold-bright);
+}
+
+.mobile-navigation-drawer nav {
+  margin-top: 23px;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.mobile-navigation-drawer nav a {
+  min-height: 65px;
+
+  padding:
+    0 7px;
+
+  border-bottom:
+    1px solid
+    rgba(239, 189, 67, 0.16);
+
+  display: grid;
+
+  grid-template-columns:
+    37px
+    minmax(0, 1fr)
+    25px;
+
+  align-items: center;
+
+  gap: 10px;
+
+  color: #ede6dd;
+
+  font-size: 10px;
+  font-weight: 800;
+
+  letter-spacing: 0.08em;
+
+  transition:
+    color 0.2s ease,
+    padding 0.2s ease,
+    background 0.2s ease;
+}
+
+.mobile-navigation-drawer nav a:hover {
+  padding-left: 14px;
+
+  background:
+    rgba(239, 189, 67, 0.045);
+
+  color: var(--gold-bright);
+}
+
+.mobile-navigation-drawer nav a > span {
+  color: #81621d;
+
+  font-family: var(--font-display);
+
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.mobile-navigation-drawer nav a > svg {
+  color: #8b6a20;
+}
+
+.mobile-search-button {
+  width: 100%;
+  min-height: 50px;
+
+  margin-top: 25px;
+
+  padding:
+    0 17px;
+
+  border:
+    1px solid
+    var(--gold-bright);
+
+  display: grid;
+
+  grid-template-columns:
+    24px
+    minmax(0, 1fr)
+    24px;
+
+  align-items: center;
+
+  background:
+    linear-gradient(
+      135deg,
+      #ca8610,
+      #efbd43,
+      #d99e20
+    );
+
+  color: #050505;
+
+  font-size: 9px;
+  font-weight: 900;
+
+  letter-spacing: 0.1em;
+}
+
+.mobile-member-links {
+  margin-top: 18px;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      2,
+      minmax(0, 1fr)
+    );
+
+  gap: 9px;
+}
+
+.mobile-member-links a {
+  min-height: 46px;
+
+  padding:
+    0 12px;
+
+  border:
+    1px solid
+    rgba(239, 189, 67, 0.3);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  color: #d8d1c8;
+
+  font-size: 8px;
+  font-weight: 800;
+
+  letter-spacing: 0.06em;
+}
+
+/* =========================================================
+   HERO
+========================================================= */
+
+.hero {
+  position: relative;
+
+  min-height: 365px;
+
+  overflow: hidden;
+
+  border-bottom:
+    1px solid
+    var(--gold-line);
+
+  background: #000;
+}
+
+.hero-silk {
+  position: absolute;
+
+  inset: 0 47% 0 0;
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.98),
+      rgba(3, 3, 3, 0.76)
+    ),
+    repeating-linear-gradient(
+      116deg,
+      #020202 0 15px,
+      #090909 15px 28px,
+      #030303 28px 45px
     );
 }
 
-html.krve-festival-dussehra .product-grid > *,
-html.krve-festival-dussehra .tryon-card {
-  border-color: rgba(255, 180, 48, 0.35);
+.hero-copy {
+  position: relative;
+  z-index: 3;
+
+  width: 48%;
+
+  padding:
+    48px
+    20px
+    42px
+    78px;
 }
 
-html.krve-festival-dussehra .product-card,
-html.krve-festival-dussehra .product-media {
-  border-color: rgba(255, 180, 48, 0.3);
+.eyebrow {
+  display: flex;
+  align-items: center;
+
+  gap: 13px;
+
+  color: var(--gold-bright);
+
+  font-family: var(--font-display);
+
+  font-size: 17px;
+  font-weight: 600;
 }
 
-html.krve-festival-dussehra .button.solid {
+.eyebrow span {
+  width: 38px;
+  height: 1px;
+
+  background: var(--gold);
+}
+
+.hero h1 {
+  margin:
+    17px 0 14px;
+
+  color: var(--ivory);
+
+  font-family: var(--font-display);
+
+  font-size:
+    clamp(
+      47px,
+      4.2vw,
+      70px
+    );
+
+  font-weight: 500;
+
+  line-height: 0.96;
+
+  letter-spacing: -0.035em;
+}
+
+.hero h1 strong {
+  display: block;
+
+  color: var(--gold-bright);
+
+  font-weight: 500;
+}
+
+.hero-copy > p {
+  max-width: 510px;
+
+  margin: 0;
+
+  color: #d2cbc0;
+
+  font-size: 17px;
+
+  line-height: 1.6;
+}
+
+.hero-buttons {
+  display: flex;
+
+  gap: 16px;
+
+  margin-top: 24px;
+}
+
+.button {
+  min-height: 50px;
+
+  padding:
+    0 25px;
+
+  border:
+    1px solid
+    var(--gold);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  background:
+    rgba(0, 0, 0, 0.48);
+
+  color: var(--gold-bright);
+
+  font-size: 12px;
+  font-weight: 800;
+
+  letter-spacing: 0.045em;
+
+  transition:
+    transform 0.18s ease,
+    background 0.18s ease;
+}
+
+.button:hover {
+  transform:
+    translateY(-1px);
+}
+
+.button.solid {
+  background:
+    linear-gradient(
+      135deg,
+      #f1c653,
+      #ca9118
+    );
+
+  color: #070707;
+}
+
+.button.ghost:hover {
+  background:
+    rgba(201, 151, 38, 0.08);
+}
+
+.hero-model {
+  position: absolute;
+  z-index: 2;
+
+  top: 0;
+  right: 14%;
+
+  width: 38%;
+  height: 100%;
+
+  overflow: hidden;
+}
+
+.hero-model img {
+  object-fit: cover;
+
+  object-position:
+    51% 22%;
+}
+
+.hero-model::before {
+  content: "";
+
+  position: absolute;
+  z-index: 2;
+
+  inset: 0;
+
+  background:
+    linear-gradient(
+      90deg,
+      #000 0%,
+      rgba(0, 0, 0, 0.3) 18%,
+      transparent 48%,
+      rgba(0, 0, 0, 0.25) 100%
+    );
+
+  pointer-events: none;
+}
+
+.crest {
+  position: absolute;
+  z-index: 1;
+
+  top: 6%;
+  right: 1.5%;
+
+  width: 18%;
+  height: 87%;
+
+  opacity: 0.48;
+
+  overflow: hidden;
+}
+
+.crest img {
+  object-fit: cover;
+  object-position: center;
+
+  mix-blend-mode: screen;
+}
+
+/* =========================================================
+   BENEFIT STRIPS
+========================================================= */
+
+.benefits,
+.bottom-strip {
+  display: grid;
+
+  background: #050505;
+
+  border-bottom:
+    1px solid
+    var(--gold-line);
+}
+
+.benefits {
+  grid-template-columns:
+    repeat(
+      5,
+      1fr
+    );
+}
+
+.bottom-strip {
+  grid-template-columns:
+    repeat(
+      4,
+      1fr
+    );
+}
+
+.benefits > div,
+.bottom-strip > div {
+  min-height: 76px;
+
+  padding:
+    13px 18px;
+
+  border-right:
+    1px solid
+    var(--gold-soft-line);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 14px;
+}
+
+.benefits > div:last-child,
+.bottom-strip > div:last-child {
+  border-right: 0;
+}
+
+.benefits span,
+.bottom-strip span {
+  flex: 0 0 auto;
+
+  color: var(--gold-bright);
+
+  font-size: 25px;
+}
+
+.benefits p,
+.bottom-strip p {
+  margin: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 4px;
+}
+
+.benefits strong,
+.bottom-strip strong {
+  color: #f6f2ea;
+
+  font-size: 11px;
+  font-weight: 800;
+
+  letter-spacing: 0.015em;
+}
+
+.benefits small,
+.bottom-strip small {
+  color: #aaa297;
+
+  font-size: 10px;
+  font-weight: 500;
+}
+
+/* =========================================================
+   NEW ARRIVALS
+========================================================= */
+
+.new-arrivals {
+  padding:
+    22px 56px 24px;
+
+  border-bottom:
+    1px solid
+    var(--gold-line);
+
+  background: #020202;
+}
+
+.section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 15px;
+}
+
+.section-heading h2 {
+  margin: 0;
+
+  color: var(--gold-bright);
+
+  font-family: var(--font-display);
+
+  font-size: 27px;
+  font-weight: 600;
+
+  letter-spacing: 0.01em;
+}
+
+.section-heading a {
+  color: var(--gold-bright);
+
+  font-size: 11px;
+  font-weight: 800;
+
+  letter-spacing: 0.03em;
+}
+
+.arrival-layout {
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 1.58fr)
+    minmax(410px, 1fr);
+
+  align-items: stretch;
+
+  gap: 24px;
+}
+
+.product-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      4,
+      minmax(0, 1fr)
+    );
+
+  align-items: stretch;
+
+  gap: 14px;
+}
+
+/* =========================================================
+   PRODUCT CARDS
+========================================================= */
+
+.product-card {
+  position: relative;
+
+  min-width: 0;
+
+  overflow: hidden;
+
+  border:
+    1px solid
+    var(--gold-line);
+
+  background:
+    linear-gradient(
+      180deg,
+      #0b0b0b,
+      #040404
+    );
+
+  transition:
+    transform 0.22s ease,
+    border-color 0.22s ease,
+    box-shadow 0.22s ease;
+}
+
+.product-card:hover {
+  transform:
+    translateY(-3px);
+
+  border-color:
+    rgba(239, 189, 67, 0.7);
+
   box-shadow:
-    0 0 18px rgba(255, 174, 35, 0.14);
+    0 14px 32px
+    rgba(0, 0, 0, 0.32);
 }
 
-html.krve-festival-dussehra .button.ghost {
-  border-color: rgba(255, 190, 65, 0.7);
+.product-media {
+  position: relative;
+
+  height: 212px;
+
+  overflow: hidden;
+
+  background:
+    radial-gradient(
+      circle at center,
+      #121212,
+      #050505
+    );
 }
 
-/* Keep text, menus and shopping controls above the glow */
+.product-image {
+  position: absolute;
 
-html.krve-festival-dussehra .header,
-html.krve-festival-dussehra .krve-header,
-html.krve-festival-dussehra .topbar,
-html.krve-festival-dussehra .festival-announcement {
-  border-color: rgba(255, 183, 53, 0.48);
+  inset: 0;
+
+  display: block;
+
+  overflow: hidden;
 }
 
-@keyframes krve-ember-drift {
-  0% {
-    background-position:
-      15px 20px,
-      70px 85px,
-      center;
+.product-image img {
+  object-fit: cover;
+
+  object-position:
+    center top;
+
+  transform:
+    scale(1.02);
+
+  transition:
+    transform 0.35s ease;
+}
+
+.product-card:hover
+.product-image img {
+  transform:
+    scale(1.06);
+}
+
+.product-image-mask {
+  position: absolute;
+
+  z-index: 2;
+
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  height: 35%;
+
+  background:
+    linear-gradient(
+      to bottom,
+      transparent,
+      rgba(4, 4, 4, 0.96) 45%,
+      #050505 75%
+    );
+
+  pointer-events: none;
+}
+
+.wishlist-button {
+  position: absolute;
+  z-index: 5;
+
+  top: 11px;
+  right: 11px;
+
+  width: 34px;
+  height: 34px;
+
+  padding: 0;
+
+  border:
+    1px solid
+    rgba(201, 151, 38, 0.25);
+
+  border-radius: 999px;
+
+  display: grid;
+  place-items: center;
+
+  background:
+    rgba(0, 0, 0, 0.64);
+
+  color: var(--gold-bright);
+
+  backdrop-filter: blur(8px);
+}
+
+.wishlist-button:hover {
+  border-color: var(--gold);
+
+  background:
+    rgba(201, 151, 38, 0.11);
+}
+
+.product-category {
+  position: absolute;
+  z-index: 4;
+
+  left: 12px;
+  bottom: 11px;
+
+  padding:
+    5px 8px;
+
+  border:
+    1px solid
+    rgba(201, 151, 38, 0.32);
+
+  background:
+    rgba(3, 3, 3, 0.86);
+
+  color: var(--gold-bright);
+
+  font-size: 8px;
+  font-weight: 800;
+
+  letter-spacing: 0.12em;
+
+  text-transform: uppercase;
+}
+
+.product-copy {
+  min-height: 92px;
+
+  padding:
+    15px 12px;
+
+  border-top:
+    1px solid
+    var(--gold-soft-line);
+
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+
+  gap: 10px;
+}
+
+.product-details {
+  min-width: 0;
+}
+
+.product-copy h3 {
+  margin:
+    0 0 8px;
+
+  color: #f7f3eb;
+
+  font-size: 12px;
+  font-weight: 650;
+
+  line-height: 1.35;
+}
+
+.product-copy p {
+  margin: 0;
+
+  color: var(--gold-bright);
+
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.add-product-button {
+  min-width: 58px;
+  min-height: 38px;
+
+  padding:
+    0 10px;
+
+  border:
+    1px solid
+    var(--gold-line);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 6px;
+
+  background: transparent;
+  color: var(--gold-bright);
+
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.add-product-button:hover {
+  background: var(--gold-bright);
+
+  color: #050505;
+}
+
+/* =========================================================
+   TRY-ON PANEL
+========================================================= */
+
+.tryon-card {
+  min-height: 306px;
+
+  padding: 18px;
+
+  border:
+    1px solid
+    var(--gold);
+
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 0.9fr)
+    minmax(205px, 1.1fr);
+
+  align-items: stretch;
+
+  gap: 17px;
+
+  background:
+    radial-gradient(
+      circle at 85% 25%,
+      rgba(201, 151, 38, 0.08),
+      transparent 38%
+    ),
+    #050505;
+}
+
+.tryon-card > div:first-child {
+  padding:
+    5px 0;
+}
+
+.gold-label {
+  margin: 0;
+
+  color:
+    var(--gold-bright) !important;
+
+  font-size: 12px;
+  font-weight: 800;
+
+  line-height: 1.45;
+
+  letter-spacing: 0.04em;
+}
+
+.tryon-card h3 {
+  max-width: 250px;
+
+  margin:
+    13px 0 12px;
+
+  color: #f6f1e8;
+
+  font-family: var(--font-display);
+
+  font-size: 27px;
+  font-weight: 500;
+
+  line-height: 1.08;
+}
+
+.tryon-card p {
+  max-width: 240px;
+
+  margin:
+    0 0 21px;
+
+  color: #c6beb3;
+
+  font-size: 13px;
+
+  line-height: 1.55;
+}
+
+.tryon-image {
+  position: relative;
+
+  min-height: 268px;
+
+  overflow: hidden;
+
+  border:
+    1px solid
+    var(--gold-line);
+
+  background: #080808;
+}
+
+.tryon-image img {
+  object-fit: cover;
+
+  object-position:
+    72% center;
+
+  transform:
+    scale(1.16);
+}
+
+.tryon-image::after {
+  content: "";
+
+  position: absolute;
+
+  inset: 0;
+
+  border:
+    8px solid
+    rgba(0, 0, 0, 0.35);
+
+  box-shadow:
+    inset 0 0 35px
+    rgba(0, 0, 0, 0.72);
+
+  pointer-events: none;
+}
+
+/* =========================================================
+   FOOTER
+========================================================= */
+
+.footer {
+  min-height: 138px;
+
+  padding:
+    30px 56px;
+
+  border-top:
+    1px solid
+    rgba(201, 151, 38, 0.08);
+
+  display: grid;
+
+  grid-template-columns:
+    1fr
+    1.2fr
+    1fr;
+
+  align-items: center;
+
+  gap: 30px;
+
+  background: #030303;
+
+  color: #aaa298;
+}
+
+.footer strong {
+  color: var(--gold-bright);
+
+  font-family: var(--font-display);
+
+  font-size: 39px;
+  font-weight: 500;
+}
+
+.footer p {
+  margin:
+    5px 0;
+
+  font-size: 12px;
+
+  line-height: 1.55;
+}
+
+.footer > p:last-child {
+  text-align: right;
+}
+
+/* =========================================================
+   GENERIC PAGES
+========================================================= */
+
+.page-shell {
+  max-width: 1200px;
+
+  min-height: 58vh;
+
+  margin: 0 auto;
+
+  padding:
+    72px 28px;
+}
+
+.page-shell h1 {
+  margin:
+    0 0 20px;
+
+  color: var(--gold-bright);
+
+  font-family: var(--font-display);
+
+  font-size: 56px;
+  font-weight: 500;
+
+  line-height: 1;
+}
+
+.page-shell > p {
+  color: var(--muted);
+
+  font-size: 15px;
+
+  line-height: 1.7;
+}
+
+/* =========================================================
+   ANIMATIONS
+========================================================= */
+
+@keyframes krveOverlayIn {
+  from {
+    opacity: 0;
   }
 
-  50% {
-    background-position:
-      55px 90px,
-      20px 35px,
-      center;
-  }
-
-  100% {
-    background-position:
-      15px 20px,
-      70px 85px,
-      center;
+  to {
+    opacity: 1;
   }
 }
 
-/* Mobile performance and accessibility */
+@keyframes searchPanelIn {
+  from {
+    opacity: 0;
 
-@media (max-width: 600px) {
-  html.krve-festival-dussehra body::before {
-    opacity: 0.38;
-    animation-duration: 24s;
+    transform:
+      translateX(42px);
   }
 
-  html.krve-festival-dussehra body::after {
-    inset: 3px;
+  to {
+    opacity: 1;
+
+    transform:
+      translateX(0);
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  html.krve-festival-dussehra body::before {
-    animation: none;
+@keyframes mobileDrawerIn {
+  from {
+    opacity: 0;
+
+    transform:
+      translateX(-42px);
+  }
+
+  to {
+    opacity: 1;
+
+    transform:
+      translateX(0);
+  }
+}
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 1180px) {
+  .header,
+  .krve-header {
+    grid-template-columns:
+      185px
+      minmax(0, 1fr)
+      225px;
+
+    padding:
+      0 24px;
+  }
+
+  .desktop-navigation,
+  .header nav {
+    gap: 18px;
+  }
+
+  .desktop-navigation a,
+  .header nav a {
+    font-size: 10px;
+  }
+
+  .actions {
+    gap: 4px;
+  }
+
+  .icon-button {
+    width: 40px;
+    height: 40px;
+
+    flex-basis: 40px;
+  }
+
+  .hero-copy {
+    width: 57%;
+
+    padding-left: 40px;
+  }
+
+  .hero-model {
+    right: 0;
+
+    width: 48%;
+  }
+
+  .crest {
+    display: none;
+  }
+
+  .benefits {
+    grid-template-columns:
+      repeat(
+        2,
+        1fr
+      );
+  }
+
+  .arrival-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .tryon-card {
+    min-height: 330px;
+  }
+}
+
+/* =========================================================
+   MOBILE HEADER
+========================================================= */
+
+@media (max-width: 880px) {
+  .topbar {
+    min-height: 38px;
+
+    padding:
+      8px 12px;
+
+    font-size: 13px;
+
+    text-align: center;
+  }
+
+  .header,
+  .krve-header {
+    min-height: 76px;
+
+    padding:
+      12px 15px;
+
+    grid-template-columns:
+      42px
+      minmax(0, 1fr)
+      auto;
+
+    gap: 10px;
+  }
+
+  .mobile-menu-button {
+    width: 40px;
+    height: 40px;
+
+    padding: 0;
+
+    border:
+      1px solid
+      rgba(239, 189, 67, 0.3);
+
+    border-radius: 50%;
+
+    display: grid;
+    place-items: center;
+
+    background:
+      transparent;
+
+    color: #f2ece4;
+  }
+
+  .mobile-menu-button svg {
+    fill: none;
+
+    stroke: currentColor;
+    stroke-width: 1.7;
+
+    stroke-linecap: round;
+  }
+
+  .brand {
+    justify-self: start;
+  }
+
+  .brand span {
+    font-size: 38px;
+  }
+
+  .brand small {
+    margin-top: 8px;
+
+    font-size: 7px;
+  }
+
+  .desktop-navigation,
+  .header nav {
+    display: none;
+  }
+
+  .actions {
+    gap: 1px;
+  }
+
+  .actions
+  .ai-action {
+    display: none;
+  }
+
+  .icon-button {
+    width: 37px;
+    height: 37px;
+
+    flex-basis: 37px;
+  }
+
+  .icon-button svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .action-tooltip {
+    display: none;
+  }
+
+  .hero {
+    min-height: 650px;
+  }
+
+  .hero-silk {
+    inset: 0;
+  }
+
+  .hero-copy {
+    width: 100%;
+
+    padding:
+      44px 22px 26px;
+  }
+
+  .hero h1 {
+    font-size: 47px;
+  }
+
+  .hero-copy > p {
+    font-size: 15px;
+  }
+
+  .hero-buttons {
+    width: 100%;
+
+    flex-direction: column;
+  }
+
+  .hero-model {
+    top: auto;
+    bottom: 0;
+    right: 0;
+
+    width: 100%;
+    height: 43%;
+
+    opacity: 0.72;
+  }
+
+  .benefits,
+  .bottom-strip {
+    grid-template-columns:
+      1fr;
+  }
+
+  .new-arrivals {
+    padding:
+      24px 17px;
+  }
+
+  .product-grid {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
+  }
+
+  .product-media {
+    height: 195px;
+  }
+
+  .tryon-card {
+    grid-template-columns:
+      1fr;
+  }
+
+  .tryon-card h3,
+  .tryon-card p {
+    max-width: none;
+  }
+
+  .footer {
+    padding:
+      30px 20px;
+
+    grid-template-columns:
+      1fr;
+
+    text-align: center;
+  }
+
+  .footer > p:last-child {
+    text-align: center;
+  }
+}
+
+/* =========================================================
+   SMALL MOBILE
+========================================================= */
+
+@media (max-width: 620px) {
+  .topbar {
+    font-size: 12px;
+  }
+
+  .topbar-star {
+    display: none;
+  }
+
+  .header,
+  .krve-header {
+    padding:
+      11px 12px;
+
+    grid-template-columns:
+      39px
+      minmax(0, 1fr)
+      auto;
+  }
+
+  .brand span {
+    font-size: 34px;
+  }
+
+  .brand small {
+    font-size: 6px;
+
+    letter-spacing: 0.16em;
+  }
+
+  .actions
+  .account-action {
+    display: none;
+  }
+
+  .actions
+  .icon-button {
+    width: 35px;
+    height: 35px;
+
+    flex-basis: 35px;
+  }
+
+  .search-panel {
+    width: 100%;
+
+    padding:
+      22px 17px 28px;
+
+    border-left: 0;
+  }
+
+  .search-panel-brand > span {
+    font-size: 35px;
+  }
+
+  .search-close-button {
+    width: 44px;
+    height: 44px;
+  }
+
+  .search-heading h2 {
+    font-size: 40px;
+  }
+
+  .search-result-item {
+    grid-template-columns:
+      24px
+      68px
+      minmax(0, 1fr)
+      27px;
+
+    gap: 10px;
+  }
+
+  .search-result-image {
+    width: 68px;
+    height: 74px;
+  }
+
+  .search-result-copy h3 {
+    font-size: 18px;
+  }
+
+  .search-result-arrow {
+    width: 27px;
+    height: 27px;
+  }
+
+  .mobile-navigation-drawer {
+    width: 92%;
+
+    padding:
+      22px 18px 27px;
+  }
+
+  .product-grid {
+    grid-template-columns:
+      1fr;
+  }
+
+  .product-media {
+    height: 280px;
+  }
+}
+
+/* =========================================================
+   VERY SMALL MOBILE
+========================================================= */
+
+@media (max-width: 420px) {
+  .actions
+  .search-action {
+    display: none;
+  }
+
+  .brand span {
+    font-size: 32px;
+  }
+
+  .brand small {
+    font-size: 5px;
+  }
+
+  .hero h1 {
+    font-size: 40px;
+  }
+
+  .search-heading h2 {
+    font-size: 36px;
+  }
+
+  .search-result-number {
+    display: none;
+  }
+
+  .search-result-item {
+    grid-template-columns:
+      65px
+      minmax(0, 1fr)
+      27px;
+  }
+
+  .mobile-member-links {
+    grid-template-columns: 1fr;
   }
 }
