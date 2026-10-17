@@ -1,3 +1,4 @@
+
 /* =====================================================
    KRVE — DUSSEHRA FESTIVE THEME
    Luxury black, antique gold and warm festive lights
@@ -42,6 +43,8 @@
     );
 }
 
+/* Main hero section */
+
 .krve-dussehra-home .hero.krve-dussehra-hero {
   position: relative;
   isolation: isolate;
@@ -69,8 +72,11 @@
 .krve-dussehra-hero .hero-copy,
 .krve-dussehra-hero .hero-model,
 .krve-dussehra-hero .crest {
+  position: relative;
   z-index: 1;
 }
+
+/* Happy Dussehra greeting */
 
 .krve-dussehra-greeting {
   position: absolute;
@@ -142,6 +148,8 @@
   letter-spacing: 0;
 }
 
+/* Festive sections */
+
 .krve-festive-section {
   position: relative;
   isolation: isolate;
@@ -168,6 +176,8 @@
   text-shadow: 0 0 12px rgba(255, 192, 68, 0.5);
 }
 
+/* Product cards */
+
 .krve-dussehra-home .product-grid > * {
   outline: 1px solid rgba(218, 164, 60, 0.12);
   outline-offset: -1px;
@@ -191,6 +201,8 @@
   text-shadow: 0 0 12px rgba(255, 192, 57, 0.5);
 }
 
+/* Greeting animation */
+
 @keyframes krve-greeting-glow {
   from {
     box-shadow:
@@ -204,6 +216,61 @@
       inset 0 0 24px rgba(244, 189, 70, 0.09);
   }
 }
+
+/* =====================================================
+   RAM & RAVAN BACKGROUND DECORATION
+   Ram: left side
+   Ravan: right side
+   Pointer events disabled to preserve interactions
+===================================================== */
+
+.krve-dussehra-home .krve-dussehra-hero::before,
+.krve-dussehra-home .krve-dussehra-hero::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  top: 50%;
+  width: clamp(145px, 20vw, 310px);
+  height: min(88%, 540px);
+  transform: translateY(-50%);
+  pointer-events: none;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  opacity: 0.24;
+  filter: drop-shadow(0 0 22px rgba(224, 164, 56, 0.16));
+}
+
+/* Lord Ram — left background */
+
+.krve-dussehra-home .krve-dussehra-hero::before {
+  left: 0;
+  background-image: url("/images/dussehra-ram-silhouette.svg");
+}
+
+/* Ravana — right background */
+
+.krve-dussehra-home .krve-dussehra-hero::after {
+  right: 0;
+  background-image: url("/images/dussehra-ravan-silhouette.svg");
+  opacity: 0.19;
+}
+
+/* Keep hero content above the decorative silhouettes */
+
+.krve-dussehra-home .krve-dussehra-hero .hero-copy,
+.krve-dussehra-home .krve-dussehra-hero .hero-model,
+.krve-dussehra-home .krve-dussehra-hero .crest,
+.krve-dussehra-home .krve-dussehra-hero .krve-dussehra-greeting {
+  position: relative;
+  z-index: 2;
+}
+
+.krve-dussehra-home .krve-dussehra-hero .hero-model {
+  z-index: 1;
+}
+
+/* Tablet and smaller screens */
 
 @media (max-width: 1100px) {
   .krve-dussehra-greeting {
@@ -221,6 +288,8 @@
   }
 }
 
+/* Mobile layout */
+
 @media (max-width: 760px) {
   .krve-dussehra-greeting {
     position: relative;
@@ -236,7 +305,26 @@
   .krve-dussehra-greeting h2 {
     font-size: 32px;
   }
+
+  .krve-dussehra-home .krve-dussehra-hero::before,
+  .krve-dussehra-home .krve-dussehra-hero::after {
+    top: 34%;
+    width: 36vw;
+    height: 43%;
+    opacity: 0.13;
+  }
+
+  .krve-dussehra-home .krve-dussehra-hero::before {
+    left: -7%;
+  }
+
+  .krve-dussehra-home .krve-dussehra-hero::after {
+    right: -7%;
+    opacity: 0.11;
+  }
 }
+
+/* Accessibility */
 
 @media (prefers-reduced-motion: reduce) {
   .krve-dussehra-greeting {
@@ -246,5 +334,10 @@
   .krve-dussehra-home .product-grid > *,
   .krve-dussehra-home .section-heading a {
     transition: none;
+  }
+
+  .krve-dussehra-home .krve-dussehra-hero::before,
+  .krve-dussehra-home .krve-dussehra-hero::after {
+    filter: none;
   }
 }
