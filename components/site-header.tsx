@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import FestivalTheme from "./festival-theme";
 import {
   useEffect,
   useRef,
@@ -584,6 +585,8 @@ export default function SiteHeader() {
 
   return (
     <>
+      <FestivalTheme />
+
       <Link
         href="/ai-stylist"
         className="topbar"
