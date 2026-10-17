@@ -1,8 +1,8 @@
+
 import Image from "next/image";
 import Link from "next/link";
 
 import ProductCard from "@/components/product-card";
-import FestivalTheme from "@/components/festival-theme";
 
 import {
   getNewArrivalProducts,
@@ -67,6 +67,7 @@ function convertToProductCardProduct(
 async function loadNewArrivals(): Promise<Product[]> {
   try {
     const products = await getNewArrivalProducts(4);
+
     return products.map(convertToProductCardProduct);
   } catch (error) {
     console.error("HOME_NEW_ARRIVALS_ERROR", error);
@@ -79,8 +80,6 @@ export default async function HomePage() {
 
   return (
     <main className="krve-dussehra-home">
-      <FestivalTheme />
-
       <section className="hero krve-dussehra-hero">
         <div className="hero-silk" />
 
@@ -142,7 +141,9 @@ export default async function HomePage() {
         </div>
 
         <aside className="krve-dussehra-greeting">
-          <span className="krve-greeting-ornament">✦</span>
+          <span className="krve-greeting-ornament">
+            ✦
+          </span>
 
           <p className="krve-greeting-eyebrow">
             THE FESTIVE EDITION
@@ -162,7 +163,9 @@ export default async function HomePage() {
             you always.
           </p>
 
-          <span className="krve-greeting-ornament">✦</span>
+          <span className="krve-greeting-ornament">
+            ✦
+          </span>
         </aside>
       </section>
 
@@ -196,6 +199,7 @@ export default async function HomePage() {
         ].map(([icon, title, text]) => (
           <div key={title}>
             <span>{icon}</span>
+
             <p>
               <strong>{title}</strong>
               <small>{text}</small>
@@ -211,7 +215,9 @@ export default async function HomePage() {
             <small>LIVE FROM KEOS CENTER</small>
           </div>
 
-          <Link href="/collections">VIEW ALL →</Link>
+          <Link href="/collections">
+            VIEW ALL →
+          </Link>
         </div>
 
         <div className="arrival-layout">
@@ -309,6 +315,7 @@ export default async function HomePage() {
         ].map(([icon, title, text]) => (
           <div key={title}>
             <span>{icon}</span>
+
             <p>
               <strong>{title}</strong>
               <small>{text}</small>
