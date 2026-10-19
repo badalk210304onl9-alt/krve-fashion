@@ -96,6 +96,18 @@ const subcategoriesByMain: Record<string, SubcategoryOption[]> = {
 };
 
 function detectSubcategory(product: KrveProduct, mainCategory: string): string {
+  // Use the saved subcategory from the product record first. Fall back to keyword
+  // detection for older products that do not have a subcategory saved yet.
+  const savedSubcategory = (product as KrveProduct & { subcategory?: string | null }).subcategory;
+  if (savedSubcategory) {
+    const normalized = savedSubcategory.trim().toLowerCase().replace(/[ _]+/g, "-");
+    const options = subcategoriesByMain[mainCategory] ?? [];
+    const exact = options.find((option) => option.id === normalized);
+    if (exact) return exact.id;
+    const titleMatch = options.find((option) => option.title.trim().toLowerCase() === savedSubcategory.trim().toLowerCase());
+    if (titleMatch) return titleMatch.id;
+  }
+
   const searchable = [product.name, product.shortDescription, product.description, product.sku]
     .filter(Boolean).join(" ").toLowerCase().replace(/[–—]/g, "-");
   const options = subcategoriesByMain[mainCategory] ?? [];
