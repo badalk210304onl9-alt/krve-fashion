@@ -40,40 +40,71 @@ const categoryOptions: {
 }[] = [
   {
     id: "menswear",
-    title: "Menswear",
-    subtitle:
-      "Tailoring, shirts and refined essentials",
+    title: "Men's Wear",
+    subtitle: "Modern tailoring and everyday essentials",
     number: "01",
   },
   {
     id: "womenswear",
-    title: "Womenswear",
-    subtitle:
-      "Modern silhouettes and timeless elegance",
+    title: "Women's Wear",
+    subtitle: "Contemporary silhouettes and timeless style",
     number: "02",
   },
   {
     id: "kidswear",
-    title: "Kidswear",
-    subtitle:
-      "Premium style for younger wardrobes",
+    title: "Kids' Wear",
+    subtitle: "Comfort-first style for little wardrobes",
     number: "03",
   },
-  {
-    id: "accessories",
-    title: "Accessories",
-    subtitle:
-      "Bags, watches, belts and finishing pieces",
-    number: "04",
-  },
-  {
-    id: "footwear",
-    title: "Footwear",
-    subtitle:
-      "Luxury shoes and contemporary sneakers",
-    number: "05",
-  },
 ];
+
+type SubcategoryOption = { id: string; title: string; keywords: string[] };
+
+const subcategoriesByMain: Record<string, SubcategoryOption[]> = {
+  menswear: [
+    { id: "all", title: "All Men's Wear", keywords: [] },
+    { id: "shirts", title: "Shirts", keywords: ["shirt", "shirts", "formal shirt", "casual shirt", "overshirt"] },
+    { id: "tshirts", title: "T-Shirts", keywords: ["t-shirt", "tshirt", "tee", "polo"] },
+    { id: "trousers", title: "Trousers", keywords: ["trouser", "trousers", "chino", "formal pant", "pants"] },
+    { id: "jeans", title: "Jeans", keywords: ["jean", "denim"] },
+    { id: "ethnic", title: "Ethnic Wear", keywords: ["kurta", "sherwani", "ethnic", "waistcoat"] },
+    { id: "outerwear", title: "Jackets", keywords: ["jacket", "coat", "blazer", "hoodie", "sweatshirt"] },
+    { id: "co-ord", title: "Co-ord Sets", keywords: ["co-ord", "coord", "co ord", "set"] },
+    { id: "other", title: "Other Clothing", keywords: [] },
+  ],
+  womenswear: [
+    { id: "all", title: "All Women's Wear", keywords: [] },
+    { id: "tops", title: "Tops & Shirts", keywords: ["top", "tops", "shirt", "blouse"] },
+    { id: "dresses", title: "Dresses", keywords: ["dress", "gown", "jumpsuit"] },
+    { id: "coord", title: "Co-ord Sets", keywords: ["co-ord", "coord", "co ord", "cord set", "set"] },
+    { id: "ethnic", title: "Kurtis & Ethnic", keywords: ["kurti", "kurta", "ethnic", "salwar", "suit"] },
+    { id: "bottoms", title: "Jeans & Trousers", keywords: ["jean", "denim", "trouser", "pant", "legging"] },
+    { id: "outerwear", title: "Jackets", keywords: ["jacket", "coat", "blazer", "cardigan"] },
+    { id: "other", title: "Other Clothing", keywords: [] },
+  ],
+  kidswear: [
+    { id: "all", title: "All Kids' Wear", keywords: [] },
+    { id: "shirts", title: "Shirts", keywords: ["shirt"] },
+    { id: "tshirts", title: "T-Shirts", keywords: ["t-shirt", "tshirt", "tee", "polo"] },
+    { id: "sets", title: "Sets & Co-ords", keywords: ["set", "co-ord", "coord", "combo"] },
+    { id: "dresses", title: "Dresses", keywords: ["dress", "frock", "gown"] },
+    { id: "bottoms", title: "Bottoms", keywords: ["trouser", "pant", "jean", "shorts", "legging"] },
+    { id: "ethnic", title: "Ethnic Wear", keywords: ["kurta", "ethnic", "traditional"] },
+    { id: "outerwear", title: "Jackets & Layers", keywords: ["jacket", "hoodie", "sweatshirt", "coat"] },
+    { id: "other", title: "Other Clothing", keywords: [] },
+  ],
+};
+
+function detectSubcategory(product: KrveProduct, mainCategory: string): string {
+  const searchable = [product.name, product.shortDescription, product.description, product.sku]
+    .filter(Boolean).join(" ").toLowerCase().replace(/[–—]/g, "-");
+  const options = subcategoriesByMain[mainCategory] ?? [];
+  // Prefer the most specific keyword match; skip the catch-all option.
+  const matches = options.slice(1).flatMap((option) =>
+    option.keywords.filter((keyword) => searchable.includes(keyword)).map((keyword) => ({ option, keyword })),
+  ).sort((a, b) => b.keyword.length - a.keyword.length);
+  return matches[0]?.option.id ?? "other";
+}
 
 function HeartIcon({ size = 21 }: IconProps) {
   return (
@@ -358,9 +389,7 @@ export default function CollectionsClient({
   const initialCategory: CategoryFilter =
     urlCategory === "menswear" ||
     urlCategory === "womenswear" ||
-    urlCategory === "kidswear" ||
-    urlCategory === "accessories" ||
-    urlCategory === "footwear"
+    urlCategory === "kidswear"
       ? urlCategory
       : "all";
 
@@ -370,6 +399,8 @@ export default function CollectionsClient({
   ] = useState<CategoryFilter>(
     initialCategory,
   );
+
+  const [activeSubcategory, setActiveSubcategory] = useState("all");
 
   const [
     sortOption,
@@ -387,11 +418,10 @@ export default function CollectionsClient({
     let result = [...initialProducts];
 
     if (activeCategory !== "all") {
-      result = result.filter(
-        (product) =>
-          product.category ===
-          activeCategory,
-      );
+      result = result.filter((product) => product.category === activeCategory);
+      if (activeSubcategory !== "all") {
+        result = result.filter((product) => detectSubcategory(product, activeCategory) === activeSubcategory);
+      }
     }
 
     const cleanSearch =
@@ -482,6 +512,7 @@ export default function CollectionsClient({
     return result;
   }, [
     activeCategory,
+    activeSubcategory,
     initialProducts,
     searchQuery,
     sortOption,
@@ -491,6 +522,7 @@ export default function CollectionsClient({
     category: CategoryFilter,
   ) {
     setActiveCategory(category);
+    setActiveSubcategory("all");
 
     window.setTimeout(() => {
       document
@@ -536,18 +568,14 @@ export default function CollectionsClient({
           </h1>
 
           <p>
-            Explore luxury menswear,
-            womenswear, kidswear,
-            accessories and
-            footwear—curated through
-            the refined world of KRVE.
+            Discover premium clothing for men, women and kids—curated through the refined world of KRVE.
           </p>
 
           <div
             className={styles.heroMeta}
           >
             <div>
-              <strong>05</strong>
+              <strong>03</strong>
 
               <span>
                 MAIN CATEGORIES
@@ -621,9 +649,7 @@ export default function CollectionsClient({
           </div>
 
           <span>
-            Five distinctive
-            collections. One KRVE
-            experience.
+            Three wardrobes. One considered KRVE experience.
           </span>
         </header>
 
@@ -674,7 +700,7 @@ export default function CollectionsClient({
                         100vw,
                         (max-width: 1100px)
                         50vw,
-                        20vw
+                        33vw
                       "
                     />
                   ) : (
@@ -731,6 +757,37 @@ export default function CollectionsClient({
             },
           )}
         </div>
+
+        {activeCategory !== "all" && (
+          <div className={styles.subcategoryPanel} aria-label="Clothing subcategories">
+            <div className={styles.subcategoryIntro}>
+              <span>EXPLORE THE EDIT</span>
+              <strong>{getCategoryLabel(activeCategory)}</strong>
+            </div>
+            <div className={styles.subcategorySlider}>
+              {(subcategoriesByMain[activeCategory] ?? []).map((subcategory) => {
+                const count = initialProducts.filter((product) =>
+                  product.category === activeCategory &&
+                  (subcategory.id === "all" || detectSubcategory(product, activeCategory) === subcategory.id)
+                ).length;
+                return (
+                  <button
+                    key={subcategory.id}
+                    type="button"
+                    className={`${styles.subcategoryChip} ${activeSubcategory === subcategory.id ? styles.activeSubcategoryChip : ""}`}
+                    onClick={() => {
+                      setActiveSubcategory(subcategory.id);
+                      window.setTimeout(() => document.getElementById("collection-products")?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+                    }}
+                  >
+                    <span>{subcategory.title}</span>
+                    <small>{count} {count === 1 ? "piece" : "pieces"}</small>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </section>
 
       <section
@@ -746,12 +803,11 @@ export default function CollectionsClient({
             </p>
 
             <h2>
-              {activeCategory ===
-              "all"
-                ? "All Collections"
-                : getCategoryLabel(
-                    activeCategory,
-                  )}
+              {activeCategory === "all"
+                ? "All Clothing"
+                : activeSubcategory !== "all"
+                  ? (subcategoriesByMain[activeCategory]?.find((item) => item.id === activeSubcategory)?.title ?? getCategoryLabel(activeCategory))
+                  : getCategoryLabel(activeCategory)}
             </h2>
 
             <span>
@@ -793,11 +849,10 @@ export default function CollectionsClient({
                   ? styles.activeFilter
                   : ""
               }
-              onClick={() =>
-                setActiveCategory(
-                  "all",
-                )
-              }
+              onClick={() => {
+                setActiveCategory("all");
+                setActiveSubcategory("all");
+              }}
             >
               ALL
             </button>
@@ -813,11 +868,10 @@ export default function CollectionsClient({
                       ? styles.activeFilter
                       : ""
                   }
-                  onClick={() =>
-                    setActiveCategory(
-                      category.id,
-                    )
-                  }
+                  onClick={() => {
+                    setActiveCategory(category.id);
+                    setActiveSubcategory("all");
+                  }}
                 >
                   {category.title.toUpperCase()}
                 </button>
@@ -1169,11 +1223,7 @@ export default function CollectionsClient({
           </h2>
 
           <span>
-            Receive intelligent
-            recommendations across
-            menswear, womenswear,
-            kidswear, accessories
-            and footwear.
+            Receive intelligent recommendations across men's, women's and kids' clothing.
           </span>
         </div>
 
