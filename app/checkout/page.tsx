@@ -18,22 +18,31 @@ import styles from "./checkout.module.css";
 
 declare global {
   interface Window {
-    Cashfree?: (config: {
-      mode:
-        | "sandbox"
-        | "production";
-    }) => {
-      checkout: (options: {
-        paymentSessionId: string;
-        redirectTarget?:
-          | "_self"
-          | "_blank"
-          | "_top"
-          | "_modal";
-      }) => Promise<unknown>;
-    };
+    Razorpay?: new (options: RazorpayCheckoutOptions) => RazorpayCheckoutInstance;
   }
 }
+
+type RazorpayCheckoutOptions = {
+  key: string;
+  amount: number;
+  currency: string;
+  name: string;
+  description?: string;
+  order_id: string;
+  prefill?: { name?: string; email?: string; contact?: string };
+  theme?: { color?: string };
+  handler: (response: {
+    razorpay_payment_id: string;
+    razorpay_order_id: string;
+    razorpay_signature: string;
+  }) => void | Promise<void>;
+  modal?: { ondismiss?: () => void };
+};
+
+type RazorpayCheckoutInstance = {
+  open: () => void;
+  on: (event: string, callback: (response: unknown) => void) => void;
+};
 
 type CheckoutForm = {
   email: string;
@@ -55,30 +64,18 @@ type PaymentMethod =
   | "razorpay"
   | "cod";
 
-type CashfreeCreateResponse = {
+type RazorpayCreateResponse = {
   success?: boolean;
-
   message?: string;
+  keyId?: string;
+  order?: { id?: string; amount?: number; currency?: string; status?: string };
+};
 
-  environment?:
-    | "sandbox"
-    | "production";
-
-  order?: {
-    id?: string;
-
-    cashfreeOrderId?:
-      string | null;
-
-    paymentSessionId?:
-      string;
-
-    status?: string;
-
-    amount?: number;
-
-    currency?: string;
-  };
+type RazorpayVerifyResponse = {
+  success?: boolean;
+  message?: string;
+  paymentId?: string;
+  orderId?: string;
 };
 
 type SaveOrderResponse = {
@@ -290,68 +287,31 @@ function CashIcon() {
   );
 }
 
-function loadCashfreeScript() {
-  return new Promise<boolean>(
-    (resolve) => {
-      if (
-        typeof window ===
-        "undefined"
-      ) {
-        resolve(false);
-        return;
-      }
-
-      if (window.Cashfree) {
-        resolve(true);
-        return;
-      }
-
-      const existing =
-        document.querySelector(
-          'script[src="https://sdk.cashfree.com/js/v3/cashfree.js"]',
-        );
-
-      if (existing) {
-        existing.addEventListener(
-          "load",
-          () => resolve(true),
-          {
-            once: true,
-          },
-        );
-
-        existing.addEventListener(
-          "error",
-          () => resolve(false),
-          {
-            once: true,
-          },
-        );
-
-        return;
-      }
-
-      const script =
-        document.createElement(
-          "script",
-        );
-
-      script.src =
-        "https://sdk.cashfree.com/js/v3/cashfree.js";
-
-      script.async = true;
-
-      script.onload = () =>
-        resolve(true);
-
-      script.onerror = () =>
-        resolve(false);
-
-      document.head.appendChild(
-        script,
-      );
-    },
-  );
+function loadRazorpayScript() {
+  return new Promise<boolean>((resolve) => {
+    if (typeof window === "undefined") {
+      resolve(false);
+      return;
+    }
+    if (window.Razorpay) {
+      resolve(true);
+      return;
+    }
+    const existing = document.querySelector(
+      'script[src="https://checkout.razorpay.com/v1/checkout.js"]',
+    ) as HTMLScriptElement | null;
+    if (existing) {
+      existing.addEventListener("load", () => resolve(true), { once: true });
+      existing.addEventListener("error", () => resolve(false), { once: true });
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.async = true;
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.head.appendChild(script);
+  });
 }
 
 const REFERRAL_COOKIE =
@@ -432,7 +392,7 @@ export default function CheckoutPage() {
     setPaymentMethod,
   ] =
     useState<PaymentMethod>(
-      "cashfree",
+      "razorpay",
     );
 
   const [
@@ -514,7 +474,7 @@ export default function CheckoutPage() {
     );
 
   useEffect(() => {
-    void loadCashfreeScript();
+    void loadRazorpayScript();
   }, []);
 
   useEffect(() => {
@@ -710,6 +670,9 @@ export default function CheckoutPage() {
       providerPaymentId?:
         string | null;
 
+      providerSignature?:
+        string | null;
+
       amount: number;
 
       status:
@@ -883,7 +846,7 @@ export default function CheckoutPage() {
           null,
 
         providerSignature:
-          null,
+          payment.providerSignature ?? null,
 
         amount:
           payment.amount,
@@ -1009,184 +972,127 @@ export default function CheckoutPage() {
       `/order-success?${params.toString()}`;
   }
 
-  async function startCashfreePayment() {
-    const scriptLoaded =
-      await loadCashfreeScript();
-
-    if (
-      !scriptLoaded ||
-      !window.Cashfree
-    ) {
-      throw new Error(
-        "Cashfree Checkout could not be loaded. Please check your internet connection and try again.",
-      );
+  async function startRazorpayPayment() {
+    const scriptLoaded = await loadRazorpayScript();
+    if (!scriptLoaded || !window.Razorpay) {
+      throw new Error("Razorpay Checkout could not be loaded. Check your internet connection and try again.");
     }
 
-    const cleanPhone =
-      form.phone.replace(
-        /\D/g,
-        "",
-      );
+    const cleanPhone = form.phone.replace(/\\D/g, "");
+    const customerName = `${form.firstName} ${form.lastName}`.trim();
 
-    const createResponse =
-      await fetch(
-        "/api/cashfree/create-order",
-        {
-          method:
-            "POST",
+    const createResponse = await fetch("/api/razorpay/create-order", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        amount: total,
+        customerName,
+        customerEmail: form.email,
+        customerPhone: cleanPhone,
+        receipt: `krve_${Date.now()}`,
+      }),
+    });
 
-          headers: {
-            "Content-Type":
-              "application/json",
-          },
-
-          body:
-            JSON.stringify({
-              amount:
-                total,
-
-              customer: {
-                name:
-                  `${form.firstName} ${form.lastName}`.trim(),
-
-                email:
-                  form.email,
-
-                phone:
-                  cleanPhone,
-              },
-            }),
-        },
-      );
-
-    let createData:
-      CashfreeCreateResponse | null =
-      null;
-
+    let createData: RazorpayCreateResponse | null = null;
     try {
-      createData =
-        (await createResponse.json()) as CashfreeCreateResponse;
+      createData = (await createResponse.json()) as RazorpayCreateResponse;
     } catch {
-      createData =
-        null;
+      createData = null;
     }
 
-    if (
-      !createResponse.ok ||
-      !createData?.success
-    ) {
-      throw new Error(
-        createData?.message ||
-          "Cashfree payment order could not be created.",
-      );
+    if (!createResponse.ok || !createData?.success) {
+      throw new Error(createData?.message || "Razorpay order could not be created.");
     }
 
-    const paymentSessionId =
-      createData.order
-        ?.paymentSessionId;
+    const razorpayOrderId = createData.order?.id;
+    const keyId = createData.keyId;
+    const amountInPaise = createData.order?.amount;
+    const currency = createData.order?.currency || "INR";
 
-    const cashfreeOrderId =
-      createData.order?.id;
-
-    if (
-      !paymentSessionId ||
-      !cashfreeOrderId
-    ) {
-      throw new Error(
-        "Cashfree payment session is missing.",
-      );
+    if (!razorpayOrderId || !keyId || !amountInPaise) {
+      throw new Error("Razorpay order details are incomplete.");
     }
 
-    /*
-      Save checkout information temporarily.
-
-      After Cashfree redirects customer back
-      to /payment/cashfree, we will verify
-      payment server-side and then create
-      the actual KRVE order.
-    */
-
-    const pendingCheckout = {
-      cashfreeOrderId,
-
-      total,
-
-      orderPayload:
-        buildOrderPayload({
-          provider:
-            "cashfree",
-
-          providerOrderId:
-            cashfreeOrderId,
-
-          providerPaymentId:
-            null,
-
-          amount:
-            total,
-
-          /*
-            IMPORTANT:
-            This is only temporary browser
-            data. We DO NOT save it to D1
-            as paid yet.
-          */
-
-          status:
-            "pending",
-
-          rawResponse: {
-            cashfreeOrderId,
-
-            createdAt:
-              new Date().toISOString(),
+    const paymentResult = await new Promise<{
+      razorpay_payment_id: string;
+      razorpay_order_id: string;
+      razorpay_signature: string;
+    }>((resolve, reject) => {
+      let settled = false;
+      const razorpay = new window.Razorpay!({
+        key: keyId,
+        amount: amountInPaise,
+        currency,
+        name: "KRVE — The Fashion Studio",
+        description: "KRVE clothing order",
+        order_id: razorpayOrderId,
+        prefill: { name: customerName, email: form.email, contact: cleanPhone },
+        theme: { color: "#b99a5b" },
+        handler: (response) => {
+          settled = true;
+          resolve(response);
+        },
+        modal: {
+          ondismiss: () => {
+            if (!settled) reject(new Error("Payment was cancelled. You can try again."));
           },
-        }),
-    };
-
-    window.sessionStorage.setItem(
-      "krve_pending_cashfree_checkout",
-      JSON.stringify(
-        pendingCheckout,
-      ),
-    );
-
-    const cashfree =
-      window.Cashfree({
-        mode:
-          createData.environment ===
-          "production"
-            ? "production"
-            : "sandbox",
+        },
       });
 
-    /*
-      Hosted Checkout.
-
-      Cashfree uses paymentSessionId
-      returned from Create Order.
-    */
-
-    const checkoutResult =
-      await cashfree.checkout({
-        paymentSessionId,
-
-        redirectTarget:
-          "_self",
+      razorpay.on("payment.failed", (response) => {
+        settled = true;
+        const details = response as { error?: { description?: string; reason?: string } };
+        reject(new Error(details.error?.description || details.error?.reason || "Razorpay payment failed. Please try again."));
       });
+      razorpay.open();
+    });
 
-    /*
-      With redirectTarget "_self",
-      Cashfree normally navigates away.
+    const verifyResponse = await fetch("/api/razorpay/verify-payment", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        razorpay_payment_id: paymentResult.razorpay_payment_id,
+        razorpay_order_id: paymentResult.razorpay_order_id,
+        razorpay_signature: paymentResult.razorpay_signature,
+      }),
+    });
 
-      This catch is here only in case the
-      SDK returns without redirecting.
-    */
+    let verifyData: RazorpayVerifyResponse | null = null;
+    try {
+      verifyData = (await verifyResponse.json()) as RazorpayVerifyResponse;
+    } catch {
+      verifyData = null;
+    }
 
-    console.log(
-      "CASHFREE_CHECKOUT_RESULT",
-      checkoutResult,
-    );
+    if (!verifyResponse.ok || !verifyData?.success) {
+      throw new Error(verifyData?.message || "Payment could not be verified. Please contact KRVE support before retrying.");
+    }
+
+    const payload = buildOrderPayload({
+      provider: "razorpay",
+      providerOrderId: paymentResult.razorpay_order_id,
+      providerPaymentId: paymentResult.razorpay_payment_id,
+      providerSignature: paymentResult.razorpay_signature,
+      amount: total,
+      status: "paid",
+      rawResponse: {
+        verified: true,
+        paymentId: paymentResult.razorpay_payment_id,
+        orderId: paymentResult.razorpay_order_id,
+        verifiedAt: new Date().toISOString(),
+      },
+    });
+
+    const savedOrder = await saveOrder(payload);
+    clearCart();
+
+    const params = new URLSearchParams();
+    if (savedOrder.order?.orderNumber) {
+      params.set("order_id", savedOrder.order.orderNumber);
+    }
+    params.set("payment_method", "razorpay");
+    params.set("payment_status", "paid");
+    window.location.href = `/order-success?${params.toString()}`;
   }
 
   async function handleCheckout(
@@ -1211,7 +1117,7 @@ export default function CheckoutPage() {
         return;
       }
 
-      await startCashfreePayment();
+      await startRazorpayPayment();
     } catch (error) {
       console.error(
         "KRVE_CHECKOUT_ERROR",
@@ -1865,7 +1771,7 @@ export default function CheckoutPage() {
                 <label
                   className={
                     paymentMethod ===
-                    "cashfree"
+                    "razorpay"
                       ? styles.activeDelivery
                       : ""
                   }
@@ -1875,11 +1781,11 @@ export default function CheckoutPage() {
                     name="payment"
                     checked={
                       paymentMethod ===
-                      "cashfree"
+                      "razorpay"
                     }
                     onChange={() => {
                       setPaymentMethod(
-                        "cashfree",
+                        "razorpay",
                       );
 
                       setFormError(
@@ -1911,7 +1817,7 @@ export default function CheckoutPage() {
                         UPI, Cards,
                         Net Banking,
                         Wallets & more
-                        via Cashfree
+                        via Razorpay
                       </span>
                     </div>
                   </div>
@@ -2040,7 +1946,7 @@ export default function CheckoutPage() {
               }
             >
               {paymentMethod ===
-              "cashfree" ? (
+              "razorpay" ? (
                 <LockIcon />
               ) : (
                 <CashIcon />
@@ -2077,15 +1983,15 @@ export default function CheckoutPage() {
               <div>
                 <strong>
                   {paymentMethod ===
-                  "cashfree"
-                    ? "SECURE CASHFREE PAYMENT"
+                  "razorpay"
+                    ? "SECURE RAZORPAY PAYMENT"
                     : "CASH ON DELIVERY"}
                 </strong>
 
                 <p>
                   {paymentMethod ===
-                  "cashfree"
-                    ? "Your online payment is processed securely through Cashfree Payments."
+                  "razorpay"
+                    ? "Your online payment is processed securely through Razorpay."
                     : "No online payment is required now. Pay at the time of delivery."}
                 </p>
               </div>
@@ -2275,7 +2181,7 @@ export default function CheckoutPage() {
                   }
                 >
                   {paymentMethod ===
-                  "cashfree"
+                  "razorpay"
                     ? "Online"
                     : "Cash on Delivery"}
                 </strong>
