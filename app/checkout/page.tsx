@@ -702,7 +702,7 @@ export default function CheckoutPage() {
   function buildOrderPayload(
     payment: {
       provider:
-        "cashfree" | "cod";
+         "razorpay" | "cod";
 
       providerOrderId?:
         string | null;
@@ -832,7 +832,7 @@ export default function CheckoutPage() {
           payment.provider ===
           "cod"
             ? "Cash on Delivery"
-            : "Cashfree online payment",
+            : "Razorpay online payment",
         ].join(" | "),
 
       items:
