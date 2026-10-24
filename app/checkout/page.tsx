@@ -52,7 +52,7 @@ type CheckoutForm = {
 };
 
 type PaymentMethod =
-  | "cashfree"
+  | "razorpay"
   | "cod";
 
 type CashfreeCreateResponse = {
