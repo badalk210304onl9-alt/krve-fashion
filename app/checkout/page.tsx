@@ -978,17 +978,29 @@ export default function CheckoutPage() {
       throw new Error("Razorpay Checkout could not be loaded. Check your internet connection and try again.");
     }
 
-    const cleanPhone = form.phone.replace(/\\D/g, "");
+    const cleanPhone = form.phone.replace(/\D/g, "");
     const customerName = `${form.firstName} ${form.lastName}`.trim();
 
     const createResponse = await fetch("/api/razorpay/create-order", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        amount: total,
+        // The server must calculate the payable amount from trusted product prices.
+        items: cart.map((item) => ({
+          productId: item.id,
+          quantity: item.quantity,
+        })),
+        subtotal: cartSubtotal,
+        discount: couponDiscount,
+        shipping,
+        tax: estimatedTax,
+        total,
+        currency: "INR",
         customerName,
         customerEmail: form.email,
         customerPhone: cleanPhone,
+        couponCode: appliedCouponCode,
+        referralCode: referralCode || null,
         receipt: `krve_${Date.now()}`,
       }),
     });
