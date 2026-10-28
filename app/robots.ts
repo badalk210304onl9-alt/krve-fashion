@@ -1,13 +1,12 @@
 import type { MetadataRoute } from "next";
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = "https://krve-fashion.vercel.app";
+  const baseUrl = "https://krvefashionstudio.in";
 
   return {
     rules: {
       userAgent: "*",
       allow: "/",
-
       disallow: [
         "/api/",
         "/account/",
