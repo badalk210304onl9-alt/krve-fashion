@@ -26,7 +26,7 @@ const bodyFont = Manrope({
   weight: ["400", "500", "600", "700", "800"],
 });
 
-const siteUrl = "https://krve-fashion.vercel.app";
+const siteUrl = "https://krvefashionstudio.in";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
