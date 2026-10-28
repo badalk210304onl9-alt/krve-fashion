@@ -2,9 +2,14 @@ import type { MetadataRoute } from "next";
 
 export const revalidate = 3600;
 
-const BASE_URL = "https://krve-fashion.vercel.app";
-const MERCHANT_FEED_URL =
-  "https://krve-fashion.vercel.app/api/google-merchant-feed";
+const BASE_URL = "https://krvefashionstudio.in";
+const MERCHANT_FEED_URL = `${BASE_URL}/api/google-merchant-feed`;
+
+const ALLOWED_HOSTS = new Set([
+  "krvefashionstudio.in",
+  "www.krvefashionstudio.in",
+  "krve-fashion.vercel.app",
+]);
 
 function decodeXml(value: string) {
   return value
@@ -28,18 +33,12 @@ async function getProductUrls(): Promise<string[]> {
         "Sitemap product feed request failed:",
         response.status,
       );
-
       return [];
     }
 
     const xml = await response.text();
-
-    /*
-     * Each Google Merchant product is inside an <item>.
-     * We extract the normal <link> field from every item.
-     */
     const itemMatches =
-      xml.match(/<item>[\s\S]*?<\/item>/gi) ?? [];
+      xml.match(/<item(?:\s[^>]*)?>[\s\S]*?<\/item>/gi) ?? [];
 
     const productUrls = itemMatches
       .map((item) => {
@@ -51,13 +50,24 @@ async function getProductUrls(): Promise<string[]> {
           return null;
         }
 
-        const url = decodeXml(linkMatch[1].trim());
+        const rawUrl = decodeXml(linkMatch[1].trim());
 
-        if (!url.startsWith(`${BASE_URL}/product/`)) {
+        try {
+          const parsedUrl = new URL(rawUrl);
+
+          if (!ALLOWED_HOSTS.has(parsedUrl.hostname.toLowerCase())) {
+            return null;
+          }
+
+          if (!parsedUrl.pathname.startsWith("/product/")) {
+            return null;
+          }
+
+          // Always publish product URLs on the official KRVE domain.
+          return `${BASE_URL}${parsedUrl.pathname}`;
+        } catch {
           return null;
         }
-
-        return url;
       })
       .filter((url): url is string => Boolean(url));
 
