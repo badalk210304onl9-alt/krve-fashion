@@ -78,128 +78,54 @@ export default async function HomePage() {
 
   return (
     <main className="krve-dussehra-home krve-diwali-home">
-      <section className="hero krve-dussehra-hero">
-        <div className="hero-silk" />
 
-        <div
-          className="krve-dussehra-glow"
-          aria-hidden="true"
-        />
-
-        <div className="hero-copy">
-          <div className="eyebrow">
-            <span />
-            AI-POWERED FASHION
-          </div>
-
-          <h1>
-            FASHION THAT
-            <strong>UNDERSTANDS YOU</strong>
-          </h1>
-
-          <p>
-            Experience the future of luxury fashion with
-            AI-powered style recommendations.
-          </p>
-
-          <div className="hero-buttons">
-            <Link
-              href="/collections"
-              className="button solid"
-            >
-              EXPLORE COLLECTIONS →
-            </Link>
-
-            <Link
-              href="/virtual-try-on"
-              className="button ghost"
-            >
-              VIRTUAL TRY-ON ✦
-            </Link>
-          </div>
-        </div>
-
-        <div className="hero-model">
+      {/* DIWALI LUXURY HERO BANNER */}
+      <section
+        className="krve-diwali-hero"
+        aria-label="KRVE Diwali Fashion Collection"
+      >
+        <Link
+          href="/collections"
+          className="krve-diwali-hero-link"
+          aria-label="Explore the KRVE Diwali collection"
+        >
           <Image
-            src="/images/hero-model.jpg"
-            alt="KRVE luxury fashion model"
-            fill
+            src="/images/diwali-hero.png"
+            alt="KRVE Diwali luxury fashion campaign featuring festive fashion, traditional Indian attire and a special gift box"
+            width={1648}
+            height={928}
             priority
-            sizes="(max-width: 760px) 100vw, 70vw"
+            sizes="100vw"
+            className="krve-diwali-hero-image"
           />
-        </div>
-
-        <div className="crest">
-          <Image
-            src="/images/crest.jpg"
-            alt="KRVE crest"
-            fill
-            sizes="220px"
-          />
-        </div>
-
-        <aside className="krve-diwali-greeting">
-          <span className="krve-diwali-greeting-ornament">
-            ✦ 🪔 ✦
-          </span>
-
-          <p className="krve-diwali-greeting-eyebrow">
-            THE FESTIVE EDITION
-          </p>
-
-          <h2>
-            Celebrate in
-            <strong>Style</strong>
-          </h2>
-
-          <span className="krve-diwali-greeting-divider">
-            ✧ ━━━━━━━━━ ✧
-          </span>
-
-          <p className="krve-diwali-greeting-message">
-            With exclusive festive offers &amp; a special
-            gift box for every customer.
-          </p>
-
-          <Link
-            href="/collections"
-            className="krve-diwali-greeting-cta"
-          >
-            EXPLORE THE EDIT →
-          </Link>
-
-          <span className="krve-diwali-greeting-ornament">
-            ✦
-          </span>
-        </aside>
+        </Link>
       </section>
 
-      <section className="benefits">
+      {/* DIWALI BENEFITS STRIP */}
+      <section
+        className="benefits krve-diwali-benefits"
+        aria-label="KRVE shopping benefits"
+      >
         {[
           [
-            "◎",
-            "FREE WORLDWIDE SHIPPING",
-            "On all orders above $200",
+            "♧",
+            "SPECIAL GIFT BOX",
+            "For Every Customer",
           ],
           [
-            "◌",
-            "EASY RETURNS",
-            "30-day return policy",
+            "◇",
+            "PREMIUM FASHION",
+            "Curated Collections",
           ],
           [
-            "♜",
-            "PREMIUM QUALITY",
-            "Finest materials",
+            "✧",
+            "EXCLUSIVE FESTIVE OFFERS",
+            "Limited Time Only",
           ],
           [
-            "♙",
-            "AI PERSONAL STYLIST",
-            "Style that matches you",
-          ],
-          [
-            "▣",
+            "♢",
             "SECURE SHOPPING",
-            "100% protected checkout",
+            "Protected Checkout",
           ],
         ].map(([icon, title, text]) => (
           <div key={title}>
@@ -212,17 +138,22 @@ export default async function HomePage() {
         ))}
       </section>
 
+      {/* NEW ARRIVALS */}
       <section className="new-arrivals krve-festive-section">
+
         <div className="section-heading">
           <div>
             <h2>NEW ARRIVALS</h2>
-            <small>LIVE FROM KEOS CENTER</small>
+            <small>FRESH STYLES. TIMELESS ELEGANCE.</small>
           </div>
 
-          <Link href="/collections">VIEW ALL →</Link>
+          <Link href="/collections">
+            VIEW ALL →
+          </Link>
         </div>
 
         <div className="arrival-layout">
+
           <div className="product-grid">
             {newArrivalProducts.length > 0 ? (
               newArrivalProducts.map((product) => (
@@ -257,6 +188,7 @@ export default async function HomePage() {
             )}
           </div>
 
+          {/* AI VIRTUAL TRY-ON */}
           <article className="tryon-card">
             <div>
               <p className="gold-label">
@@ -283,36 +215,38 @@ export default async function HomePage() {
             <div className="tryon-image">
               <Image
                 src="/images/try-on.jpg"
-                alt="AI virtual try-on"
+                alt="KRVE AI virtual try-on studio"
                 fill
                 sizes="(max-width: 900px) 100vw, 380px"
               />
             </div>
           </article>
+
         </div>
       </section>
 
+      {/* BRAND EXPERIENCE STRIP */}
       <section className="bottom-strip krve-festive-section">
         {[
           [
             "◈",
             "EXCLUSIVE COLLECTIONS",
-            "Unique & limited designs",
+            "Unique & Limited Designs",
           ],
           [
             "◇",
             "LUXURY MATERIALS",
-            "Premium & sustainable",
+            "Premium Quality",
           ],
           [
             "✤",
             "CRAFTED TO PERFECTION",
-            "Attention to every detail",
+            "Attention to Every Detail",
           ],
           [
             "♙",
-            "TRUSTED BY THOUSANDS",
-            "★★★★★ 4.9/5",
+            "MORE THAN FASHION",
+            "IT'S KRVE.",
           ],
         ].map(([icon, title, text]) => (
           <div key={title}>
@@ -324,6 +258,7 @@ export default async function HomePage() {
           </div>
         ))}
       </section>
+
     </main>
   );
 }
