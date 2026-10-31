@@ -13,6 +13,7 @@ import SiteHeader from "@/components/site-header";
 import SiteFooter from "@/components/site-footer";
 import AutoLoginModal from "@/components/auto-login-modal";
 import { CartProvider } from "@/components/cart-provider";
+import DiwaliTheme from "@/components/diwali-theme";
 
 const displayFont = Cormorant_Garamond({
   subsets: ["latin"],
@@ -251,6 +252,8 @@ export default function RootLayout({
           className={`${displayFont.variable} ${bodyFont.variable}`}
         >
           <CartProvider>
+            <DiwaliTheme />
+
             <SiteHeader />
 
             {children}
