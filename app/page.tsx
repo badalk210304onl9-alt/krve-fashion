@@ -97,15 +97,20 @@ export default async function HomePage() {
   return (
     <main className="krve-home">
       <section className="krve-home-hero">
-        <div className="krve-home-hero-image">
-          <Image
-            src="/images/hero-model.jpg"
-            alt="KRVE luxury fashion campaign"
-            fill
-            priority
-            sizes="100vw"
-          />
-        </div>
+       <div className="krve-home-hero-image">
+         <Image
+           src="/images/hero-banner.png"
+           alt="KRVE luxury fashion campaign featuring
+                 menswear and womenswear"
+                  fill
+           priority
+    sizes="100vw"
+    style={{
+      objectFit: "cover",
+      objectPosition: "center center",
+    }}
+  />
+</div>
         <div className="krve-home-hero-shade" />
 
         <div className="krve-home-hero-copy">
