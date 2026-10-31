@@ -13,9 +13,9 @@ import "./krve-home.css";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "KRVE — The Fashion Studio",
+  title: "KRVE — The Fashion Studio | Move Into Style",
   description:
-    "Luxury fashion, intelligent fit and AI-powered personal styling. Discover the latest Menswear, Womenswear and Kidswear collections at KRVE.",
+    "Discover luxury fashion, elevated essentials, intelligent fit and AI-powered personal styling at KRVE.",
 };
 
 function convertToProductCardProduct(product: KrveProduct): Product {
@@ -39,11 +39,11 @@ function convertToProductCardProduct(product: KrveProduct): Product {
     description:
       product.description ||
       product.shortDescription ||
-      "A refined piece from the KRVE private collection.",
+      "A refined piece from the KRVE collection.",
     shortDescription:
       product.shortDescription ||
       product.description ||
-      "A refined piece from the KRVE private collection.",
+      "Designed to move with your style.",
     sizes: product.sizes || [],
     colours: product.colours || [],
     sku: product.sku,
@@ -69,25 +69,65 @@ async function loadNewArrivals(): Promise<Product[]> {
 
 const categories = [
   {
-    title: "MENSWEAR",
-    subtitle: "SHOP NOW",
-    href: "/collections?category=menswear",
+    title: "Men's Collection",
+    subtitle: "CONFIDENCE IN EVERY DETAIL",
     image: "/images/hero-model.jpg",
-    position: "center 24%",
+    href: "/collections?category=menswear",
+    position: "center 25%",
   },
   {
-    title: "WOMENSWEAR",
-    subtitle: "SHOP NOW",
-    href: "/collections?category=womenswear",
+    title: "Women's Collection",
+    subtitle: "ELEGANCE REDEFINED",
     image: "/images/try-on.jpg",
-    position: "70% center",
+    href: "/collections?category=womenswear",
+    position: "center",
   },
   {
-    title: "KIDSWEAR",
-    subtitle: "SHOP NOW",
-    href: "/collections?category=kidswear",
+    title: "New Arrivals",
+    subtitle: "THE LATEST EDIT",
     image: "/images/products/product-3.jpg",
+    href: "/collections?category=new-arrivals",
     position: "center",
+  },
+  {
+    title: "Best Sellers",
+    subtitle: "MOST LOVED STYLES",
+    image: "/images/products/product-1.jpg",
+    href: "/collections",
+    position: "center",
+  },
+];
+
+const collections = [
+  {
+    title: "Ethnic Wear",
+    image: "/images/products/product-4.jpg",
+    href: "/collections?category=ethnic-wear",
+  },
+  {
+    title: "Casual Wear",
+    image: "/images/hero-model.jpg",
+    href: "/collections?category=menswear",
+  },
+  {
+    title: "Sarees",
+    image: "/images/try-on.jpg",
+    href: "/collections?category=womenswear",
+  },
+  {
+    title: "Kurtis",
+    image: "/images/products/product-3.jpg",
+    href: "/collections?category=womenswear",
+  },
+  {
+    title: "Hoodies",
+    image: "/images/products/product-2.jpg",
+    href: "/collections?category=menswear",
+  },
+  {
+    title: "T-Shirts",
+    image: "/images/products/product-1.jpg",
+    href: "/collections?category=menswear",
   },
 ];
 
@@ -96,138 +136,338 @@ export default async function HomePage() {
 
   return (
     <main className="krve-home">
-      <section className="krve-home-hero">
-       <div className="krve-home-hero-image">
-         <Image
-           src="/images/hero-banner.png"
-           alt="KRVE luxury fashion campaign featuring
-                 menswear and womenswear"
-                  fill
-           priority
-    sizes="100vw"
-    style={{
-      objectFit: "cover",
-      objectPosition: "center center",
-    }}
-  />
-</div>
-        <div className="krve-home-hero-shade" />
 
-        <div className="krve-home-hero-copy">
-          <p className="krve-home-kicker">MORE THAN FASHION. IT’S KRVE.</p>
+      {/* HERO CAMPAIGN */}
+      <section className="kh-hero">
+        <Image
+          src="/images/hero-banner.png"
+          alt="KRVE luxury fashion campaign"
+          fill
+          priority
+          sizes="100vw"
+          className="kh-hero-image"
+        />
+
+        <div className="kh-hero-overlay" />
+
+        <div className="kh-hero-copy">
+          <span className="kh-eyebrow">
+            KRVE — THE FASHION STUDIO
+          </span>
+
           <h1>
-            FASHION
-            <span>THAT UNDERSTANDS YOU.</span>
-          </h1>
-          <p className="krve-home-hero-description">
-            Luxury fashion, intelligent fit
+            Redefine
             <br />
-            and AI-powered personal styling.
+            Your <em>Style.</em>
+          </h1>
+
+          <p>
+            LUXURY FASHION. INTELLIGENT FIT.
+            <br />
+            AI-POWERED PERSONAL STYLING.
           </p>
-          <Link href="/collections" className="krve-home-outline-button">
-            EXPLORE THE EDIT <span>→</span>
-          </Link>
+
+          <div className="kh-hero-actions">
+            <Link
+              href="/collections?category=menswear"
+              className="kh-button kh-button-gold"
+            >
+              SHOP MEN <span>→</span>
+            </Link>
+
+            <Link
+              href="/collections?category=womenswear"
+              className="kh-button kh-button-outline"
+            >
+              SHOP WOMEN <span>→</span>
+            </Link>
+          </div>
+
+          <div className="kh-hero-tagline">
+            MOVE INTO STYLE <span />
+          </div>
         </div>
 
-        <div className="krve-home-slide-count" aria-label="Campaign 1 of 3">
-          <span>01</span><i /><span>03</span><b>←</b><b>→</b>
+        <div className="kh-hero-brand">
+          <span>KRVE</span>
+          <small>THE FASHION STUDIO</small>
+          <i />
         </div>
-        <div className="krve-home-hero-caption">THE KRVE SIGNATURE COLLECTION</div>
+
+        <div className="kh-hero-index">
+          <span>01</span>
+          <i />
+          <span>03</span>
+          <b>←</b>
+          <b>→</b>
+        </div>
       </section>
 
-      <section className="krve-home-categories" aria-label="Shop by category">
+      {/* CATEGORY CAMPAIGNS */}
+      <section className="kh-category-section">
         {categories.map((category) => (
           <Link
             href={category.href}
-            className="krve-home-category-card"
             key={category.title}
+            className="kh-category-card"
           >
             <Image
               src={category.image}
-              alt={`${category.title.toLowerCase()} collection`}
+              alt={category.title}
               fill
-              sizes="(max-width: 700px) 100vw, 33vw"
+              sizes="(max-width: 700px) 50vw, 25vw"
               style={{ objectPosition: category.position }}
             />
-            <span className="krve-home-category-shade" />
-            <span className="krve-home-category-copy">
-              <strong>{category.title}</strong>
-              <small>{category.subtitle} <b>→</b></small>
-            </span>
+
+            <div className="kh-category-overlay" />
+
+            <div className="kh-category-copy">
+              <h2>{category.title}</h2>
+              <small>{category.subtitle}</small>
+              <span>EXPLORE COLLECTION →</span>
+            </div>
           </Link>
         ))}
       </section>
 
-      <section className="krve-home-benefits">
-        <div><span className="krve-benefit-icon">◇</span><p><strong>Premium Quality</strong><small>Guaranteed</small></p></div>
-        <div><span className="krve-benefit-icon">♧</span><p><strong>Trendy Collections</strong><small>For Every You</small></p></div>
-        <div><span className="krve-benefit-icon">♧</span><p><strong>Free Shipping</strong><small>Above ₹999</small></p></div>
-        <div><span className="krve-benefit-icon">⬡</span><p><strong>Secure Payments</strong><small>Powered by Razorpay</small></p></div>
+      {/* SERVICE PROMISE */}
+      <section className="kh-benefits">
+        <div>
+          <span>✧</span>
+          <p>
+            <strong>Premium Quality</strong>
+            <small>Fashion That Lasts</small>
+          </p>
+        </div>
+
+        <div>
+          <span>♧</span>
+          <p>
+            <strong>Secure Payments</strong>
+            <small>Safe Shopping Experience</small>
+          </p>
+        </div>
+
+        <div>
+          <span>↗</span>
+          <p>
+            <strong>Easy Returns</strong>
+            <small>Customer First</small>
+          </p>
+        </div>
+
+        <div>
+          <span>◇</span>
+          <p>
+            <strong>Customer Support</strong>
+            <small>Here to Help You</small>
+          </p>
+        </div>
       </section>
 
-      <section className="krve-home-new-edit">
-        <div className="krve-home-edit-intro">
-          <p className="krve-home-kicker">✦ THE NEW EDIT</p>
-          <h2>Curated Styles.<br />Timeless Appeal.</h2>
-          <p>Discover the latest from KRVE — designed for every moment.</p>
-          <Link href="/collections" className="krve-home-gold-button">
-            SHOP THE COLLECTION <span>→</span>
+      {/* EXCLUSIVE COLLECTIONS */}
+      <section className="kh-collections">
+        <div className="kh-section-intro">
+          <span className="kh-eyebrow">EXPLORE OUR WORLD</span>
+          <h2>
+            Exclusive
+            <br />
+            <em>Collections.</em>
+          </h2>
+          <p>
+            Curated for every mood, every occasion
+            and every version of you.
+          </p>
+
+          <Link href="/collections" className="kh-text-link">
+            VIEW ALL COLLECTIONS <span>→</span>
           </Link>
         </div>
 
-        <div className="krve-home-product-grid">
+        <div className="kh-collection-grid">
+          {collections.map((item, index) => (
+            <Link
+              href={item.href}
+              className="kh-collection-card"
+              key={item.title}
+            >
+              <Image
+                src={item.image}
+                alt={item.title}
+                fill
+                sizes="(max-width: 700px) 33vw, 15vw"
+              />
+
+              <div className="kh-collection-overlay" />
+
+              <span className="kh-collection-number">
+                0{index + 1}
+              </span>
+
+              <strong>{item.title}</strong>
+              <i>DISCOVER →</i>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* NEW ARRIVALS */}
+      <section className="kh-new-arrivals">
+        <div className="kh-products-heading">
+          <div>
+            <span className="kh-eyebrow">THE LATEST FROM KRVE</span>
+            <h2>
+              Discover the <em>New Edit.</em>
+            </h2>
+            <p>Fresh arrivals. Refined details. Your signature style.</p>
+          </div>
+
+          <Link href="/collections" className="kh-button kh-button-dark">
+            VIEW ALL PRODUCTS →
+          </Link>
+        </div>
+
+        <div className="kh-product-grid">
           {newArrivalProducts.length > 0 ? (
             newArrivalProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
+              <ProductCard
+                key={product.id}
+                product={product}
+              />
             ))
           ) : (
-            <div className="krve-home-empty-products">
-              <span>✦</span>
-              <strong>THE NEXT EDIT IS COMING</strong>
-              <p>New arrivals published through KEOS will appear here automatically.</p>
-              <Link href="/collections">EXPLORE COLLECTIONS →</Link>
+            <div className="kh-empty-products">
+              <span>✧</span>
+              <h3>THE NEXT EDIT IS COMING</h3>
+              <p>
+                New arrivals published through KRVE will
+                automatically appear here.
+              </p>
+              <Link href="/collections">
+                EXPLORE COLLECTIONS →
+              </Link>
             </div>
           )}
         </div>
       </section>
 
-      <section className="krve-home-ai-stylist">
-        <div className="krve-home-ai-line-art" aria-hidden="true">♙</div>
-        <div className="krve-home-ai-copy">
-          <p className="krve-home-kicker">STYLE, REIMAGINED</p>
-          <h2>AI-POWERED<br />PERSONAL STYLING</h2>
-          <p>Discover your perfect look with the power of AI.</p>
-          <Link href="/ai-stylist" className="krve-home-outline-button">
-            TRY VIRTUAL STYLIST <span>→</span>
-          </Link>
-        </div>
-        <div className="krve-home-ai-image">
+      {/* AI VIRTUAL STUDIO */}
+      <section className="kh-ai-studio">
+        <div className="kh-ai-image">
           <Image
             src="/images/try-on.jpg"
-            alt="KRVE AI-powered virtual styling experience"
+            alt="KRVE virtual styling experience"
             fill
-            sizes="(max-width: 700px) 100vw, 55vw"
+            sizes="(max-width: 700px) 100vw, 48vw"
           />
+          <div />
+        </div>
+
+        <div className="kh-ai-copy">
+          <span className="kh-eyebrow">
+            THE FUTURE OF PERSONAL STYLE
+          </span>
+
+          <h2>
+            KRVE AI
+            <br />
+            Virtual <em>Studio.</em>
+          </h2>
+
+          <p>
+            Your style. Your measurements. Your digital
+            fashion experience.
+          </p>
+
+          <div className="kh-ai-features">
+            <span>✧ 3D TWIN GENERATION</span>
+            <span>✧ INTELLIGENT FIT</span>
+            <span>✧ PERSONALIZED PICKS</span>
+            <span>✧ SMART SIZE GUIDE</span>
+          </div>
+
+          <Link href="/ai-stylist" className="kh-button kh-button-gold">
+            EXPERIENCE KRVE AI <span>→</span>
+          </Link>
+        </div>
+
+        <div className="kh-ai-watermark">KRVE AI</div>
+      </section>
+
+      {/* FESTIVE CAMPAIGN */}
+      <Link href="/collections" className="kh-festive">
+        <Image
+          src="/images/products/product-4.jpg"
+          alt="KRVE festive collection"
+          fill
+          sizes="100vw"
+        />
+
+        <div className="kh-festive-overlay" />
+
+        <div className="kh-festive-copy">
+          <span>THE KRVE FESTIVE EDITION</span>
+
+          <h2>
+            Celebrate
+            <br />
+            in <em>Signature Style.</em>
+          </h2>
+
+          <p>
+            Tradition meets contemporary fashion.
+            Make every celebration unforgettable.
+          </p>
+
+          <b>EXPLORE THE FESTIVE EDIT <i>→</i></b>
+        </div>
+
+        <div className="kh-festive-side">
+          FESTIVE COLLECTION
+        </div>
+      </Link>
+
+      {/* BRAND STORY */}
+      <section className="kh-brand-story">
+        <div className="kh-story-image">
+          <Image
+            src="/images/hero-banner.png"
+            alt="KRVE The Fashion Studio"
+            fill
+            sizes="(max-width: 700px) 100vw, 45vw"
+          />
+        </div>
+
+        <div className="kh-story-copy">
+          <span className="kh-eyebrow">OUR PHILOSOPHY</span>
+          <h2>
+            More Than Fashion.
+            <br />
+            <em>It's a Movement.</em>
+          </h2>
+          <p>
+            KRVE — The Fashion Studio brings together
+            contemporary design, individual expression
+            and intelligent fashion experiences.
+            We believe style is not just what you wear.
+            It is how you move through the world.
+          </p>
+
+          <Link href="/about" className="kh-text-link">
+            DISCOVER OUR STORY <span>→</span>
+          </Link>
         </div>
       </section>
 
-      <Link href="/collections" className="krve-home-festive">
-        <div className="krve-home-festive-image">
-          <Image
-            src="/images/products/product-4.jpg"
-            alt="KRVE festive fashion collection"
-            fill
-            sizes="100vw"
-          />
-        </div>
-        <span className="krve-home-festive-shade" />
-        <span className="krve-home-festive-copy">
-          <small>THE FESTIVE EDITION</small>
-          <strong>Celebrate in<br />Signature Style.</strong>
-          <em>Discover the festive collection and dress for every celebration.</em>
-          <b>EXPLORE FESTIVE STYLES <span>→</span></b>
-        </span>
-      </Link>
+      {/* BRAND CLOSING STRIP */}
+      <section className="kh-closing">
+        <span>DESIGNED FOR YOU</span>
+        <i />
+        <strong>MOVE INTO STYLE.</strong>
+        <i />
+        <span>THE KRVE EXPERIENCE</span>
+      </section>
+
     </main>
   );
 }
