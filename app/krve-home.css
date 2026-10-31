@@ -1,0 +1,114 @@
+.krve-home {
+  --kh-gold: #d6ad68;
+  --kh-gold-bright: #edc783;
+  --kh-ivory: #f5ead8;
+  --kh-black: #080705;
+  width: 100%;
+  overflow: hidden;
+  background: var(--kh-black);
+  color: var(--kh-ivory);
+}
+.krve-home * { box-sizing: border-box; }
+.krve-home a { color: inherit; text-decoration: none; }
+.krve-home-hero { position: relative; min-height: clamp(430px, 43vw, 650px); display: flex; align-items: center; overflow: hidden; border-bottom: 1px solid rgba(214,173,104,.55); background: #090705; }
+.krve-home-hero-image { position: absolute; inset: 0; }
+.krve-home-hero-image img { object-fit: cover; object-position: center 25%; }
+.krve-home-hero-shade { position: absolute; inset: 0; background: linear-gradient(90deg,rgba(5,4,3,.98) 0%,rgba(5,4,3,.88) 29%,rgba(5,4,3,.38) 54%,rgba(5,4,3,.08) 100%),linear-gradient(0deg,rgba(5,4,3,.34),transparent 40%); }
+.krve-home-hero-copy { position: relative; z-index: 2; width: min(650px,58%); padding: 72px clamp(24px,5vw,76px) 82px; }
+.krve-home-kicker { margin: 0 0 20px; color: var(--kh-gold-bright); font-size: 10px; font-weight: 700; letter-spacing: .27em; }
+.krve-home-hero h1 { margin: 0 0 18px; color: var(--kh-gold-bright); font-family: var(--font-display,Georgia,serif); font-size: clamp(43px,6.1vw,88px); font-weight: 500; line-height: .92; letter-spacing: -.035em; }
+.krve-home-hero h1 span { display: block; margin-top: 8px; font-size: .68em; line-height: 1.03; }
+.krve-home-hero-description { margin: 0 0 24px; color: #eee3d3; font-size: clamp(13px,1.25vw,17px); line-height: 1.65; }
+.krve-home-outline-button,.krve-home-gold-button { display: inline-flex; align-items: center; justify-content: center; gap: 18px; min-height: 43px; padding: 0 17px; border: 1px solid var(--kh-gold); color: var(--kh-gold-bright)!important; font-size: 9px; font-weight: 800; letter-spacing: .1em; transition: background .2s ease,color .2s ease; }
+.krve-home-outline-button:hover { background: var(--kh-gold); color: #100c06!important; }
+.krve-home-slide-count { position: absolute; z-index: 2; left: clamp(24px,5vw,76px); bottom: 20px; display: flex; align-items: center; gap: 13px; color: #e9d8bd; font-size: 10px; }
+.krve-home-slide-count i { width: 45px; height: 1px; background: var(--kh-gold); }
+.krve-home-slide-count b { margin-left: 10px; color: var(--kh-gold); font-size: 18px; font-weight: 400; }
+.krve-home-hero-caption { position: absolute; right: 28px; bottom: 25px; color: rgba(244,220,183,.65); font-size: 8px; letter-spacing: .22em; writing-mode: vertical-rl; }
+.krve-home-categories { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 14px; padding: 14px clamp(18px,3.5vw,52px); background: #080705; }
+.krve-home-category-card { position: relative; min-height: clamp(155px,19vw,270px); overflow: hidden; border: 1px solid rgba(214,173,104,.65); border-radius: 5px; background: #19130d; }
+.krve-home-category-card img { object-fit: cover; transition: transform .6s ease; }
+.krve-home-category-card:hover img { transform: scale(1.045); }
+.krve-home-category-shade { position: absolute; inset: 0; background: linear-gradient(0deg,rgba(0,0,0,.84),transparent 70%),linear-gradient(90deg,rgba(0,0,0,.22),transparent); }
+.krve-home-category-copy { position: absolute; left: 22px; bottom: 19px; display: grid; gap: 8px; }
+.krve-home-category-copy strong { font-family: var(--font-display,Georgia,serif); font-size: clamp(18px,2vw,27px); font-weight: 500; }
+.krve-home-category-copy small { font-size: 9px; font-weight: 700; letter-spacing: .08em; }
+.krve-home-category-copy b { margin-left: 7px; color: var(--kh-gold-bright); }
+.krve-home-benefits { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); padding: 8px clamp(16px,4vw,60px); border-top: 1px solid rgba(214,173,104,.55); border-bottom: 1px solid rgba(214,173,104,.55); background: linear-gradient(90deg,#100c07,#070605 48%,#100c07); }
+.krve-home-benefits > div { display: flex; align-items: center; justify-content: center; gap: 13px; min-height: 57px; border-right: 1px solid rgba(214,173,104,.25); }
+.krve-home-benefits > div:last-child { border-right: 0; }
+.krve-benefit-icon { color: var(--kh-gold-bright); font-family: Georgia,serif; font-size: 28px; }
+.krve-home-benefits p { display: grid; gap: 3px; margin: 0; }
+.krve-home-benefits strong { color: #f0e4d1; font-size: 10px; font-weight: 600; }
+.krve-home-benefits small { color: #b9ad9c; font-size: 9px; }
+.krve-home-new-edit { display: grid; grid-template-columns: minmax(220px,.88fr) minmax(0,2fr); gap: clamp(22px,4vw,58px); align-items: center; padding: clamp(34px,5vw,70px) clamp(20px,4vw,58px); border-bottom: 1px solid rgba(214,173,104,.45); background: radial-gradient(ellipse at 0 50%,rgba(113,68,24,.17),transparent 35%),#080705; }
+.krve-home-edit-intro .krve-home-kicker { margin-bottom: 13px; }
+.krve-home-edit-intro h2 { margin: 0 0 13px; color: var(--kh-gold-bright); font-family: var(--font-display,Georgia,serif); font-size: clamp(30px,3.5vw,49px); font-weight: 500; line-height: .98; }
+.krve-home-edit-intro > p:not(.krve-home-kicker) { max-width: 290px; margin: 0 0 19px; color: #d0c4b2; font-size: 12px; line-height: 1.7; }
+.krve-home-gold-button { min-height: 40px; background: linear-gradient(135deg,#e8c17e,#c99a50); color: #110d07!important; }
+.krve-home-gold-button:hover { background: #f0d49f; }
+.krve-home-product-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 12px; min-width: 0; }
+.krve-home-product-grid > * { min-width: 0; }
+.krve-home-empty-products { grid-column: 1/-1; min-height: 190px; display: grid; place-content: center; justify-items: center; padding: 22px; border: 1px solid rgba(214,173,104,.35); text-align: center; }
+.krve-home-empty-products > span { color: var(--kh-gold); font-size: 24px; }
+.krve-home-empty-products strong { margin-top: 8px; color: var(--kh-gold-bright); font-size: 11px; letter-spacing: .14em; }
+.krve-home-empty-products p { max-width: 360px; color: #b9ad9c; font-size: 11px; line-height: 1.6; }
+.krve-home-empty-products a { color: var(--kh-gold-bright); font-size: 10px; font-weight: 800; }
+.krve-home-ai-stylist { position: relative; display: grid; grid-template-columns: 1fr 1.1fr; align-items: center; min-height: 265px; overflow: hidden; border-bottom: 1px solid rgba(214,173,104,.45); background: radial-gradient(ellipse at 58% 50%,rgba(157,104,47,.17),transparent 45%),#090705; }
+.krve-home-ai-copy { position: relative; z-index: 2; padding: 35px clamp(24px,6vw,85px); }
+.krve-home-ai-copy .krve-home-kicker { margin-bottom: 9px; }
+.krve-home-ai-copy h2 { margin: 0 0 10px; color: var(--kh-gold-bright); font-family: var(--font-display,Georgia,serif); font-size: clamp(27px,3vw,40px); font-weight: 500; line-height: .98; }
+.krve-home-ai-copy > p:not(.krve-home-kicker) { margin: 0 0 17px; color: #d6c9b7; font-size: 12px; }
+.krve-home-ai-image { position: relative; align-self: stretch; min-height: 265px; overflow: hidden; }
+.krve-home-ai-image img { object-fit: cover; object-position: center; opacity: .92; }
+.krve-home-ai-image::before { position: absolute; z-index: 1; inset: 0; content: ""; background: linear-gradient(90deg,#090705,transparent 38%,rgba(0,0,0,.08)); }
+.krve-home-ai-line-art { position: absolute; left: 3%; bottom: -40px; color: rgba(221,184,119,.25); font-size: 170px; line-height: 1; }
+.krve-home-festive { position: relative; display: block; min-height: clamp(235px,25vw,350px); overflow: hidden; border-bottom: 1px solid rgba(214,173,104,.5); background: #170906; }
+.krve-home-festive-image { position: absolute; inset: 0; }
+.krve-home-festive-image img { object-fit: cover; object-position: center 40%; }
+.krve-home-festive-shade { position: absolute; inset: 0; background: linear-gradient(90deg,rgba(14,3,5,.97),rgba(29,5,8,.83) 38%,rgba(20,4,5,.25) 76%,rgba(0,0,0,.15)),linear-gradient(0deg,rgba(0,0,0,.25),transparent); }
+.krve-home-festive-copy { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: flex-start; width: min(570px,65%); padding: clamp(28px,4vw,55px) clamp(24px,5vw,72px); }
+.krve-home-festive-copy small { margin-bottom: 9px; color: #e3b85f; font-size: 9px; font-weight: 800; letter-spacing: .28em; }
+.krve-home-festive-copy strong { color: #f3d5a3; font-family: var(--font-display,Georgia,serif); font-size: clamp(34px,5vw,65px); font-weight: 500; line-height: .9; }
+.krve-home-festive-copy em { max-width: 350px; margin: 14px 0 18px; color: #e3d1bc; font-size: 12px; font-style: normal; line-height: 1.6; }
+.krve-home-festive-copy b { display: inline-flex; align-items: center; gap: 15px; min-height: 38px; padding: 0 13px; border: 1px solid #d6ad68; color: #f0c878; font-size: 9px; letter-spacing: .08em; }
+.krve-home-festive:hover .krve-home-festive-copy b { background: #d6ad68; color: #100b05; }
+@media (max-width: 900px) {
+  .krve-home-new-edit { grid-template-columns: 1fr; }
+  .krve-home-edit-intro { display: grid; grid-template-columns: 1fr auto; align-items: end; column-gap: 15px; }
+  .krve-home-edit-intro .krve-home-kicker,.krve-home-edit-intro h2,.krve-home-edit-intro > p { grid-column: 1; }
+  .krve-home-edit-intro .krve-home-gold-button { grid-column: 2; grid-row: 2/4; }
+}
+@media (max-width: 700px) {
+  .krve-home-hero { min-height: 560px; align-items: flex-end; }
+  .krve-home-hero-image img { object-position: 58% center; }
+  .krve-home-hero-shade { background: linear-gradient(0deg,rgba(5,4,3,.98) 0%,rgba(5,4,3,.78) 42%,rgba(5,4,3,.08) 100%),linear-gradient(90deg,rgba(5,4,3,.25),transparent); }
+  .krve-home-hero-copy { width: 100%; padding: 0 22px 80px; }
+  .krve-home-hero h1 { font-size: clamp(42px,12vw,62px); }
+  .krve-home-hero h1 span { font-size: .65em; }
+  .krve-home-hero-description { font-size: 13px; }
+  .krve-home-slide-count { bottom: 22px; left: 22px; }
+  .krve-home-hero-caption { display: none; }
+  .krve-home-categories { grid-template-columns: 1fr; gap: 10px; padding: 12px; }
+  .krve-home-category-card { min-height: 205px; }
+  .krve-home-category-copy { left: 17px; bottom: 15px; }
+  .krve-home-benefits { grid-template-columns: repeat(2,minmax(0,1fr)); padding: 5px 10px; }
+  .krve-home-benefits > div { justify-content: flex-start; min-height: 58px; padding-left: 9px; }
+  .krve-home-benefits > div:nth-child(2) { border-right: 0; }
+  .krve-home-benefits > div:nth-child(3),.krve-home-benefits > div:nth-child(4) { border-top: 1px solid rgba(214,173,104,.2); }
+  .krve-home-benefits strong { font-size: 9px; }
+  .krve-home-benefits small { font-size: 8px; }
+  .krve-home-new-edit { gap: 22px; padding: 34px 15px; }
+  .krve-home-edit-intro { display: block; }
+  .krve-home-edit-intro h2 { font-size: 37px; }
+  .krve-home-product-grid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
+  .krve-home-ai-stylist { grid-template-columns: 1fr; }
+  .krve-home-ai-copy { padding: 30px 22px 24px; }
+  .krve-home-ai-image { min-height: 185px; }
+  .krve-home-ai-line-art { left: auto; right: 5px; bottom: 120px; font-size: 110px; }
+  .krve-home-festive { min-height: 300px; }
+  .krve-home-festive-image img { object-position: 65% center; }
+  .krve-home-festive-shade { background: linear-gradient(0deg,rgba(14,3,5,.95),rgba(29,5,8,.72) 62%,rgba(20,4,5,.2)); }
+  .krve-home-festive-copy { width: 100%; justify-content: flex-end; min-height: 300px; padding: 24px 21px; }
+  .krve-home-festive-copy strong { font-size: 43px; }
+}
