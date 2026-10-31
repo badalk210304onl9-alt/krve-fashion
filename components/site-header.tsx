@@ -10,27 +10,72 @@ import {
   type ChangeEvent,
   type KeyboardEvent,
 } from "react";
-
 import { useUser } from "@clerk/nextjs";
 import { useCart } from "@/components/cart-provider";
 import type { KrveProduct } from "@/lib/api";
 
 /* =========================================================
-   KRVE — SITE HEADER
-   Premium ivory navigation / black announcement bar
-   All header styling is included in this file.
+   KRVE — PREMIUM HEADER V2
+   Independent styling. Existing website layout preserved.
 ========================================================= */
 
-type IconProps = {
-  size?: number;
-};
+type IconProps = { size?: number };
 
-function IconBase({
-  children,
+function Icon({
+  name,
   size = 21,
 }: IconProps & {
-  children: React.ReactNode;
+  name: "search" | "close" | "arrow" | "account" | "heart" | "bag" | "menu" | "sparkle";
 }) {
+  const paths = {
+    search: (
+      <>
+        <circle cx="10.8" cy="10.8" r="6.4" />
+        <path d="m15.7 15.7 4.3 4.3" />
+      </>
+    ),
+    close: (
+      <>
+        <path d="M5 5 19 19" />
+        <path d="M19 5 5 19" />
+      </>
+    ),
+    arrow: (
+      <>
+        <path d="M5 12h14" />
+        <path d="m14 7 5 5-5 5" />
+      </>
+    ),
+    account: (
+      <>
+        <circle cx="12" cy="7.5" r="3.2" />
+        <path d="M5.5 20c.5-4 2.7-6 6.5-6s6 2 6.5 6" />
+      </>
+    ),
+    heart: (
+      <path d="M20.4 5.9c-1.9-2-5-1.8-6.8.2L12 7.9l-1.6-1.8c-1.8-2-4.9-2.2-6.8-.2-2 2.1-1.9 5.5.3 7.7L12 20.9l8.1-7.3c2.2-2.2 2.3-5.6.3-7.7Z" />
+    ),
+    bag: (
+      <>
+        <path d="M5.4 8.5h13.2l-.95 11.7H6.35L5.4 8.5Z" />
+        <path d="M8.7 8.5V6.8a3.3 3.3 0 0 1 6.6 0v1.7" />
+      </>
+    ),
+    menu: (
+      <>
+        <path d="M3.5 7h17" />
+        <path d="M3.5 12h17" />
+        <path d="M3.5 17h17" />
+      </>
+    ),
+    sparkle: (
+      <>
+        <path d="M12 2.5c1.1 5.1 2.4 6.4 7.5 7.5-5.1 1.1-6.4 2.4-7.5 7.5-1.1-5.1-2.4-6.4-7.5-7.5 5.1-1.1 6.4-2.4 7.5-7.5Z" />
+        <path d="M19 16.5c.4 1.8.9 2.3 2.5 2.7-1.6.3-2.1.9-2.5 2.5-.4-1.6-.9-2.2-2.5-2.5 1.6-.4 2.1-.9 2.5-2.7Z" />
+      </>
+    ),
+  };
+
   return (
     <svg
       viewBox="0 0 24 24"
@@ -43,80 +88,8 @@ function IconBase({
       strokeLinejoin="round"
       aria-hidden="true"
     >
-      {children}
+      {paths[name]}
     </svg>
-  );
-}
-
-function SearchIcon({ size = 21 }: IconProps) {
-  return (
-    <IconBase size={size}>
-      <circle cx="10.8" cy="10.8" r="6.5" />
-      <path d="m16 16 4.1 4.1" />
-    </IconBase>
-  );
-}
-
-function CloseIcon({ size = 21 }: IconProps) {
-  return (
-    <IconBase size={size}>
-      <path d="M5 5 19 19" />
-      <path d="M19 5 5 19" />
-    </IconBase>
-  );
-}
-
-function ArrowIcon({ size = 17 }: IconProps) {
-  return (
-    <IconBase size={size}>
-      <path d="M5 12h14" />
-      <path d="m13 6 6 6-6 6" />
-    </IconBase>
-  );
-}
-
-function AccountIcon({ size = 21 }: IconProps) {
-  return (
-    <IconBase size={size}>
-      <circle cx="12" cy="7.5" r="3.3" />
-      <path d="M5.3 20c.5-4 2.8-6.1 6.7-6.1s6.2 2.1 6.7 6.1" />
-    </IconBase>
-  );
-}
-
-function HeartIcon({ size = 21 }: IconProps) {
-  return (
-    <IconBase size={size}>
-      <path d="M20.4 5.9c-1.9-2-5-1.8-6.8.2L12 7.9l-1.6-1.8c-1.8-2-4.9-2.2-6.8-.2-2 2.1-1.9 5.5.3 7.7L12 20.9l8.1-7.3c2.2-2.2 2.3-5.6.3-7.7Z" />
-    </IconBase>
-  );
-}
-
-function BagIcon({ size = 21 }: IconProps) {
-  return (
-    <IconBase size={size}>
-      <path d="M5.4 8.5h13.2l-.95 11.7H6.35L5.4 8.5Z" />
-      <path d="M8.7 8.5V6.8a3.3 3.3 0 0 1 6.6 0v1.7" />
-    </IconBase>
-  );
-}
-
-function MenuIcon({ size = 22 }: IconProps) {
-  return (
-    <IconBase size={size}>
-      <path d="M3.5 7h17" />
-      <path d="M3.5 12h17" />
-      <path d="M3.5 17h17" />
-    </IconBase>
-  );
-}
-
-function SparkleIcon({ size = 19 }: IconProps) {
-  return (
-    <IconBase size={size}>
-      <path d="M12 2.5c1.1 5.1 2.4 6.4 7.5 7.5-5.1 1.1-6.4 2.4-7.5 7.5-1.1-5.1-2.4-6.4-7.5-7.5 5.1-1.1 6.4-2.4 7.5-7.5Z" />
-      <path d="M19 16.5c.4 1.8.9 2.3 2.5 2.7-1.6.3-2.1.9-2.5 2.5-.4-1.6-.9-2.2-2.5-2.5 1.6-.4 2.1-.9 2.5-2.7Z" />
-    </IconBase>
   );
 }
 
@@ -137,14 +110,12 @@ function getProductImage(product: KrveProduct) {
   return "";
 }
 
-const navigationLinks = [
-  { label: "HOME", href: "/" },
-  { label: "MEN", href: "/collections?category=menswear" },
-  { label: "WOMEN", href: "/collections?category=womenswear" },
-  { label: "NEW ARRIVALS", href: "/collections" },
+const navigation = [
+  { label: "SHOP", href: "/collections" },
   { label: "COLLECTIONS", href: "/collections" },
   { label: "VIRTUAL TRY-ON", href: "/virtual-try-on" },
-  { label: "ABOUT", href: "/about" },
+  { label: "AI STYLIST", href: "/ai-stylist" },
+  { label: "ABOUT US", href: "/about" },
 ];
 
 export default function SiteHeader() {
@@ -160,9 +131,7 @@ export default function SiteHeader() {
 
   const searchInputRef = useRef<HTMLInputElement | null>(null);
 
-  /* ---------------------------------------------------------
-     LIVE PRODUCT SEARCH
-  --------------------------------------------------------- */
+  /* LIVE PRODUCT SEARCH */
 
   useEffect(() => {
     if (!searchOpen) return;
@@ -174,44 +143,38 @@ export default function SiteHeader() {
       setSearchError(false);
 
       try {
-        const parameters = new URLSearchParams();
-
-        parameters.set("status", "published");
-        parameters.set("limit", "6");
+        const params = new URLSearchParams({
+          status: "published",
+          limit: "6",
+        });
 
         if (searchQuery.trim()) {
-          parameters.set("search", searchQuery.trim());
+          params.set("search", searchQuery.trim());
         }
 
         const response = await fetch(
-          `/api/products?${parameters.toString()}`,
+          `/api/products?${params.toString()}`,
           {
             method: "GET",
-            headers: {
-              Accept: "application/json",
-            },
+            headers: { Accept: "application/json" },
             cache: "no-store",
             signal: controller.signal,
           },
         );
 
         if (!response.ok) {
-          throw new Error("Product request failed.");
+          throw new Error(`Product request failed: ${response.status}`);
         }
 
         const result = (await response.json()) as {
           success?: boolean;
-          data?: {
-            products?: KrveProduct[];
-          };
+          data?: { products?: KrveProduct[] };
           products?: KrveProduct[];
           message?: string;
         };
 
         if (result.success === false) {
-          throw new Error(
-            result.message || "Unable to load KRVE products.",
-          );
+          throw new Error(result.message || "Unable to load products.");
         }
 
         const products =
@@ -223,8 +186,7 @@ export default function SiteHeader() {
 
         setLiveProducts(
           products.filter(
-            (product) =>
-              Boolean(product?.id && product?.name),
+            (product) => Boolean(product?.id && product?.name),
           ),
         );
       } catch (error) {
@@ -251,6 +213,8 @@ export default function SiteHeader() {
     };
   }, [searchOpen, searchQuery]);
 
+  /* FOCUS SEARCH */
+
   useEffect(() => {
     if (!searchOpen) return;
 
@@ -261,9 +225,7 @@ export default function SiteHeader() {
     return () => window.clearTimeout(timer);
   }, [searchOpen]);
 
-  /* ---------------------------------------------------------
-     ESCAPE KEY + BODY SCROLL
-  --------------------------------------------------------- */
+  /* ESCAPE + BODY SCROLL */
 
   useEffect(() => {
     function handleEscape(event: globalThis.KeyboardEvent) {
@@ -275,26 +237,19 @@ export default function SiteHeader() {
 
     window.addEventListener("keydown", handleEscape);
 
-    return () => {
-      window.removeEventListener("keydown", handleEscape);
-    };
+    return () => window.removeEventListener("keydown", handleEscape);
   }, []);
 
   useEffect(() => {
-    if (searchOpen || mobileMenuOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
+    document.body.style.overflow =
+      searchOpen || mobileMenuOpen ? "hidden" : "";
 
     return () => {
       document.body.style.overflow = "";
     };
   }, [searchOpen, mobileMenuOpen]);
 
-  /* ---------------------------------------------------------
-     ACTIONS
-  --------------------------------------------------------- */
+  /* ACTIONS */
 
   function openSearch() {
     setMobileMenuOpen(false);
@@ -312,24 +267,17 @@ export default function SiteHeader() {
     setMobileMenuOpen(false);
   }
 
-  function handleSearchChange(
-    event: ChangeEvent<HTMLInputElement>,
-  ) {
+  function handleSearchChange(event: ChangeEvent<HTMLInputElement>) {
     setSearchQuery(event.target.value);
   }
 
-  function handleSearchKeyDown(
-    event: KeyboardEvent<HTMLInputElement>,
-  ) {
-    if (event.key !== "Enter" || liveProducts.length === 0) {
-      return;
-    }
+  function handleSearchKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+    if (event.key !== "Enter" || liveProducts.length === 0) return;
 
-    const firstProduct = liveProducts[0];
-    if (!firstProduct) return;
+    const product = liveProducts[0];
+    if (!product) return;
 
-    const identifier = firstProduct.slug || firstProduct.id;
-    if (!identifier) return;
+    const identifier = product.slug || product.id;
 
     window.location.href = `/product/${encodeURIComponent(identifier)}`;
   }
@@ -343,113 +291,98 @@ export default function SiteHeader() {
     <>
       <FestivalTheme />
 
-      {/* =====================================================
-          ANNOUNCEMENT BAR
-      ===================================================== */}
+      {/* EXISTING AI STYLIST ANNOUNCEMENT */}
 
-      <div className="krve-announcement">
-        <div className="krve-announcement-left">
-          <span className="announcement-dot" />
-          <span>THE ART OF PERSONAL STYLE</span>
-        </div>
+      <Link href="/ai-stylist" className="krve-v2-topbar">
+        <span className="krve-v2-topbar-star">✦</span>
+        <span>MEET YOUR PERSONAL AI STYLIST — GET RECOMMENDATIONS</span>
+        <span className="krve-v2-topbar-arrow">→</span>
+      </Link>
 
-        <Link href="/ai-stylist" className="krve-announcement-center">
-          <SparkleIcon size={15} />
-          <span>DISCOVER YOUR PERSONAL AI STYLIST</span>
-          <ArrowIcon size={14} />
-        </Link>
+      {/* MAIN HEADER */}
 
-        <div className="krve-announcement-right">
-          <span>CRAFTED FOR YOU</span>
-        </div>
-      </div>
+      <header className="krve-v2-header">
+        <div className="krve-v2-inner">
 
-      {/* =====================================================
-          MAIN HEADER
-      ===================================================== */}
-
-      <header className="krve-header">
-        <div className="krve-header-inner">
+          {/* MOBILE MENU */}
 
           <button
             type="button"
-            className="krve-mobile-menu-button"
+            className="krve-v2-mobile-menu"
             onClick={() => setMobileMenuOpen(true)}
             aria-label="Open navigation menu"
           >
-            <MenuIcon size={24} />
+            <Icon name="menu" size={23} />
           </button>
 
-          {/* BRAND */}
+          {/* LOGO */}
 
-          <Link
-            href="/"
-            className="krve-brand"
-            aria-label="KRVE homepage"
-          >
-            <span className="krve-brand-name">KrvE</span>
-            <span className="krve-brand-subtitle">
-              THE FASHION STUDIO
-            </span>
+          <Link href="/" className="krve-v2-logo" aria-label="KRVE homepage">
+            <span className="krve-v2-logo-main">KrvE</span>
+            <span className="krve-v2-logo-caption">THE FASHION STUDIO</span>
           </Link>
 
-          {/* DESKTOP NAVIGATION */}
+          {/* NAVIGATION */}
 
-          <nav
-            className="krve-desktop-navigation"
-            aria-label="Primary navigation"
-          >
-            {navigationLinks.map((item) => (
+          <nav className="krve-v2-navigation" aria-label="Main navigation">
+            {navigation.map((item) => (
               <Link
                 key={item.label}
                 href={item.href}
-                className="krve-nav-link"
+                className="krve-v2-nav-link"
               >
                 {item.label}
               </Link>
             ))}
           </nav>
 
-          {/* HEADER ACTIONS */}
+          {/* ACTION ICONS */}
 
-          <div className="krve-header-actions">
-
+          <div className="krve-v2-actions">
             <button
               type="button"
-              className="krve-header-icon"
+              className="krve-v2-action"
               onClick={openSearch}
-              aria-label="Search products"
+              aria-label="Search"
             >
-              <SearchIcon />
+              <Icon name="search" />
             </button>
 
             <Link
+              href="/ai-stylist"
+              className="krve-v2-action krve-v2-ai-action"
+              aria-label="AI Stylist"
+            >
+              <Icon name="sparkle" />
+            </Link>
+
+            <Link
               href="/account"
-              className="krve-header-icon krve-account-icon"
+              className="krve-v2-action"
               aria-label="My account"
             >
               {isLoaded && isSignedIn && user?.imageUrl ? (
-                <span className="krve-user-image">
+                <span className="krve-v2-user-image">
                   <Image
                     src={user.imageUrl}
                     alt={accountLabel}
                     fill
-                    sizes="36px"
+                    sizes="34px"
                   />
                 </span>
               ) : (
-                <AccountIcon />
+                <Icon name="account" />
               )}
             </Link>
 
             <Link
               href="/wishlist"
-              className="krve-header-icon krve-count-parent"
+              className="krve-v2-action krve-v2-count-parent"
               aria-label="Wishlist"
             >
-              <HeartIcon />
+              <Icon name="heart" />
               {wishlist.length > 0 && (
-                <span className="krve-count-badge">
+                <span className="krve-v2-count">
                   {wishlist.length > 99 ? "99+" : wishlist.length}
                 </span>
               )}
@@ -457,65 +390,61 @@ export default function SiteHeader() {
 
             <Link
               href="/cart"
-              className="krve-header-icon krve-count-parent"
+              className="krve-v2-action krve-v2-count-parent"
               aria-label="Shopping bag"
             >
-              <BagIcon />
-              <span className="krve-count-badge">
+              <Icon name="bag" />
+              <span className="krve-v2-count">
                 {cartCount > 99 ? "99+" : cartCount}
               </span>
             </Link>
-
           </div>
         </div>
       </header>
 
-      {/* =====================================================
-          SEARCH OVERLAY
-      ===================================================== */}
+      {/* SEARCH */}
 
       {searchOpen && (
-        <div className="krve-search-overlay">
+        <div className="krve-v2-search-overlay">
           <button
             type="button"
-            className="krve-search-backdrop"
+            className="krve-v2-search-backdrop"
             onClick={closeSearch}
             aria-label="Close search"
           />
 
           <section
-            className="krve-search-panel"
+            className="krve-v2-search-panel"
             role="dialog"
             aria-modal="true"
             aria-label="Search KRVE products"
           >
-            <div className="krve-search-top">
-              <div className="krve-search-logo">
+            <div className="krve-v2-search-top">
+              <div className="krve-v2-search-brand">
                 <span>KrvE</span>
                 <small>INTELLIGENT SEARCH</small>
               </div>
 
               <button
                 type="button"
-                className="krve-search-close"
                 onClick={closeSearch}
                 aria-label="Close search"
+                className="krve-v2-close"
               >
-                <CloseIcon />
+                <Icon name="close" />
               </button>
             </div>
 
-            <div className="krve-search-intro">
+            <div className="krve-v2-search-intro">
               <p>DISCOVER KRVE</p>
               <h2>What are you looking for?</h2>
               <span>
-                Explore collections, tailoring, accessories and
-                luxury essentials.
+                Explore collections, tailoring, accessories and luxury essentials.
               </span>
             </div>
 
-            <div className="krve-search-input-wrap">
-              <SearchIcon size={23} />
+            <div className="krve-v2-search-field">
+              <Icon name="search" size={23} />
 
               <input
                 ref={searchInputRef}
@@ -534,50 +463,44 @@ export default function SiteHeader() {
                   onClick={() => setSearchQuery("")}
                   aria-label="Clear search"
                 >
-                  <CloseIcon size={17} />
+                  <Icon name="close" size={17} />
                 </button>
               )}
             </div>
 
-            <div className="krve-search-results-heading">
+            <div className="krve-v2-result-heading">
               <div>
-                <p>
-                  {searchQuery ? "SEARCH RESULTS" : "LIVE STORE PRODUCTS"}
-                </p>
+                <p>{searchQuery ? "SEARCH RESULTS" : "LIVE STORE PRODUCTS"}</p>
                 <span>
                   {searchLoading
                     ? "Loading..."
                     : searchError
                       ? "Unable to load"
-                      : `${liveProducts.length} ${
-                          liveProducts.length === 1 ? "piece" : "pieces"
-                        }`}
+                      : `${liveProducts.length} pieces`}
                 </span>
               </div>
 
               <Link href="/collections" onClick={closeSearch}>
-                VIEW ALL <ArrowIcon size={15} />
+                VIEW ALL <Icon name="arrow" size={15} />
               </Link>
             </div>
 
             {searchLoading ? (
-              <div className="krve-search-empty">
-                <SearchIcon size={30} />
+              <div className="krve-v2-empty">
+                <Icon name="search" size={30} />
                 <p>SEARCHING KRVE</p>
                 <h3>Finding live products.</h3>
-                <span>
-                  Searching products currently published in the store.
-                </span>
+                <span>Searching published products in the KRVE store.</span>
               </div>
             ) : searchError ? (
-              <div className="krve-search-empty">
-                <CloseIcon size={30} />
+              <div className="krve-v2-empty">
+                <Icon name="close" size={30} />
                 <p>STORE CONNECTION ERROR</p>
                 <h3>Products could not be loaded.</h3>
                 <span>Please try again in a moment.</span>
               </div>
             ) : liveProducts.length > 0 ? (
-              <div className="krve-search-results">
+              <div className="krve-v2-results">
                 {liveProducts.map((product, index) => {
                   const image = getProductImage(product);
                   const identifier = product.slug || product.id;
@@ -586,43 +509,39 @@ export default function SiteHeader() {
                     <Link
                       key={product.id}
                       href={`/product/${encodeURIComponent(identifier)}`}
-                      className="krve-search-result"
+                      className="krve-v2-result"
                       onClick={closeSearch}
                     >
-                      <span className="krve-result-number">
+                      <span className="krve-v2-result-number">
                         {String(index + 1).padStart(2, "0")}
                       </span>
 
-                      <div className="krve-result-image">
+                      <div className="krve-v2-result-image">
                         {image ? (
                           <Image
                             src={image}
                             alt={product.name}
                             fill
-                            sizes="76px"
+                            sizes="70px"
                           />
-                        ) : (
-                          <span />
-                        )}
+                        ) : null}
                       </div>
 
-                      <div className="krve-result-copy">
+                      <div className="krve-v2-result-copy">
                         <p>{product.category}</p>
                         <h3>{product.name}</h3>
                         <strong>{money.format(product.price)}</strong>
                       </div>
 
-                      <ArrowIcon />
+                      <Icon name="arrow" />
                     </Link>
                   );
                 })}
               </div>
             ) : (
-              <div className="krve-search-empty">
-                <SearchIcon size={30} />
-                <p>
-                  {searchQuery ? "NO MATCHES FOUND" : "NO LIVE PRODUCTS"}
-                </p>
+              <div className="krve-v2-empty">
+                <Icon name="search" size={30} />
+                <p>{searchQuery ? "NO MATCHES FOUND" : "NO LIVE PRODUCTS"}</p>
                 <h3>
                   {searchQuery
                     ? "We could not find that piece."
@@ -631,15 +550,15 @@ export default function SiteHeader() {
                 <span>
                   {searchQuery
                     ? "Try another product name, collection or category."
-                    : "No published products are currently available in the KRVE store."}
+                    : "No published products are currently available in the store."}
                 </span>
                 <Link href="/collections" onClick={closeSearch}>
-                  EXPLORE COLLECTIONS <ArrowIcon size={15} />
+                  EXPLORE COLLECTIONS <Icon name="arrow" size={15} />
                 </Link>
               </div>
             )}
 
-            <div className="krve-popular-searches">
+            <div className="krve-v2-suggestions">
               <span>POPULAR SEARCHES</span>
               <div>
                 {["Blazer", "Shirt", "Sneakers", "Accessories", "Black"].map(
@@ -659,52 +578,44 @@ export default function SiteHeader() {
         </div>
       )}
 
-      {/* =====================================================
-          MOBILE NAVIGATION
-      ===================================================== */}
+      {/* MOBILE DRAWER */}
 
       {mobileMenuOpen && (
-        <div className="krve-mobile-overlay">
+        <div className="krve-v2-mobile-overlay">
           <button
             type="button"
-            className="krve-mobile-backdrop"
+            className="krve-v2-mobile-backdrop"
             onClick={closeMobileMenu}
             aria-label="Close menu"
           />
 
           <aside
-            className="krve-mobile-drawer"
+            className="krve-v2-mobile-drawer"
             role="dialog"
             aria-modal="true"
             aria-label="KRVE navigation"
           >
-            <div className="krve-mobile-drawer-top">
-              <Link
-                href="/"
-                className="krve-brand"
-                onClick={closeMobileMenu}
-              >
-                <span className="krve-brand-name">KrvE</span>
-                <span className="krve-brand-subtitle">
-                  THE FASHION STUDIO
-                </span>
+            <div className="krve-v2-mobile-head">
+              <Link href="/" className="krve-v2-logo" onClick={closeMobileMenu}>
+                <span className="krve-v2-logo-main">KrvE</span>
+                <span className="krve-v2-logo-caption">THE FASHION STUDIO</span>
               </Link>
 
               <button
                 type="button"
                 onClick={closeMobileMenu}
-                aria-label="Close navigation"
+                aria-label="Close menu"
               >
-                <CloseIcon />
+                <Icon name="close" />
               </button>
             </div>
 
-            <p className="krve-mobile-eyebrow">
+            <p className="krve-v2-mobile-eyebrow">
               EXPLORE THE WORLD OF KRVE
             </p>
 
-            <nav className="krve-mobile-links">
-              {navigationLinks.map((item, index) => (
+            <nav className="krve-v2-mobile-links">
+              {navigation.map((item, index) => (
                 <Link
                   key={item.label}
                   href={item.href}
@@ -712,555 +623,540 @@ export default function SiteHeader() {
                 >
                   <span>{String(index + 1).padStart(2, "0")}</span>
                   {item.label}
-                  <ArrowIcon size={17} />
+                  <Icon name="arrow" size={17} />
                 </Link>
               ))}
             </nav>
 
             <button
               type="button"
-              className="krve-mobile-search"
+              className="krve-v2-mobile-search"
               onClick={openSearch}
             >
-              <SearchIcon />
+              <Icon name="search" />
               SEARCH KRVE
-              <ArrowIcon />
+              <Icon name="arrow" />
             </button>
 
-            <div className="krve-mobile-account-links">
+            <div className="krve-v2-mobile-account">
               <Link href="/account" onClick={closeMobileMenu}>
-                <AccountIcon />
-                MY ACCOUNT
+                <Icon name="account" /> MY ACCOUNT
               </Link>
 
               <Link href="/wishlist" onClick={closeMobileMenu}>
-                <HeartIcon />
-                WISHLIST ({wishlist.length})
+                <Icon name="heart" /> WISHLIST ({wishlist.length})
               </Link>
 
               <Link href="/cart" onClick={closeMobileMenu}>
-                <BagIcon />
-                BAG ({cartCount})
+                <Icon name="bag" /> BAG ({cartCount})
               </Link>
             </div>
 
-            <div className="krve-mobile-footer">
+            <div className="krve-v2-mobile-footer">
               THE FASHION STUDIO
             </div>
           </aside>
         </div>
       )}
 
-      {/* =====================================================
-          HEADER STYLES
-      ===================================================== */}
+      {/* ALL HEADER CSS IS SCOPED TO KRVE V2 */}
 
       <style jsx global>{`
-        .krve-announcement {
-          min-height: 34px;
-          width: 100%;
-          padding: 0 5.2%;
-          display: grid;
-          grid-template-columns: 1fr 1.5fr 1fr;
-          align-items: center;
-          background: #080808;
-          color: #f4f0e8;
-          font-family: Arial, sans-serif;
-          font-size: 9px;
-          letter-spacing: 1.35px;
-          position: relative;
-          z-index: 80;
+        .krve-v2-topbar,
+        .krve-v2-topbar * {
+          box-sizing: border-box;
         }
 
-        .krve-announcement-left,
-        .krve-announcement-center,
-        .krve-announcement-right {
+        .krve-v2-topbar {
+          width: 100%;
+          min-height: 38px;
+          padding: 0 20px;
           display: flex;
           align-items: center;
-          gap: 9px;
-        }
-
-        .krve-announcement-center {
           justify-content: center;
-          color: #e8c982;
+          gap: 12px;
+          background: #080808;
+          color: #e9c77d;
+          border-top: 1px solid rgba(201,151,38,.28);
+          border-bottom: 1px solid rgba(201,151,38,.25);
           text-decoration: none;
-          transition: color .25s ease;
+          font: 9px Arial, sans-serif;
+          font-weight: 600;
+          letter-spacing: 1.3px;
+          position: relative;
+          z-index: 90;
         }
 
-        .krve-announcement-center:hover {
+        .krve-v2-topbar:hover {
           color: #fff;
         }
 
-        .krve-announcement-right {
-          justify-content: flex-end;
-          color: #aaa49a;
+        .krve-v2-topbar-star {
+          font-size: 14px;
         }
 
-        .announcement-dot {
-          height: 5px;
-          width: 5px;
-          border-radius: 50%;
-          background: #c59b49;
-          box-shadow: 0 0 8px rgba(197, 155, 73, .65);
+        .krve-v2-topbar-arrow {
+          font-size: 15px;
         }
 
-        .krve-header {
+        .krve-v2-header,
+        .krve-v2-header * {
+          box-sizing: border-box;
+        }
+
+        .krve-v2-header {
           width: 100%;
+          min-height: 88px;
+          position: relative;
+          z-index: 80;
+          display: block;
           background: #f5f2eb;
           color: #171613;
-          position: relative;
-          z-index: 70;
-          border-bottom: 1px solid rgba(30, 27, 20, .12);
+          border-bottom: 1px solid rgba(25,22,17,.13);
         }
 
-        .krve-header-inner {
-          min-height: 91px;
-          max-width: 1800px;
+        .krve-v2-inner {
+          width: 100%;
+          max-width: 1900px;
+          min-height: 88px;
           margin: 0 auto;
-          padding: 0 5.2%;
+          padding: 0 4.5%;
           display: grid;
-          grid-template-columns: 190px minmax(0, 1fr) 190px;
+          grid-template-columns: 180px minmax(0, 1fr) 205px;
           align-items: center;
-          gap: 25px;
+          column-gap: 28px;
         }
 
-        .krve-brand {
+        .krve-v2-logo {
+          width: 150px;
+          min-width: 150px;
           display: flex;
           flex-direction: column;
           align-items: center;
           justify-content: center;
-          text-decoration: none;
+          justify-self: start;
           color: #171613;
-          width: fit-content;
+          text-decoration: none;
           line-height: 1;
-          flex-shrink: 0;
+          position: relative;
+          z-index: 2;
         }
 
-        .krve-brand-name {
+        .krve-v2-logo-main {
           font-family: Georgia, "Times New Roman", serif;
-          font-size: 43px;
+          font-size: 45px;
           font-weight: 500;
-          letter-spacing: -3.2px;
-          line-height: .95;
+          line-height: .91;
+          letter-spacing: -3.3px;
         }
 
-        .krve-brand-subtitle {
+        .krve-v2-logo-caption {
+          margin-top: 8px;
           font-family: Arial, sans-serif;
           font-size: 7px;
-          letter-spacing: 2.65px;
-          margin-top: 7px;
+          letter-spacing: 2.2px;
           white-space: nowrap;
         }
 
-        .krve-desktop-navigation {
+        .krve-v2-navigation {
+          min-width: 0;
+          width: 100%;
           display: flex;
+          flex-direction: row;
           align-items: center;
           justify-content: center;
-          gap: clamp(13px, 2.05vw, 34px);
-          min-width: 0;
+          flex-wrap: nowrap;
+          gap: clamp(17px, 2.1vw, 34px);
         }
 
-        .krve-nav-link {
+        .krve-v2-nav-link {
+          display: inline-flex;
+          flex: 0 0 auto;
+          align-items: center;
+          justify-content: center;
           position: relative;
+          padding: 13px 0;
           color: #292720;
-          text-decoration: none;
           font-family: Arial, sans-serif;
           font-size: 9px;
           font-weight: 600;
           letter-spacing: 1.05px;
+          text-decoration: none;
           white-space: nowrap;
-          padding: 12px 0;
-          transition: color .25s ease;
+          transition: color .2s ease;
         }
 
-        .krve-nav-link::after {
+        .krve-v2-nav-link::after {
           content: "";
           position: absolute;
-          bottom: 5px;
           left: 0;
+          bottom: 5px;
           width: 0;
           height: 1px;
           background: #a77c32;
           transition: width .25s ease;
         }
 
-        .krve-nav-link:hover {
+        .krve-v2-nav-link:hover {
           color: #a77c32;
         }
 
-        .krve-nav-link:hover::after {
+        .krve-v2-nav-link:hover::after {
           width: 100%;
         }
 
-        .krve-header-actions {
+        .krve-v2-actions {
+          width: 205px;
           display: flex;
+          flex-direction: row;
           align-items: center;
           justify-content: flex-end;
-          gap: 19px;
+          gap: 17px;
+          justify-self: end;
         }
 
-        .krve-header-icon {
+        .krve-v2-action {
+          width: 27px;
+          height: 36px;
+          flex: 0 0 27px;
           position: relative;
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          width: 27px;
-          height: 34px;
           padding: 0;
-          color: #24221c;
-          background: transparent;
           border: 0;
+          background: transparent;
+          color: #24221c;
           text-decoration: none;
           cursor: pointer;
           transition: color .2s ease;
         }
 
-        .krve-header-icon:hover {
+        .krve-v2-action:hover {
           color: #a77c32;
         }
 
-        .krve-count-parent {
+        .krve-v2-count-parent {
           position: relative;
         }
 
-        .krve-count-badge {
+        .krve-v2-count {
           position: absolute;
           top: -1px;
-          right: -8px;
+          right: -7px;
           min-width: 15px;
           height: 15px;
           padding: 0 4px;
           display: flex;
           align-items: center;
           justify-content: center;
-          border-radius: 50px;
+          border-radius: 30px;
           background: #171613;
           color: #fff;
-          font-family: Arial, sans-serif;
-          font-size: 8px;
-          line-height: 1;
+          font: 8px Arial, sans-serif;
         }
 
-        .krve-user-image {
+        .krve-v2-user-image {
           position: relative;
-          width: 29px;
-          height: 29px;
+          display: block;
+          width: 30px;
+          height: 30px;
           overflow: hidden;
           border-radius: 50%;
-          border: 1px solid rgba(167, 124, 50, .45);
+          border: 1px solid #c99726;
         }
 
-        .krve-user-image img {
+        .krve-v2-user-image img {
           object-fit: cover;
         }
 
-        .krve-mobile-menu-button {
+        .krve-v2-mobile-menu {
           display: none;
-          border: 0;
-          background: transparent;
-          color: #171613;
-          padding: 7px;
-          cursor: pointer;
         }
 
-        /* SEARCH */
+        /* SEARCH OVERLAY */
 
-        .krve-search-overlay {
+        .krve-v2-search-overlay {
           position: fixed;
           inset: 0;
           z-index: 1000;
           display: flex;
-          justify-content: center;
           align-items: flex-start;
+          justify-content: center;
           padding: 5vh 18px;
         }
 
-        .krve-search-backdrop {
+        .krve-v2-search-backdrop {
           position: absolute;
           inset: 0;
-          background: rgba(0, 0, 0, .66);
           border: 0;
+          background: rgba(0,0,0,.68);
           cursor: pointer;
         }
 
-        .krve-search-panel {
+        .krve-v2-search-panel {
           position: relative;
           z-index: 1;
-          width: min(760px, 100%);
+          width: min(760px,100%);
           max-height: 90vh;
           overflow-y: auto;
-          padding: 28px 38px 30px;
+          padding: 28px 38px;
           background: #f5f2eb;
           color: #191814;
-          box-shadow: 0 25px 90px rgba(0, 0, 0, .25);
+          box-shadow: 0 25px 90px rgba(0,0,0,.3);
         }
 
-        .krve-search-top {
+        .krve-v2-search-top {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          padding-bottom: 22px;
-          border-bottom: 1px solid rgba(0, 0, 0, .12);
+          padding-bottom: 20px;
+          border-bottom: 1px solid rgba(0,0,0,.12);
         }
 
-        .krve-search-logo {
+        .krve-v2-search-brand {
           display: flex;
           flex-direction: column;
           align-items: center;
         }
 
-        .krve-search-logo span {
-          font-family: Georgia, serif;
-          font-size: 31px;
+        .krve-v2-search-brand span {
+          font: 31px Georgia,serif;
           letter-spacing: -2px;
         }
 
-        .krve-search-logo small {
-          font: 7px Arial, sans-serif;
+        .krve-v2-search-brand small {
+          font: 7px Arial,sans-serif;
           letter-spacing: 2px;
         }
 
-        .krve-search-close,
-        .krve-mobile-drawer-top button {
+        .krve-v2-close,
+        .krve-v2-mobile-head button {
           border: 0;
           background: transparent;
           color: inherit;
-          padding: 7px;
           cursor: pointer;
         }
 
-        .krve-search-intro {
-          padding: 35px 0 24px;
+        .krve-v2-search-intro {
+          padding: 30px 0 23px;
         }
 
-        .krve-search-intro p,
-        .krve-search-results-heading p,
-        .krve-search-empty p {
+        .krve-v2-search-intro p,
+        .krve-v2-result-heading p,
+        .krve-v2-empty p {
           color: #a77c32;
-          font: 9px Arial, sans-serif;
+          font: 9px Arial,sans-serif;
           letter-spacing: 2px;
         }
 
-        .krve-search-intro h2 {
+        .krve-v2-search-intro h2 {
           margin: 10px 0;
-          font: 38px Georgia, serif;
+          font: 38px Georgia,serif;
           font-weight: 400;
         }
 
-        .krve-search-intro > span {
+        .krve-v2-search-intro span {
           color: #777268;
-          font: 12px Arial, sans-serif;
+          font: 12px Arial,sans-serif;
         }
 
-        .krve-search-input-wrap {
+        .krve-v2-search-field {
           display: flex;
           align-items: center;
           gap: 14px;
-          padding: 15px 16px;
-          border: 1px solid rgba(0, 0, 0, .28);
+          padding: 15px;
+          border: 1px solid rgba(0,0,0,.25);
           background: #fffdf8;
         }
 
-        .krve-search-input-wrap input {
+        .krve-v2-search-field input {
           flex: 1;
           min-width: 0;
           border: 0;
           outline: 0;
           background: transparent;
           color: #171613;
-          font: 13px Arial, sans-serif;
+          font: 13px Arial,sans-serif;
         }
 
-        .krve-search-input-wrap button {
+        .krve-v2-search-field button {
           display: flex;
           border: 0;
           background: transparent;
           cursor: pointer;
-          color: #292720;
         }
 
-        .krve-search-results-heading {
+        .krve-v2-result-heading {
           display: flex;
           justify-content: space-between;
           align-items: center;
           margin: 25px 0 12px;
         }
 
-        .krve-search-results-heading p {
+        .krve-v2-result-heading p {
           margin: 0 0 5px;
         }
 
-        .krve-search-results-heading span {
+        .krve-v2-result-heading span {
           color: #777268;
-          font: 10px Arial, sans-serif;
+          font: 10px Arial,sans-serif;
         }
 
-        .krve-search-results-heading > a,
-        .krve-search-empty > a {
+        .krve-v2-result-heading a,
+        .krve-v2-empty a {
           display: inline-flex;
           align-items: center;
           gap: 7px;
           color: #8c682c;
-          font: 9px Arial, sans-serif;
+          font: 9px Arial,sans-serif;
           letter-spacing: 1px;
           text-decoration: none;
         }
 
-        .krve-search-results {
-          border-top: 1px solid rgba(0, 0, 0, .12);
+        .krve-v2-results {
+          border-top: 1px solid rgba(0,0,0,.12);
         }
 
-        .krve-search-result {
+        .krve-v2-result {
           display: grid;
-          grid-template-columns: 25px 65px minmax(0, 1fr) 22px;
+          grid-template-columns: 25px 65px minmax(0,1fr) 22px;
           align-items: center;
           gap: 15px;
           padding: 12px 0;
-          border-bottom: 1px solid rgba(0, 0, 0, .1);
+          border-bottom: 1px solid rgba(0,0,0,.1);
           color: #171613;
           text-decoration: none;
         }
 
-        .krve-result-number {
+        .krve-v2-result-number {
           color: #a79e8e;
-          font: 10px Georgia, serif;
+          font: 10px Georgia,serif;
         }
 
-        .krve-result-image {
+        .krve-v2-result-image {
           position: relative;
           width: 65px;
           height: 72px;
-          background: #e8e3d9;
           overflow: hidden;
+          background: #e8e3d9;
         }
 
-        .krve-result-image img {
+        .krve-v2-result-image img {
           object-fit: cover;
         }
 
-        .krve-result-copy p {
+        .krve-v2-result-copy p {
           margin: 0 0 5px;
           color: #9a763a;
-          font: 8px Arial, sans-serif;
+          font: 8px Arial,sans-serif;
           text-transform: uppercase;
           letter-spacing: 1px;
         }
 
-        .krve-result-copy h3 {
+        .krve-v2-result-copy h3 {
           margin: 0 0 6px;
-          font: 16px Georgia, serif;
+          font: 16px Georgia,serif;
           font-weight: 400;
         }
 
-        .krve-result-copy strong {
-          font: 11px Arial, sans-serif;
+        .krve-v2-result-copy strong {
+          font: 11px Arial,sans-serif;
         }
 
-        .krve-search-result > svg {
-          color: #9a763a;
-        }
-
-        .krve-search-empty {
+        .krve-v2-empty {
           min-height: 190px;
           display: flex;
           flex-direction: column;
           align-items: center;
           justify-content: center;
-          text-align: center;
           gap: 9px;
           padding: 25px;
+          text-align: center;
           color: #8b6c37;
         }
 
-        .krve-search-empty p {
-          margin: 7px 0 0;
-        }
-
-        .krve-search-empty h3 {
+        .krve-v2-empty h3 {
           margin: 0;
           color: #25231d;
-          font: 22px Georgia, serif;
+          font: 22px Georgia,serif;
           font-weight: 400;
         }
 
-        .krve-search-empty span {
+        .krve-v2-empty span {
           color: #777268;
-          font: 11px Arial, sans-serif;
+          font: 11px Arial,sans-serif;
         }
 
-        .krve-search-empty > a {
-          margin-top: 9px;
-        }
-
-        .krve-popular-searches {
+        .krve-v2-suggestions {
           display: flex;
           flex-wrap: wrap;
           align-items: center;
           gap: 15px;
           padding-top: 22px;
-          border-top: 1px solid rgba(0, 0, 0, .12);
+          border-top: 1px solid rgba(0,0,0,.12);
         }
 
-        .krve-popular-searches > span {
+        .krve-v2-suggestions > span {
           color: #777268;
-          font: 8px Arial, sans-serif;
+          font: 8px Arial,sans-serif;
           letter-spacing: 1px;
         }
 
-        .krve-popular-searches > div {
+        .krve-v2-suggestions > div {
           display: flex;
           flex-wrap: wrap;
           gap: 7px;
         }
 
-        .krve-popular-searches button {
+        .krve-v2-suggestions button {
           padding: 7px 11px;
-          border: 1px solid rgba(0, 0, 0, .15);
+          border: 1px solid rgba(0,0,0,.15);
           border-radius: 30px;
           background: transparent;
           color: #38352d;
-          font: 10px Arial, sans-serif;
+          font: 10px Arial,sans-serif;
           cursor: pointer;
         }
 
-        .krve-popular-searches button:hover {
+        .krve-v2-suggestions button:hover {
           border-color: #a77c32;
           color: #a77c32;
         }
 
-        /* MOBILE DRAWER */
+        /* MOBILE NAVIGATION */
 
-        .krve-mobile-overlay {
+        .krve-v2-mobile-overlay {
           position: fixed;
           inset: 0;
           z-index: 1100;
         }
 
-        .krve-mobile-backdrop {
+        .krve-v2-mobile-backdrop {
           position: absolute;
           inset: 0;
           border: 0;
-          background: rgba(0, 0, 0, .62);
+          background: rgba(0,0,0,.65);
         }
 
-        .krve-mobile-drawer {
+        .krve-v2-mobile-drawer {
           position: absolute;
           top: 0;
-          left: 0;
           bottom: 0;
-          width: min(420px, 88vw);
+          left: 0;
+          width: min(420px,88vw);
           overflow-y: auto;
           padding: 24px 25px;
           background: #f5f2eb;
           color: #171613;
-          box-shadow: 15px 0 50px rgba(0, 0, 0, .2);
-          animation: krveDrawerIn .28s ease both;
+          box-shadow: 15px 0 50px rgba(0,0,0,.2);
+          animation: krveV2Drawer .25s ease both;
         }
 
-        @keyframes krveDrawerIn {
+        @keyframes krveV2Drawer {
           from {
             transform: translateX(-25px);
-            opacity: .7;
+            opacity: .6;
           }
           to {
             transform: translateX(0);
@@ -1268,55 +1164,55 @@ export default function SiteHeader() {
           }
         }
 
-        .krve-mobile-drawer-top {
+        .krve-v2-mobile-head {
           display: flex;
           align-items: center;
           justify-content: space-between;
           padding-bottom: 24px;
-          border-bottom: 1px solid rgba(0, 0, 0, .14);
+          border-bottom: 1px solid rgba(0,0,0,.14);
         }
 
-        .krve-mobile-drawer-top .krve-brand {
+        .krve-v2-mobile-head .krve-v2-logo {
           align-items: flex-start;
         }
 
-        .krve-mobile-eyebrow {
-          margin: 31px 0 13px;
+        .krve-v2-mobile-eyebrow {
+          margin: 30px 0 13px;
           color: #a77c32;
-          font: 9px Arial, sans-serif;
+          font: 9px Arial,sans-serif;
           letter-spacing: 1.5px;
         }
 
-        .krve-mobile-links {
+        .krve-v2-mobile-links {
           display: flex;
           flex-direction: column;
         }
 
-        .krve-mobile-links a {
+        .krve-v2-mobile-links a {
           display: grid;
           grid-template-columns: 28px 1fr 20px;
           align-items: center;
           gap: 10px;
           padding: 17px 0;
-          border-bottom: 1px solid rgba(0, 0, 0, .11);
+          border-bottom: 1px solid rgba(0,0,0,.11);
           color: #25231d;
-          font: 11px Arial, sans-serif;
+          font: 11px Arial,sans-serif;
           font-weight: 600;
-          letter-spacing: 1.2px;
+          letter-spacing: 1px;
           text-decoration: none;
         }
 
-        .krve-mobile-links a > span {
+        .krve-v2-mobile-links a span {
           color: #a77c32;
-          font: 11px Georgia, serif;
+          font: 11px Georgia,serif;
         }
 
-        .krve-mobile-links a > svg {
+        .krve-v2-mobile-links a svg {
           justify-self: end;
           color: #a77c32;
         }
 
-        .krve-mobile-search {
+        .krve-v2-mobile-search {
           width: 100%;
           display: flex;
           align-items: center;
@@ -1326,184 +1222,177 @@ export default function SiteHeader() {
           border: 1px solid #292720;
           background: #171613;
           color: #f5f2eb;
-          font: 10px Arial, sans-serif;
+          font: 10px Arial,sans-serif;
           letter-spacing: 1px;
           cursor: pointer;
         }
 
-        .krve-mobile-search svg:last-child {
+        .krve-v2-mobile-search svg:last-child {
           margin-left: auto;
         }
 
-        .krve-mobile-account-links {
+        .krve-v2-mobile-account {
           display: flex;
           flex-wrap: wrap;
           gap: 18px;
           margin-top: 26px;
         }
 
-        .krve-mobile-account-links a {
+        .krve-v2-mobile-account a {
           display: inline-flex;
           align-items: center;
           gap: 7px;
           color: #343128;
-          font: 9px Arial, sans-serif;
-          letter-spacing: .7px;
+          font: 9px Arial,sans-serif;
           text-decoration: none;
         }
 
-        .krve-mobile-footer {
+        .krve-v2-mobile-footer {
           margin-top: 45px;
           padding-top: 17px;
-          border-top: 1px solid rgba(0, 0, 0, .12);
+          border-top: 1px solid rgba(0,0,0,.12);
           color: #a77c32;
-          font: 8px Arial, sans-serif;
+          font: 8px Arial,sans-serif;
           letter-spacing: 2px;
         }
 
         /* TABLET */
 
-        @media (max-width: 1250px) {
-          .krve-header-inner {
-            grid-template-columns: 145px minmax(0, 1fr) 160px;
-            padding-left: 3%;
-            padding-right: 3%;
-            gap: 12px;
+        @media (max-width: 1250px) and (min-width: 901px) {
+          .krve-v2-inner {
+            padding-left: 2.5%;
+            padding-right: 2.5%;
+            grid-template-columns: 145px minmax(0,1fr) 175px;
+            column-gap: 15px;
           }
 
-          .krve-desktop-navigation {
-            gap: clamp(10px, 1.35vw, 19px);
+          .krve-v2-logo {
+            width: 135px;
+            min-width: 135px;
           }
 
-          .krve-nav-link {
+          .krve-v2-logo-main {
+            font-size: 40px;
+          }
+
+          .krve-v2-navigation {
+            gap: clamp(10px,1.3vw,17px);
+          }
+
+          .krve-v2-nav-link {
             font-size: 8px;
-            letter-spacing: .7px;
+            letter-spacing: .6px;
           }
 
-          .krve-header-actions {
-            gap: 13px;
+          .krve-v2-actions {
+            width: 175px;
+            gap: 12px;
           }
         }
 
         /* MOBILE */
 
         @media (max-width: 900px) {
-          .krve-announcement {
-            min-height: 31px;
-            display: flex;
-            justify-content: center;
-            padding: 0 10px;
-          }
-
-          .krve-announcement-left,
-          .krve-announcement-right {
-            display: none;
-          }
-
-          .krve-announcement-center {
-            font-size: 8px;
-            letter-spacing: 1px;
-          }
-
-          .krve-header-inner {
+          .krve-v2-inner {
             min-height: 73px;
-            display: grid;
-            grid-template-columns: 42px 1fr auto;
-            padding: 0 17px;
-            gap: 8px;
+            padding: 0 16px;
+            grid-template-columns: 42px minmax(0,1fr) auto;
+            column-gap: 8px;
           }
 
-          .krve-mobile-menu-button {
+          .krve-v2-mobile-menu {
             display: inline-flex;
+            width: 36px;
+            height: 36px;
             align-items: center;
             justify-content: flex-start;
+            padding: 5px;
+            border: 0;
+            background: transparent;
+            color: #171613;
+            cursor: pointer;
           }
 
-          .krve-header-inner > .krve-brand {
+          .krve-v2-inner > .krve-v2-logo {
+            width: 130px;
+            min-width: 130px;
             justify-self: center;
           }
 
-          .krve-brand-name {
-            font-size: 37px;
+          .krve-v2-logo-main {
+            font-size: 36px;
           }
 
-          .krve-brand-subtitle {
+          .krve-v2-logo-caption {
             font-size: 6px;
-            letter-spacing: 2px;
-            margin-top: 5px;
           }
 
-          .krve-desktop-navigation {
+          .krve-v2-navigation {
             display: none;
           }
 
-          .krve-header-actions {
-            gap: 12px;
+          .krve-v2-actions {
+            width: auto;
+            gap: 10px;
           }
 
-          .krve-header-actions .krve-account-icon,
-          .krve-header-actions a[href="/wishlist"] {
+          .krve-v2-actions a[href="/account"],
+          .krve-v2-actions a[href="/wishlist"],
+          .krve-v2-ai-action {
             display: none;
           }
 
-          .krve-header-icon {
+          .krve-v2-action {
             width: 25px;
-          }
-
-          .krve-search-panel {
-            padding: 22px 20px;
-          }
-
-          .krve-search-intro h2 {
-            font-size: 31px;
+            flex-basis: 25px;
           }
         }
 
         @media (max-width: 430px) {
-          .krve-header-inner {
-            padding: 0 12px;
-            grid-template-columns: 34px 1fr auto;
+          .krve-v2-inner {
+            padding: 0 10px;
+            grid-template-columns: 34px minmax(0,1fr) auto;
           }
 
-          .krve-header-actions {
-            gap: 8px;
+          .krve-v2-actions {
+            gap: 7px;
           }
 
-          .krve-header-actions .krve-header-icon {
+          .krve-v2-action {
             width: 23px;
+            flex-basis: 23px;
           }
 
-          .krve-brand-name {
-            font-size: 34px;
+          .krve-v2-logo-main {
+            font-size: 33px;
           }
 
-          .krve-search-result {
-            grid-template-columns: 18px 56px minmax(0, 1fr) 18px;
+          .krve-v2-search-panel {
+            padding: 22px 16px;
+          }
+
+          .krve-v2-search-intro h2 {
+            font-size: 27px;
+          }
+
+          .krve-v2-result {
+            grid-template-columns: 18px 56px minmax(0,1fr) 18px;
             gap: 9px;
           }
 
-          .krve-result-image {
+          .krve-v2-result-image {
             width: 56px;
             height: 65px;
-          }
-
-          .krve-result-copy h3 {
-            font-size: 14px;
-          }
-
-          .krve-search-intro h2 {
-            font-size: 27px;
           }
         }
 
         @media (prefers-reduced-motion: reduce) {
-          .krve-mobile-drawer {
+          .krve-v2-mobile-drawer {
             animation: none;
           }
 
-          .krve-nav-link,
-          .krve-header-icon,
-          .krve-announcement-center {
+          .krve-v2-nav-link,
+          .krve-v2-action {
             transition: none;
           }
         }
