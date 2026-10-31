@@ -2,7 +2,6 @@ import Image from "next/image";
 import Link from "next/link";
 
 import ProductCard from "@/components/product-card";
-import FestivalTheme from "@/components/festival-theme";
 
 import {
   getNewArrivalProducts,
@@ -78,9 +77,7 @@ export default async function HomePage() {
   const newArrivalProducts = await loadNewArrivals();
 
   return (
-    <main className="krve-dussehra-home">
-      <FestivalTheme />
-
+    <main className="krve-dussehra-home krve-diwali-home">
       <section className="hero krve-dussehra-hero">
         <div className="hero-silk" />
 
@@ -141,28 +138,39 @@ export default async function HomePage() {
           />
         </div>
 
-        <aside className="krve-dussehra-greeting">
-          <span className="krve-greeting-ornament">✦</span>
+        <aside className="krve-diwali-greeting">
+          <span className="krve-diwali-greeting-ornament">
+            ✦ 🪔 ✦
+          </span>
 
-          <p className="krve-greeting-eyebrow">
+          <p className="krve-diwali-greeting-eyebrow">
             THE FESTIVE EDITION
           </p>
 
           <h2>
-            Happy
-            <strong>Dussehra</strong>
+            Celebrate in
+            <strong>Style</strong>
           </h2>
 
-          <span className="krve-greeting-divider">
+          <span className="krve-diwali-greeting-divider">
             ✧ ━━━━━━━━━ ✧
           </span>
 
-          <p className="krve-greeting-message">
-            May the victory of good over evil inspire
-            you always.
+          <p className="krve-diwali-greeting-message">
+            With exclusive festive offers &amp; a special
+            gift box for every customer.
           </p>
 
-          <span className="krve-greeting-ornament">✦</span>
+          <Link
+            href="/collections"
+            className="krve-diwali-greeting-cta"
+          >
+            EXPLORE THE EDIT →
+          </Link>
+
+          <span className="krve-diwali-greeting-ornament">
+            ✦
+          </span>
         </aside>
       </section>
 
