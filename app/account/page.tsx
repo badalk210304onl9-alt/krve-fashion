@@ -1,17 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import {
-  useRouter,
-  useSearchParams,
-} from "next/navigation";
-
-import {
-  FormEvent,
-  Suspense,
-  useEffect,
-  useState,
-} from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { FormEvent, Suspense, useEffect, useState } from "react";
 
 import {
   ArrowRight,
@@ -29,8 +20,8 @@ import {
   MapPin,
   PackageCheck,
   Settings,
-  ShoppingBag,
   ShieldCheck,
+  ShoppingBag,
   Sparkles,
   TicketPercent,
   UserRound,
@@ -39,10 +30,7 @@ import {
 import styles from "./account.module.css";
 import loginStyles from "../login/login.module.css";
 
-type Mode =
-  | "login"
-  | "register"
-  | "forgot";
+type Mode = "login" | "register" | "forgot";
 
 type FormState = {
   firstName: string;
@@ -93,12 +81,63 @@ type OrdersApiResponse = {
   orders?: AccountOrder[];
 };
 
+const initialForm: FormState = {
+  firstName: "",
+  lastName: "",
+  email: "",
+  password: "",
+  confirmPassword: "",
+};
+
+const accountLinks = [
+  {
+    href: "/account/orders",
+    icon: PackageCheck,
+    eyebrow: "PURCHASES",
+    title: "My Orders",
+    description: "Track orders, delivery progress and purchase history.",
+  },
+  {
+    href: "/wishlist",
+    icon: Heart,
+    eyebrow: "SAVED STYLE",
+    title: "Wishlist",
+    description: "Return to the KRVE pieces you have saved.",
+  },
+  {
+    href: "/account/profile",
+    icon: UserRound,
+    eyebrow: "IDENTITY",
+    title: "Profile",
+    description: "Manage your name, email and personal information.",
+  },
+  {
+    href: "/account/addresses",
+    icon: MapPin,
+    eyebrow: "DELIVERY",
+    title: "Addresses",
+    description: "Manage your delivery and billing destinations.",
+  },
+  {
+    href: "/account/notifications",
+    icon: Bell,
+    eyebrow: "COMMUNICATION",
+    title: "Notifications",
+    description: "Control order alerts, launches and account updates.",
+  },
+  {
+    href: "/account/settings",
+    icon: Settings,
+    eyebrow: "SECURITY",
+    title: "Account Settings",
+    description: "Manage password, privacy and account preferences.",
+  },
+];
+
 function formatAccountDate(value: string) {
   const date = new Date(value);
 
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
+  if (Number.isNaN(date.getTime())) return value;
 
   return new Intl.DateTimeFormat("en-IN", {
     day: "2-digit",
@@ -135,70 +174,18 @@ function accountMoney(value: number, currency: string) {
   }).format(value);
 }
 
-const initialForm: FormState = {
-  firstName: "",
-  lastName: "",
-  email: "",
-  password: "",
-  confirmPassword: "",
-};
-
-const accountLinks = [
-  {
-    href: "/account/orders",
-    icon: PackageCheck,
-    eyebrow: "PURCHASES",
-    title: "My Orders",
-    description:
-      "Track orders, delivery progress and purchase history.",
-  },
-  {
-    href: "/wishlist",
-    icon: Heart,
-    eyebrow: "SAVED STYLE",
-    title: "Wishlist",
-    description:
-      "Return to the KRVE pieces you have saved.",
-  },
-  {
-    href: "/account/profile",
-    icon: UserRound,
-    eyebrow: "IDENTITY",
-    title: "Profile",
-    description:
-      "Manage your name, email and personal information.",
-  },
-  {
-    href: "/account/addresses",
-    icon: MapPin,
-    eyebrow: "DELIVERY",
-    title: "Addresses",
-    description:
-      "Manage your delivery and billing destinations.",
-  },
-  {
-    href: "/account/notifications",
-    icon: Bell,
-    eyebrow: "COMMUNICATION",
-    title: "Notifications",
-    description:
-      "Control order alerts, launches and account updates.",
-  },
-  {
-    href: "/account/settings",
-    icon: Settings,
-    eyebrow: "SECURITY",
-    title: "Account Settings",
-    description:
-      "Manage password, privacy and account preferences.",
-  },
-];
-
 function normalizeAccountUser(raw: any): AccountUser {
   const metadata = raw?.user_metadata ?? raw?.metadata ?? {};
-  const firstName = raw?.firstName ?? raw?.first_name ?? metadata?.first_name ?? null;
-  const lastName = raw?.lastName ?? raw?.last_name ?? metadata?.last_name ?? null;
-  const fullName = raw?.fullName ?? raw?.full_name ?? metadata?.full_name ?? raw?.name ?? null;
+  const firstName =
+    raw?.firstName ?? raw?.first_name ?? metadata?.first_name ?? null;
+  const lastName =
+    raw?.lastName ?? raw?.last_name ?? metadata?.last_name ?? null;
+  const fullName =
+    raw?.fullName ??
+    raw?.full_name ??
+    metadata?.full_name ??
+    raw?.name ??
+    null;
 
   return {
     ...raw,
@@ -219,6 +206,7 @@ function normalizeAccountUser(raw: any): AccountUser {
 
 async function readAuthResponse(response: Response) {
   let data: any = null;
+
   try {
     data = await response.json();
   } catch {
@@ -242,9 +230,7 @@ async function getCurrentAccountUser(): Promise<AccountUser | null> {
     cache: "no-store",
   });
 
-  if (response.status === 401) {
-    return null;
-  }
+  if (response.status === 401) return null;
 
   const data = await readAuthResponse(response);
   const rawUser =
@@ -258,134 +244,40 @@ async function getCurrentAccountUser(): Promise<AccountUser | null> {
 }
 
 function AccountContent() {
-  const router =
-    useRouter();
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
-  const searchParams =
-    useSearchParams();
-
-  const [
-    mode,
-    setMode,
-  ] =
-    useState<Mode>(
-      "login",
-    );
-
-  const [
-    form,
-    setForm,
-  ] =
-    useState<FormState>(
-      initialForm,
-    );
-
-  const [
-    user,
-    setUser,
-  ] =
-    useState<AccountUser | null>(
-      null,
-    );
-
-  const [
-    authLoaded,
-    setAuthLoaded,
-  ] =
-    useState(false);
-
-  const [
-    showPassword,
-    setShowPassword,
-  ] =
-    useState(false);
-
-  const [
-    busy,
-    setBusy,
-  ] =
-    useState(false);
-
-  const [
-    message,
-    setMessage,
-  ] =
-    useState("");
-
-  const [
-    recentOrders,
-    setRecentOrders,
-  ] =
-    useState<AccountOrder[]>([]);
-
-  const [
-    ordersLoading,
-    setOrdersLoading,
-  ] =
-    useState(false);
-
-  const [
-    ordersError,
-    setOrdersError,
-  ] =
-    useState("");
+  const [mode, setMode] = useState<Mode>("login");
+  const [form, setForm] = useState<FormState>(initialForm);
+  const [user, setUser] = useState<AccountUser | null>(null);
+  const [authLoaded, setAuthLoaded] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState("");
+  const [recentOrders, setRecentOrders] = useState<AccountOrder[]>([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
+  const [ordersError, setOrdersError] = useState("");
 
   useEffect(() => {
     let mounted = true;
 
     async function loadUser() {
       try {
-        const response = await fetch("/api/auth/me", {
-          method: "GET",
-          credentials: "include",
-          headers: {
-            Accept: "application/json",
-          },
-          cache: "no-store",
-        });
+        const currentUser = await getCurrentAccountUser();
 
-        let data: any = null;
-        try {
-          data = await response.json();
-        } catch {
-          data = null;
-        }
+        if (!mounted) return;
 
-        if (!mounted) {
-          return;
-        }
+        setUser(currentUser);
 
-        if (!response.ok) {
-          setUser(null);
-          return;
-        }
-
-        const rawUser =
-          data?.user ??
-          data?.customer ??
-          data?.data?.user ??
-          data?.data?.customer ??
-          null;
-
-        if (!rawUser) {
-          setUser(null);
-          return;
-        }
-
-        setUser(normalizeAccountUser(rawUser));
-
-        if (window.location.search) {
+        if (currentUser && window.location.search) {
           router.replace("/account");
         }
       } catch (error) {
         console.error("KRVE_ACCOUNT_AUTH_LOAD_ERROR", error);
-        if (mounted) {
-          setUser(null);
-        }
+
+        if (mounted) setUser(null);
       } finally {
-        if (mounted) {
-          setAuthLoaded(true);
-        }
+        if (mounted) setAuthLoaded(true);
       }
     }
 
@@ -412,9 +304,7 @@ function AccountContent() {
 
         const response = await fetch("/api/account/orders", {
           method: "GET",
-          headers: {
-            Accept: "application/json",
-          },
+          headers: { Accept: "application/json" },
           cache: "no-store",
         });
 
@@ -428,16 +318,13 @@ function AccountContent() {
 
         if (!response.ok || !data?.success) {
           throw new Error(
-            data?.message ||
-              "Your order history could not be loaded.",
+            data?.message || "Your order history could not be loaded.",
           );
         }
 
         if (active) {
           setRecentOrders(
-            Array.isArray(data.orders)
-              ? data.orders.slice(0, 3)
-              : [],
+            Array.isArray(data.orders) ? data.orders.slice(0, 3) : [],
           );
         }
       } catch (error) {
@@ -449,9 +336,7 @@ function AccountContent() {
           );
         }
       } finally {
-        if (active) {
-          setOrdersLoading(false);
-        }
+        if (active) setOrdersLoading(false);
       }
     }
 
@@ -462,59 +347,39 @@ function AccountContent() {
     };
   }, [user]);
 
-  function updateField(
-    field:
-      keyof FormState,
-    value: string,
-  ) {
-    setForm(
-      (
-        current,
-      ) => ({
-        ...current,
-        [field]:
-          value,
-      }),
-    );
+  function updateField(field: keyof FormState, value: string) {
+    setForm((current) => ({
+      ...current,
+      [field]: value,
+    }));
 
     setMessage("");
   }
 
-  function changeMode(
-    nextMode:
-      Mode,
-  ) {
-    setMode(
-      nextMode,
-    );
-
+  function changeMode(nextMode: Mode) {
+    setMode(nextMode);
     setMessage("");
 
-    setForm(
-      (
-        current,
-      ) => ({
-        ...current,
-        password: "",
-        confirmPassword:
-          "",
-      }),
-    );
+    setForm((current) => ({
+      ...current,
+      password: "",
+      confirmPassword: "",
+    }));
   }
 
-  async function login(
-    event: FormEvent<HTMLFormElement>,
-  ) {
+  async function login(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setMessage("");
 
     const email = form.email.trim().toLowerCase();
+
     if (!email || !form.password) {
       setMessage("Please enter your email address and password.");
       return;
     }
 
     setBusy(true);
+
     try {
       const response = await fetch("/api/auth/login", {
         method: "POST",
@@ -523,10 +388,14 @@ function AccountContent() {
           "Content-Type": "application/json",
           Accept: "application/json",
         },
-        body: JSON.stringify({ email, password: form.password }),
+        body: JSON.stringify({
+          email,
+          password: form.password,
+        }),
       });
 
       await readAuthResponse(response);
+
       const currentUser = await getCurrentAccountUser();
 
       if (!currentUser) {
@@ -548,9 +417,7 @@ function AccountContent() {
     }
   }
 
-  async function register(
-    event: FormEvent<HTMLFormElement>,
-  ) {
+  async function register(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setMessage("");
 
@@ -562,20 +429,24 @@ function AccountContent() {
       setMessage("Please enter your first and last name.");
       return;
     }
+
     if (!email.includes("@")) {
       setMessage("Please enter a valid email address.");
       return;
     }
+
     if (form.password.length < 8) {
       setMessage("Password must contain at least 8 characters.");
       return;
     }
+
     if (form.password !== form.confirmPassword) {
       setMessage("Passwords do not match.");
       return;
     }
 
     setBusy(true);
+
     try {
       const response = await fetch("/api/auth/register", {
         method: "POST",
@@ -594,12 +465,14 @@ function AccountContent() {
       });
 
       const data = await readAuthResponse(response);
+
       const rawUser =
         data?.user ??
         data?.customer ??
         data?.data?.user ??
         data?.data?.customer ??
         null;
+
       const currentUser = rawUser
         ? normalizeAccountUser(rawUser)
         : await getCurrentAccountUser();
@@ -618,6 +491,7 @@ function AccountContent() {
         password: "",
         confirmPassword: "",
       }));
+
       setMessage(
         data?.message ||
           "Account created successfully. Please sign in to continue.",
@@ -633,10 +507,9 @@ function AccountContent() {
     }
   }
 
-  async function forgotPassword(
-    event: FormEvent<HTMLFormElement>,
-  ) {
+  async function forgotPassword(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
     setMessage(
       "Password recovery will be connected after the KRVE Central reset-password endpoint is added.",
     );
@@ -659,6 +532,7 @@ function AccountContent() {
       });
 
       await readAuthResponse(response);
+
       setUser(null);
       setRecentOrders([]);
       router.replace("/account");
@@ -672,419 +546,160 @@ function AccountContent() {
     }
   }
 
-  if (
-    !authLoaded
-  ) {
+  if (!authLoaded) {
     return (
-      <main
-        className={
-          styles.loading
-        }
-      >
-        <div
-          className={
-            styles.loadingLogo
-          }
-        >
-          K
-          <small>
-            rv
-          </small>
-          E
+      <main className={styles.loading}>
+        <div className={styles.loadingLogo}>
+          K<small>rv</small>E
         </div>
-
-        <span>
-          PRIVATE CLIENT
-        </span>
+        <span>PRIVATE CLIENT</span>
       </main>
     );
   }
 
-  /*
-    =====================================================
-    SIGNED-IN ACCOUNT
-    =====================================================
-  */
+  /* SIGNED-IN ACCOUNT */
 
   if (user) {
-    const firstName =
-      (
-        user.user_metadata
-          ?.first_name as
-          | string
-          | undefined
-      )?.trim();
-
-    const lastName =
-      (
-        user.user_metadata
-          ?.last_name as
-          | string
-          | undefined
-      )?.trim();
-
-    const fullName =
-      (
-        user.user_metadata
-          ?.full_name as
-          | string
-          | undefined
-      )?.trim();
+    const firstName = user.user_metadata?.first_name?.trim();
+    const lastName = user.user_metadata?.last_name?.trim();
+    const fullName = user.user_metadata?.full_name?.trim();
 
     const customerName =
       fullName ||
       `${firstName ?? ""} ${lastName ?? ""}`.trim() ||
-      user.email?.split(
-        "@",
-      )[0] ||
+      user.email?.split("@")[0] ||
       "KRVE Client";
 
     const welcomeName =
-      firstName ||
-      customerName.split(
-        " ",
-      )[0] ||
-      "Client";
+      firstName || customerName.split(" ")[0] || "Client";
 
-    const initial =
-      customerName
-        .charAt(0)
-        .toUpperCase();
+    const initial = customerName.charAt(0).toUpperCase();
 
     return (
-      <main
-        className={
-          styles.page
-        }
-      >
-        <div
-          className={
-            styles.backgroundGlow
-          }
-        />
+      <main className={styles.page}>
+        <div className={styles.backgroundGlow} />
 
-        <section
-          className={
-            styles.shell
-          }
-        >
-          {/* HERO */}
-
-          <section
-            className={
-              styles.hero
-            }
-          >
-            <div
-              className={
-                styles.heroContent
-              }
-            >
-              <div
-                className={
-                  styles.eyebrow
-                }
-              >
-                <Crown
-                  size={13}
-                />
-
-                KRVE PRIVATE
-                CLIENT
+        <section className={styles.shell}>
+          <section className={styles.hero}>
+            <div className={styles.heroContent}>
+              <div className={styles.eyebrow}>
+                <Crown size={13} />
+                KRVE PRIVATE CLIENT
               </div>
 
               <h1>
                 Welcome back,
-                <span>
-                  {welcomeName}.
-                </span>
+                <span>{welcomeName}.</span>
               </h1>
 
               <p>
-                Your private space
-                for purchases,
-                saved pieces,
-                delivery details
-                and personalised
-                KRVE experiences.
+                Your private space for purchases, saved pieces,
+                delivery details and personalised KRVE experiences.
               </p>
 
-              <div
-                className={
-                  styles.profileStrip
-                }
-              >
-                <div
-                  className={
-                    styles.avatar
-                  }
-                >
-                  {initial}
+              <div className={styles.profileStrip}>
+                <div className={styles.avatar}>{initial}</div>
+
+                <div className={styles.profileInfo}>
+                  <small>MEMBER PROFILE</small>
+                  <strong>{customerName}</strong>
+                  <span>{user.email}</span>
                 </div>
 
-                <div
-                  className={
-                    styles.profileInfo
-                  }
-                >
-                  <small>
-                    MEMBER PROFILE
-                  </small>
-
-                  <strong>
-                    {customerName}
-                  </strong>
-
-                  <span>
-                    {user.email}
-                  </span>
-                </div>
-
-                <ShieldCheck
-                  size={21}
-                />
+                <ShieldCheck size={21} />
               </div>
             </div>
 
-            <div
-              className={
-                styles.heroArt
-              }
-            >
-              <div
-                className={
-                  styles.monogramOuter
-                }
-              >
-                <div
-                  className={
-                    styles.monogramInner
-                  }
-                >
-                  K
-                </div>
+            <div className={styles.heroArt}>
+              <div className={styles.monogramOuter}>
+                <div className={styles.monogramInner}>K</div>
               </div>
-
-              <span>
-                KRVE PRIVATE CLIENT
-              </span>
+              <span>KRVE PRIVATE CLIENT</span>
             </div>
           </section>
 
-          {/* QUICK LINKS */}
-
-          <section
-            className={
-              styles.quickGrid
-            }
-          >
-            <Link
-              href="/account/orders"
-            >
-              <PackageCheck
-                size={19}
-              />
-
+          <section className={styles.quickGrid}>
+            <Link href="/account/orders">
+              <PackageCheck size={19} />
               <div>
-                <small>
-                  ORDERS
-                </small>
-
-                <strong>
-                  My Purchases
-                </strong>
+                <small>ORDERS</small>
+                <strong>My Purchases</strong>
               </div>
-
-              <ArrowRight
-                size={15}
-              />
+              <ArrowRight size={15} />
             </Link>
 
             <Link href="/wishlist">
-              <Heart
-                size={19}
-              />
-
+              <Heart size={19} />
               <div>
-                <small>
-                  WISHLIST
-                </small>
-
-                <strong>
-                  Saved Pieces
-                </strong>
+                <small>WISHLIST</small>
+                <strong>Saved Pieces</strong>
               </div>
-
-              <ArrowRight
-                size={15}
-              />
+              <ArrowRight size={15} />
             </Link>
 
-            <Link
-              href="/ai-stylist"
-            >
-              <Sparkles
-                size={19}
-              />
-
+            <Link href="/ai-stylist">
+              <Sparkles size={19} />
               <div>
-                <small>
-                  KRVE AI
-                </small>
-
-                <strong>
-                  Personal Styling
-                </strong>
+                <small>KRVE AI</small>
+                <strong>Personal Styling</strong>
               </div>
-
-              <ArrowRight
-                size={15}
-              />
+              <ArrowRight size={15} />
             </Link>
 
-            <Link
-              href="/account/offers"
-            >
-              <Gift
-                size={19}
-              />
-
+            <Link href="/account/offers">
+              <Gift size={19} />
               <div>
-                <small>
-                  PRIVILEGES
-                </small>
-
-                <strong>
-                  Private Benefits
-                </strong>
+                <small>PRIVILEGES</small>
+                <strong>Private Benefits</strong>
               </div>
-
-              <ArrowRight
-                size={15}
-              />
+              <ArrowRight size={15} />
             </Link>
           </section>
 
-          {/* ACCOUNT CENTRE */}
-
-          <section
-            className={
-              styles.accountSection
-            }
-          >
-            <div
-              className={
-                styles.sectionHeader
-              }
-            >
+          <section className={styles.accountSection}>
+            <div className={styles.sectionHeader}>
               <div>
-                <span>
-                  YOUR PRIVATE SPACE
-                </span>
-
-                <h2>
-                  Account Centre
-                </h2>
+                <span>YOUR PRIVATE SPACE</span>
+                <h2>Account Centre</h2>
               </div>
 
               <p>
-                Manage everything
-                connected to your
-                KRVE profile.
+                Manage everything connected to your KRVE profile.
               </p>
             </div>
 
-            <div
-              className={
-                styles.accountGrid
-              }
-            >
-              {accountLinks.map(
-                (
-                  item,
-                ) => {
-                  const Icon =
-                    item.icon;
+            <div className={styles.accountGrid}>
+              {accountLinks.map((item) => {
+                const Icon = item.icon;
 
-                  return (
-                    <Link
-                      href={
-                        item.href
-                      }
-                      key={
-                        item.href
-                      }
-                      className={
-                        styles.accountCard
-                      }
-                    >
-                      <div
-                        className={
-                          styles.accountCardIcon
-                        }
-                      >
-                        <Icon
-                          size={20}
-                          strokeWidth={
-                            1.35
-                          }
-                        />
-                      </div>
+                return (
+                  <Link
+                    href={item.href}
+                    key={item.href}
+                    className={styles.accountCard}
+                  >
+                    <div className={styles.accountCardIcon}>
+                      <Icon size={20} strokeWidth={1.35} />
+                    </div>
 
-                      <small>
-                        {
-                          item.eyebrow
-                        }
-                      </small>
+                    <small>{item.eyebrow}</small>
+                    <h3>{item.title}</h3>
+                    <p>{item.description}</p>
 
-                      <h3>
-                        {
-                          item.title
-                        }
-                      </h3>
-
-                      <p>
-                        {
-                          item.description
-                        }
-                      </p>
-
-                      <div
-                        className={
-                          styles.cardArrow
-                        }
-                      >
-                        <ArrowRight
-                          size={15}
-                        />
-                      </div>
-                    </Link>
-                  );
-                },
-              )}
+                    <div className={styles.cardArrow}>
+                      <ArrowRight size={15} />
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
           </section>
 
-          {/* RECENT ORDERS */}
-
-          <section
-            className={
-              styles.accountSection
-            }
-          >
-            <div
-              className={
-                styles.sectionHeader
-              }
-            >
+          <section className={styles.accountSection}>
+            <div className={styles.sectionHeader}>
               <div>
-                <span>
-                  PURCHASE HISTORY
-                </span>
-
-                <h2>
-                  Recent Orders
-                </h2>
+                <span>PURCHASE HISTORY</span>
+                <h2>Recent Orders</h2>
               </div>
 
               <Link
@@ -1112,12 +727,8 @@ function AccountContent() {
               >
                 <PackageCheck size={20} />
                 <div>
-                  <small>
-                    KRVE ORDERS
-                  </small>
-                  <h3>
-                    Loading your purchases...
-                  </h3>
+                  <small>KRVE ORDERS</small>
+                  <h3>Loading your purchases...</h3>
                 </div>
               </div>
             ) : ordersError ? (
@@ -1127,12 +738,8 @@ function AccountContent() {
               >
                 <ShieldCheck size={20} />
                 <div>
-                  <small>
-                    ORDER HISTORY
-                  </small>
-                  <h3>
-                    Orders are temporarily unavailable.
-                  </h3>
+                  <small>ORDER HISTORY</small>
+                  <h3>Orders are temporarily unavailable.</h3>
                   <p>{ordersError}</p>
                 </div>
               </div>
@@ -1143,12 +750,8 @@ function AccountContent() {
               >
                 <ShoppingBag size={20} />
                 <div>
-                  <small>
-                    PURCHASE HISTORY
-                  </small>
-                  <h3>
-                    No orders yet.
-                  </h3>
+                  <small>PURCHASE HISTORY</small>
+                  <h3>No orders yet.</h3>
                   <p>
                     Your KRVE purchases will appear here after checkout.
                   </p>
@@ -1177,21 +780,19 @@ function AccountContent() {
                           }}
                         />
                       ) : (
-                        <div
-                          className={styles.accountCardIcon}
-                        >
+                        <div className={styles.accountCardIcon}>
                           <PackageCheck size={20} strokeWidth={1.35} />
                         </div>
                       )}
 
                       <div style={{ minWidth: 0, flex: 1 }}>
-                        <small>
-                          {order.orderNumber}
-                        </small>
+                        <small>{order.orderNumber}</small>
 
                         <h3>
                           {firstItem?.name ||
-                            `${order.itemCount} KRVE item${order.itemCount === 1 ? "" : "s"}`}
+                            `${order.itemCount} KRVE item${
+                              order.itemCount === 1 ? "" : "s"
+                            }`}
                         </h3>
 
                         <p>
@@ -1211,181 +812,88 @@ function AccountContent() {
             )}
           </section>
 
-          {/* EXPERIENCE */}
-
-          <section
-            className={
-              styles.experience
-            }
-          >
-            <div
-              className={
-                styles.experienceIntro
-              }
-            >
-              <div
-                className={
-                  styles.experienceEyebrow
-                }
-              >
-                <Sparkles
-                  size={14}
-                />
-
-                KRVE PRIVATE
-                EXPERIENCE
+          <section className={styles.experience}>
+            <div className={styles.experienceIntro}>
+              <div className={styles.experienceEyebrow}>
+                <Sparkles size={14} />
+                KRVE PRIVATE EXPERIENCE
               </div>
 
               <h2>
                 Fashion,
-                <span>
-                  curated around
-                  you.
-                </span>
+                <span>curated around you.</span>
               </h2>
 
               <p>
-                Your profile connects
-                shopping, AI styling,
-                saved pieces and
-                future KRVE services
-                into one experience.
+                Your profile connects shopping, AI styling,
+                saved pieces and future KRVE services into one experience.
               </p>
 
-              <Link
-                href="/ai-stylist"
-              >
+              <Link href="/ai-stylist">
                 EXPLORE AI STYLIST
-
-                <ArrowRight
-                  size={14}
-                />
+                <ArrowRight size={14} />
               </Link>
             </div>
 
-            <div
-              className={
-                styles.benefits
-              }
-            >
+            <div className={styles.benefits}>
               <article>
-                <Sparkles
-                  size={17}
-                />
-
+                <Sparkles size={17} />
                 <div>
-                  <strong>
-                    Personalised
-                    Recommendations
-                  </strong>
-
+                  <strong>Personalised Recommendations</strong>
                   <span>
-                    Styling suggestions
-                    shaped around your
-                    profile.
+                    Styling suggestions shaped around your profile.
                   </span>
                 </div>
               </article>
 
               <article>
-                <TicketPercent
-                  size={17}
-                />
-
+                <TicketPercent size={17} />
                 <div>
-                  <strong>
-                    Private Client
-                    Offers
-                  </strong>
-
+                  <strong>Private Client Offers</strong>
                   <span>
-                    Selected launches,
-                    benefits and
-                    promotions.
+                    Selected launches, benefits and promotions.
                   </span>
                 </div>
               </article>
 
               <article>
-                <History
-                  size={17}
-                />
-
+                <History size={17} />
                 <div>
-                  <strong>
-                    Connected Shopping
-                    History
-                  </strong>
-
+                  <strong>Connected Shopping History</strong>
                   <span>
-                    Keep your purchases
-                    connected to one
-                    account.
+                    Keep your purchases connected to one account.
                   </span>
                 </div>
               </article>
 
               <article>
-                <ShieldCheck
-                  size={17}
-                />
-
+                <ShieldCheck size={17} />
                 <div>
-                  <strong>
-                    Secure Account
-                  </strong>
-
+                  <strong>Secure Account</strong>
                   <span>
-                    Protected
-                    authentication
-                    powered by
-                    KRVE Central.
+                    Protected authentication powered by KRVE Central.
                   </span>
                 </div>
               </article>
             </div>
           </section>
 
-          {/* FOOTER ACTION */}
-
-          <section
-            className={
-              styles.accountFooter
-            }
-          >
+          <section className={styles.accountFooter}>
             <div>
-              <ShieldCheck
-                size={19}
-              />
-
+              <ShieldCheck size={19} />
               <div>
-                <small>
-                  SECURE ACCOUNT
-                </small>
-
-                <strong>
-                  Your KRVE session
-                  is protected.
-                </strong>
+                <small>SECURE ACCOUNT</small>
+                <strong>Your KRVE session is protected.</strong>
               </div>
             </div>
 
             <button
               type="button"
-              onClick={
-                signOut
-              }
-              disabled={
-                busy
-              }
+              onClick={signOut}
+              disabled={busy}
             >
-              <LogOut
-                size={15}
-              />
-
-              {busy
-                ? "SIGNING OUT..."
-                : "SIGN OUT"}
+              <LogOut size={15} />
+              {busy ? "SIGNING OUT..." : "SIGN OUT"}
             </button>
           </section>
         </section>
@@ -1393,470 +901,282 @@ function AccountContent() {
     );
   }
 
-  /*
-    =====================================================
-    LOGIN / REGISTER / FORGOT
-    =====================================================
-  */
+  /* NEW LOGIN / REGISTER / FORGOT DESIGN */
 
   return (
-    <main
-      className={
-        styles.authPage
-      }
-    >
-      <section
-        className={
-          styles.authShell
-        }
-      >
-        <aside
-          className={
-            styles.authStory
-          }
-        >
-          <div
-            className={
-              styles.storyBrand
-            }
-          >
-            <strong>
-              K
-              <small>
-                rv
-              </small>
-              E
-            </strong>
+    <main className={loginStyles.page}>
+      <section className={loginStyles.visual}>
+        <div
+          className={loginStyles.visualImage}
+          style={{
+            backgroundImage:
+              "url('/images/krve-login-editorial.png')",
+          }}
+        />
 
-            <span>
-              THE FASHION STUDIO
-            </span>
+        <div className={loginStyles.visualShade} />
+
+        <div className={loginStyles.brand}>
+          <strong>
+            K<small>rv</small>E
+          </strong>
+          <span>THE FASHION STUDIO</span>
+        </div>
+
+        <div className={loginStyles.visualCopy}>
+          <span className={loginStyles.kicker}>
+            KRVE PRIVATE ACCESS
+          </span>
+
+          <h1>
+            Your wardrobe.
+            <br />
+            <em>Your world.</em>
+          </h1>
+
+          <p>
+            A more personal way to experience fashion.
+            Discover your style, save your favourites
+            and make every KRVE moment yours.
+          </p>
+        </div>
+
+        <div className={loginStyles.visualFoot}>
+          <ShieldCheck size={16} />
+          SECURE PRIVATE CLIENT ACCESS
+        </div>
+      </section>
+
+      <section className={loginStyles.loginSide}>
+        <div className={loginStyles.topLine}>
+          <span>KRVE / PRIVATE CLIENT</span>
+          <span>01 — MEMBER ACCESS</span>
+        </div>
+
+        <div className={loginStyles.card}>
+          <div className={loginStyles.star}>
+            <Crown size={19} />
           </div>
 
-          <div
-            className={
-              styles.storyCopy
-            }
-          >
-            <small>
-              KRVE PRIVATE ACCESS
-            </small>
+          <span className={loginStyles.eyebrow}>
+            {mode === "register"
+              ? "PRIVATE CLIENT ONBOARDING"
+              : mode === "forgot"
+                ? "ACCOUNT RECOVERY"
+                : "MEMBER ACCOUNT"}
+          </span>
 
-            <h2>
-              Your wardrobe.
-              <span>
-                Your world.
-              </span>
-            </h2>
+          <h1>
+            {mode === "register"
+              ? "Create your account"
+              : mode === "forgot"
+                ? "Reset your password"
+                : "Welcome back."}
+          </h1>
 
-            <p>
-              Create one private
-              account for purchases,
-              saved pieces,
-              personalised styling
-              and delivery details.
-            </p>
-          </div>
+          <p className={loginStyles.description}>
+            {mode === "register"
+              ? "Join KRVE and discover a more personal fashion experience."
+              : mode === "forgot"
+                ? "Enter your email address to continue with account recovery."
+                : "Sign in to continue your KRVE experience."}
+          </p>
 
-          <div
-            className={
-              styles.storySecurity
-            }
-          >
-            <ShieldCheck
-              size={16}
-            />
-
-            Secure private client
-            access
-          </div>
-        </aside>
-
-        <section
-          className={
-            styles.authCard
-          }
-        >
-          <div
-            className={
-              styles.authHeading
-            }
-          >
-            <span>
-              {mode ===
-              "register"
-                ? "PRIVATE CLIENT ONBOARDING"
-                : mode ===
-                    "forgot"
-                  ? "ACCOUNT RECOVERY"
-                  : "MEMBER ACCOUNT"}
-            </span>
-
-            <h1>
-              {mode ===
-              "register"
-                ? "Create your KRVE account"
-                : mode ===
-                    "forgot"
-                  ? "Reset your password"
-                  : "Sign in to KRVE Fashion"}
-            </h1>
-
-            <p>
-              {mode ===
-              "register"
-                ? "Join KRVE and keep your fashion experience connected."
-                : mode ===
-                    "forgot"
-                  ? "Enter your email and we will send a secure reset link."
-                  : "Welcome back. Sign in to continue."}
-            </p>
-          </div>
-
-          {mode !==
-            "forgot" && (
+          {mode !== "forgot" && (
             <>
               <button
                 type="button"
-                className={
-                  styles.googleButton
-                }
-                onClick={
-                  googleLogin
-                }
-                disabled={
-                  busy
-                }
+                className={loginStyles.submit}
+                onClick={googleLogin}
+                disabled={busy}
               >
-                <span>
-                  G
-                </span>
-
-                CONTINUE WITH
-                GOOGLE
+                <span>G</span>
+                CONTINUE WITH GOOGLE
               </button>
 
-              <div
-                className={
-                  styles.divider
-                }
-              >
+              <div className={loginStyles.divider}>
                 <i />
-
-                <span>
-                  OR
-                </span>
-
+                <span>OR</span>
                 <i />
               </div>
             </>
           )}
 
           <form
-            className={
-              styles.authForm
-            }
+            className={loginStyles.form}
             onSubmit={
-              mode ===
-              "register"
+              mode === "register"
                 ? register
-                : mode ===
-                    "forgot"
+                : mode === "forgot"
                   ? forgotPassword
                   : login
             }
           >
-            {mode ===
-              "register" && (
-              <div
-                className={
-                  styles.twoFields
-                }
-              >
-                <label>
-                  <span>
-                    FIRST NAME
-                  </span>
-
-                  <div
-                    className={
-                      styles.field
-                    }
-                  >
-                    <UserRound
-                      size={16}
-                    />
-
+            {mode === "register" && (
+              <>
+                <label className={loginStyles.fieldLabel}>
+                  FIRST NAME
+                  <div className={loginStyles.phoneField}>
+                    <UserRound size={16} />
                     <input
-                      value={
-                        form.firstName
-                      }
-                      onChange={(
-                        event,
-                      ) =>
-                        updateField(
-                          "firstName",
-                          event.target
-                            .value,
-                        )
+                      value={form.firstName}
+                      onChange={(event) =>
+                        updateField("firstName", event.target.value)
                       }
                       placeholder="First name"
+                      autoComplete="given-name"
+                      required
                     />
                   </div>
                 </label>
 
-                <label>
-                  <span>
-                    LAST NAME
-                  </span>
-
-                  <div
-                    className={
-                      styles.field
-                    }
-                  >
-                    <UserRound
-                      size={16}
-                    />
-
+                <label className={loginStyles.fieldLabel}>
+                  LAST NAME
+                  <div className={loginStyles.phoneField}>
+                    <UserRound size={16} />
                     <input
-                      value={
-                        form.lastName
-                      }
-                      onChange={(
-                        event,
-                      ) =>
-                        updateField(
-                          "lastName",
-                          event.target
-                            .value,
-                        )
+                      value={form.lastName}
+                      onChange={(event) =>
+                        updateField("lastName", event.target.value)
                       }
                       placeholder="Last name"
+                      autoComplete="family-name"
+                      required
                     />
                   </div>
                 </label>
-              </div>
+              </>
             )}
 
-            <label>
-              <span>
-                EMAIL ADDRESS
-              </span>
-
-              <div
-                className={
-                  styles.field
-                }
-              >
-                <Mail
-                  size={16}
-                />
-
+            <label className={loginStyles.fieldLabel}>
+              EMAIL ADDRESS
+              <div className={loginStyles.phoneField}>
+                <Mail size={16} />
                 <input
                   type="email"
-                  value={
-                    form.email
-                  }
-                  onChange={(
-                    event,
-                  ) =>
-                    updateField(
-                      "email",
-                      event.target
-                        .value,
-                    )
+                  value={form.email}
+                  onChange={(event) =>
+                    updateField("email", event.target.value)
                   }
                   placeholder="you@example.com"
                   autoComplete="email"
+                  required
                 />
               </div>
             </label>
 
-            {mode !==
-              "forgot" && (
-              <label>
-                <span>
-                  PASSWORD
-                </span>
-
-                <div
-                  className={
-                    styles.field
-                  }
-                >
-                  <LockKeyhole
-                    size={16}
-                  />
-
+            {mode !== "forgot" && (
+              <label className={loginStyles.fieldLabel}>
+                PASSWORD
+                <div className={loginStyles.phoneField}>
+                  <LockKeyhole size={16} />
                   <input
-                    type={
-                      showPassword
-                        ? "text"
-                        : "password"
-                    }
-                    value={
-                      form.password
-                    }
-                    onChange={(
-                      event,
-                    ) =>
-                      updateField(
-                        "password",
-                        event.target
-                          .value,
-                      )
+                    type={showPassword ? "text" : "password"}
+                    value={form.password}
+                    onChange={(event) =>
+                      updateField("password", event.target.value)
                     }
                     placeholder={
-                      mode ===
-                      "register"
+                      mode === "register"
                         ? "Minimum 8 characters"
                         : "Your password"
                     }
+                    autoComplete={
+                      mode === "register"
+                        ? "new-password"
+                        : "current-password"
+                    }
+                    required
                   />
 
                   <button
                     type="button"
-                    className={
-                      styles.eyeButton
-                    }
                     onClick={() =>
-                      setShowPassword(
-                        (
-                          value,
-                        ) =>
-                          !value,
-                      )
+                      setShowPassword((value) => !value)
                     }
+                    aria-label={
+                      showPassword ? "Hide password" : "Show password"
+                    }
+                    style={{
+                      border: 0,
+                      background: "transparent",
+                      color: "#b8a16b",
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      padding: 5,
+                    }}
                   >
                     {showPassword ? (
-                      <EyeOff
-                        size={15}
-                      />
+                      <EyeOff size={16} />
                     ) : (
-                      <Eye
-                        size={15}
-                      />
+                      <Eye size={16} />
                     )}
                   </button>
                 </div>
               </label>
             )}
 
-            {mode ===
-              "register" && (
-              <label>
-                <span>
-                  CONFIRM PASSWORD
-                </span>
-
-                <div
-                  className={
-                    styles.field
-                  }
-                >
-                  <LockKeyhole
-                    size={16}
-                  />
-
+            {mode === "register" && (
+              <label className={loginStyles.fieldLabel}>
+                CONFIRM PASSWORD
+                <div className={loginStyles.phoneField}>
+                  <LockKeyhole size={16} />
                   <input
-                    type={
-                      showPassword
-                        ? "text"
-                        : "password"
-                    }
-                    value={
-                      form.confirmPassword
-                    }
-                    onChange={(
-                      event,
-                    ) =>
-                      updateField(
-                        "confirmPassword",
-                        event.target
-                          .value,
-                      )
+                    type={showPassword ? "text" : "password"}
+                    value={form.confirmPassword}
+                    onChange={(event) =>
+                      updateField("confirmPassword", event.target.value)
                     }
                     placeholder="Repeat password"
+                    autoComplete="new-password"
+                    required
                   />
                 </div>
               </label>
             )}
 
-            {mode ===
-              "login" && (
+            {mode === "login" && (
               <button
                 type="button"
-                className={
-                  styles.forgotButton
-                }
-                onClick={() =>
-                  changeMode(
-                    "forgot",
-                  )
-                }
+                className={loginStyles.textButton}
+                onClick={() => changeMode("forgot")}
               >
                 Forgot password?
               </button>
             )}
 
             {message && (
-              <div
-                className={
-                  styles.authMessage
-                }
-              >
+              <div className={loginStyles.error} role="alert">
                 {message}
               </div>
             )}
 
             <button
               type="submit"
-              className={
-                styles.submitButton
-              }
-              disabled={
-                busy
-              }
+              className={loginStyles.submit}
+              disabled={busy}
             >
               {busy
                 ? "PLEASE WAIT..."
-                : mode ===
-                    "register"
+                : mode === "register"
                   ? "CREATE ACCOUNT"
-                  : mode ===
-                      "forgot"
+                  : mode === "forgot"
                     ? "SEND RESET LINK"
                     : "CONTINUE"}
 
-              {!busy && (
-                <ArrowRight
-                  size={15}
-                />
-              )}
+              {!busy && <ArrowRight size={17} />}
             </button>
           </form>
 
-          <div
-            className={
-              styles.authSwitch
-            }
-          >
-            {mode ===
-            "login" ? (
+          <div className={loginStyles.bottomLine}>
+            {mode === "login" ? (
               <>
-                <span>
-                  Don&apos;t have an
-                  account?
-                </span>
-
+                <span>Don't have an account?</span>
                 <button
                   type="button"
-                  onClick={() =>
-                    changeMode(
-                      "register",
-                    )
-                  }
+                  className={loginStyles.textButton}
+                  onClick={() => changeMode("register")}
                 >
                   SIGN UP
                 </button>
@@ -1864,19 +1184,15 @@ function AccountContent() {
             ) : (
               <>
                 <span>
-                  {mode ===
-                  "register"
-                    ? "Already a private client?"
+                  {mode === "register"
+                    ? "Already a KRVE member?"
                     : "Remembered your password?"}
                 </span>
 
                 <button
                   type="button"
-                  onClick={() =>
-                    changeMode(
-                      "login",
-                    )
-                  }
+                  className={loginStyles.textButton}
+                  onClick={() => changeMode("login")}
                 >
                   SIGN IN
                 </button>
@@ -1884,18 +1200,17 @@ function AccountContent() {
             )}
           </div>
 
-          <div
-            className={
-              styles.authSecurity
-            }
-          >
-            <Check
-              size={13}
-            />
-
+          <div className={loginStyles.terms}>
+            <ShieldCheck size={14} />
             SECURE KRVE ACCOUNT
           </div>
-        </section>
+        </div>
+
+        <div className={loginStyles.benefits}>
+          <span>PRIVATE ACCESS</span>
+          <span>PERSONALISED STYLE</span>
+          <span>EXCLUSIVE EXPERIENCES</span>
+        </div>
       </section>
     </main>
   );
@@ -1905,11 +1220,7 @@ export default function AccountPage() {
   return (
     <Suspense
       fallback={
-        <main
-          className={
-            styles.loading
-          }
-        >
+        <main className={styles.loading}>
           KRVE
         </main>
       }
