@@ -15,8 +15,9 @@ import { useCart } from "@/components/cart-provider";
 import type { KrveProduct } from "@/lib/api";
 
 /* =========================================================
-   KRVE — PREMIUM HEADER V2
-   Independent styling. Existing website layout preserved.
+   KRVE — MIDNIGHT LUXURY HEADER
+   Black • Antique Gold • Champagne
+   Existing functionality preserved
 ========================================================= */
 
 type IconProps = { size?: number };
@@ -25,7 +26,15 @@ function Icon({
   name,
   size = 21,
 }: IconProps & {
-  name: "search" | "close" | "arrow" | "account" | "heart" | "bag" | "menu" | "sparkle";
+  name:
+    | "search"
+    | "close"
+    | "arrow"
+    | "account"
+    | "heart"
+    | "bag"
+    | "menu"
+    | "sparkle";
 }) {
   const paths = {
     search: (
@@ -225,7 +234,7 @@ export default function SiteHeader() {
     return () => window.clearTimeout(timer);
   }, [searchOpen]);
 
-  /* ESCAPE + BODY SCROLL */
+  /* ESCAPE KEY */
 
   useEffect(() => {
     function handleEscape(event: globalThis.KeyboardEvent) {
@@ -239,6 +248,8 @@ export default function SiteHeader() {
 
     return () => window.removeEventListener("keydown", handleEscape);
   }, []);
+
+  /* BODY SCROLL */
 
   useEffect(() => {
     document.body.style.overflow =
@@ -291,7 +302,7 @@ export default function SiteHeader() {
     <>
       <FestivalTheme />
 
-      {/* EXISTING AI STYLIST ANNOUNCEMENT */}
+      {/* TOP ANNOUNCEMENT */}
 
       <Link href="/ai-stylist" className="krve-v2-topbar">
         <span className="krve-v2-topbar-star">✦</span>
@@ -303,7 +314,6 @@ export default function SiteHeader() {
 
       <header className="krve-v2-header">
         <div className="krve-v2-inner">
-
           {/* MOBILE MENU */}
 
           <button
@@ -319,7 +329,9 @@ export default function SiteHeader() {
 
           <Link href="/" className="krve-v2-logo" aria-label="KRVE homepage">
             <span className="krve-v2-logo-main">KrvE</span>
-            <span className="krve-v2-logo-caption">THE FASHION STUDIO</span>
+            <span className="krve-v2-logo-caption">
+              THE FASHION STUDIO
+            </span>
           </Link>
 
           {/* NAVIGATION */}
@@ -400,9 +412,17 @@ export default function SiteHeader() {
             </Link>
           </div>
         </div>
+
+        {/* BRAND SIGNATURE */}
+
+        <div className="krve-v2-signature">
+          <span>✦</span>
+          MORE THAN FASHION. IT’S KRVE.
+          <span>✦</span>
+        </div>
       </header>
 
-      {/* SEARCH */}
+      {/* SEARCH OVERLAY */}
 
       {searchOpen && (
         <div className="krve-v2-search-overlay">
@@ -596,9 +616,15 @@ export default function SiteHeader() {
             aria-label="KRVE navigation"
           >
             <div className="krve-v2-mobile-head">
-              <Link href="/" className="krve-v2-logo" onClick={closeMobileMenu}>
+              <Link
+                href="/"
+                className="krve-v2-logo"
+                onClick={closeMobileMenu}
+              >
                 <span className="krve-v2-logo-main">KrvE</span>
-                <span className="krve-v2-logo-caption">THE FASHION STUDIO</span>
+                <span className="krve-v2-logo-caption">
+                  THE FASHION STUDIO
+                </span>
               </Link>
 
               <button
@@ -659,7 +685,7 @@ export default function SiteHeader() {
         </div>
       )}
 
-      {/* ALL HEADER CSS IS SCOPED TO KRVE V2 */}
+      {/* HEADER STYLES */}
 
       <style jsx global>{`
         .krve-v2-topbar,
@@ -667,37 +693,45 @@ export default function SiteHeader() {
           box-sizing: border-box;
         }
 
+        /* TOP ANNOUNCEMENT */
+
         .krve-v2-topbar {
           width: 100%;
-          min-height: 38px;
+          min-height: 37px;
           padding: 0 20px;
           display: flex;
           align-items: center;
           justify-content: center;
           gap: 12px;
-          background: #080808;
-          color: #e9c77d;
-          border-top: 1px solid rgba(201,151,38,.28);
-          border-bottom: 1px solid rgba(201,151,38,.25);
+          background:
+            linear-gradient(90deg, #100c06, #1c1408 50%, #100c06);
+          color: #e8c77e;
+          border-top: 1px solid rgba(201, 151, 38, 0.35);
+          border-bottom: 1px solid rgba(201, 151, 38, 0.3);
           text-decoration: none;
           font: 9px Arial, sans-serif;
           font-weight: 600;
-          letter-spacing: 1.3px;
+          letter-spacing: 1.5px;
           position: relative;
           z-index: 90;
+          transition: color 0.25s ease;
         }
 
         .krve-v2-topbar:hover {
-          color: #fff;
+          color: #fff1cf;
         }
 
         .krve-v2-topbar-star {
+          color: #e7bd65;
           font-size: 14px;
         }
 
         .krve-v2-topbar-arrow {
+          color: #e7bd65;
           font-size: 15px;
         }
+
+        /* MAIN HEADER */
 
         .krve-v2-header,
         .krve-v2-header * {
@@ -706,19 +740,31 @@ export default function SiteHeader() {
 
         .krve-v2-header {
           width: 100%;
-          min-height: 88px;
           position: relative;
           z-index: 80;
           display: block;
-          background: #f5f2eb;
-          color: #171613;
-          border-bottom: 1px solid rgba(25,22,17,.13);
+          color: #ead9b5;
+          background:
+            radial-gradient(
+              ellipse at 50% 0%,
+              rgba(177, 133, 55, 0.12),
+              transparent 65%
+            ),
+            linear-gradient(
+              115deg,
+              #100d08 0%,
+              #171109 48%,
+              #0b0906 100%
+            );
+          border-top: 1px solid rgba(202, 160, 78, 0.25);
+          border-bottom: 1px solid rgba(202, 160, 78, 0.42);
+          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.22);
         }
 
         .krve-v2-inner {
           width: 100%;
           max-width: 1900px;
-          min-height: 88px;
+          min-height: 91px;
           margin: 0 auto;
           padding: 0 4.5%;
           display: grid;
@@ -726,6 +772,8 @@ export default function SiteHeader() {
           align-items: center;
           column-gap: 28px;
         }
+
+        /* LOGO */
 
         .krve-v2-logo {
           width: 150px;
@@ -735,7 +783,7 @@ export default function SiteHeader() {
           align-items: center;
           justify-content: center;
           justify-self: start;
-          color: #171613;
+          color: #e8d4a8;
           text-decoration: none;
           line-height: 1;
           position: relative;
@@ -743,20 +791,25 @@ export default function SiteHeader() {
         }
 
         .krve-v2-logo-main {
+          color: #f0dfb9;
           font-family: Georgia, "Times New Roman", serif;
-          font-size: 45px;
+          font-size: 47px;
           font-weight: 500;
-          line-height: .91;
+          line-height: 0.91;
           letter-spacing: -3.3px;
+          text-shadow: 0 2px 18px rgba(211, 169, 91, 0.14);
         }
 
         .krve-v2-logo-caption {
           margin-top: 8px;
+          color: #b99b63;
           font-family: Arial, sans-serif;
           font-size: 7px;
           letter-spacing: 2.2px;
           white-space: nowrap;
         }
+
+        /* NAVIGATION */
 
         .krve-v2-navigation {
           min-width: 0;
@@ -776,14 +829,14 @@ export default function SiteHeader() {
           justify-content: center;
           position: relative;
           padding: 13px 0;
-          color: #292720;
+          color: #e8dfce;
           font-family: Arial, sans-serif;
           font-size: 9px;
           font-weight: 600;
           letter-spacing: 1.05px;
           text-decoration: none;
           white-space: nowrap;
-          transition: color .2s ease;
+          transition: color 0.2s ease;
         }
 
         .krve-v2-nav-link::after {
@@ -793,17 +846,25 @@ export default function SiteHeader() {
           bottom: 5px;
           width: 0;
           height: 1px;
-          background: #a77c32;
-          transition: width .25s ease;
+          background: linear-gradient(
+            90deg,
+            #a87927,
+            #f0cc79,
+            #a87927
+          );
+          box-shadow: 0 0 8px rgba(226, 181, 91, 0.25);
+          transition: width 0.25s ease;
         }
 
         .krve-v2-nav-link:hover {
-          color: #a77c32;
+          color: #e7bd69;
         }
 
         .krve-v2-nav-link:hover::after {
           width: 100%;
         }
+
+        /* ACTION ICONS */
 
         .krve-v2-actions {
           width: 205px;
@@ -826,14 +887,17 @@ export default function SiteHeader() {
           padding: 0;
           border: 0;
           background: transparent;
-          color: #24221c;
+          color: #e5d2aa;
           text-decoration: none;
           cursor: pointer;
-          transition: color .2s ease;
+          transition:
+            color 0.2s ease,
+            transform 0.2s ease;
         }
 
         .krve-v2-action:hover {
-          color: #a77c32;
+          color: #f0bd56;
+          transform: translateY(-1px);
         }
 
         .krve-v2-count-parent {
@@ -851,9 +915,10 @@ export default function SiteHeader() {
           align-items: center;
           justify-content: center;
           border-radius: 30px;
-          background: #171613;
-          color: #fff;
+          background: #d7aa51;
+          color: #100d08;
           font: 8px Arial, sans-serif;
+          font-weight: 700;
         }
 
         .krve-v2-user-image {
@@ -874,6 +939,30 @@ export default function SiteHeader() {
           display: none;
         }
 
+        /* SIGNATURE STRIP */
+
+        .krve-v2-signature {
+          min-height: 29px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 15px;
+          padding: 5px 12px;
+          border-top: 1px solid rgba(202, 160, 78, 0.16);
+          background: rgba(0, 0, 0, 0.25);
+          color: #c9a45d;
+          font-family: Georgia, "Times New Roman", serif;
+          font-size: 9px;
+          font-weight: 600;
+          letter-spacing: 2.5px;
+          text-align: center;
+        }
+
+        .krve-v2-signature span {
+          color: #e5bd69;
+          font-size: 12px;
+        }
+
         /* SEARCH OVERLAY */
 
         .krve-v2-search-overlay {
@@ -890,20 +979,27 @@ export default function SiteHeader() {
           position: absolute;
           inset: 0;
           border: 0;
-          background: rgba(0,0,0,.68);
+          background: rgba(0, 0, 0, 0.78);
           cursor: pointer;
         }
 
         .krve-v2-search-panel {
           position: relative;
           z-index: 1;
-          width: min(760px,100%);
+          width: min(760px, 100%);
           max-height: 90vh;
           overflow-y: auto;
           padding: 28px 38px;
-          background: #f5f2eb;
-          color: #191814;
-          box-shadow: 0 25px 90px rgba(0,0,0,.3);
+          background:
+            radial-gradient(
+              ellipse at top,
+              rgba(177, 133, 55, 0.1),
+              transparent 55%
+            ),
+            #100d08;
+          color: #f1e5ce;
+          border: 1px solid rgba(202, 160, 78, 0.45);
+          box-shadow: 0 25px 90px rgba(0, 0, 0, 0.55);
         }
 
         .krve-v2-search-top {
@@ -911,7 +1007,7 @@ export default function SiteHeader() {
           justify-content: space-between;
           align-items: center;
           padding-bottom: 20px;
-          border-bottom: 1px solid rgba(0,0,0,.12);
+          border-bottom: 1px solid rgba(202, 160, 78, 0.22);
         }
 
         .krve-v2-search-brand {
@@ -921,12 +1017,14 @@ export default function SiteHeader() {
         }
 
         .krve-v2-search-brand span {
-          font: 31px Georgia,serif;
+          color: #e8d4a8;
+          font: 31px Georgia, serif;
           letter-spacing: -2px;
         }
 
         .krve-v2-search-brand small {
-          font: 7px Arial,sans-serif;
+          color: #b99b63;
+          font: 7px Arial, sans-serif;
           letter-spacing: 2px;
         }
 
@@ -934,7 +1032,7 @@ export default function SiteHeader() {
         .krve-v2-mobile-head button {
           border: 0;
           background: transparent;
-          color: inherit;
+          color: #e8d4a8;
           cursor: pointer;
         }
 
@@ -945,20 +1043,21 @@ export default function SiteHeader() {
         .krve-v2-search-intro p,
         .krve-v2-result-heading p,
         .krve-v2-empty p {
-          color: #a77c32;
-          font: 9px Arial,sans-serif;
+          color: #d5a94f;
+          font: 9px Arial, sans-serif;
           letter-spacing: 2px;
         }
 
         .krve-v2-search-intro h2 {
           margin: 10px 0;
-          font: 38px Georgia,serif;
+          color: #f2e6d0;
+          font: 38px Georgia, serif;
           font-weight: 400;
         }
 
         .krve-v2-search-intro span {
-          color: #777268;
-          font: 12px Arial,sans-serif;
+          color: #b7a88e;
+          font: 12px Arial, sans-serif;
         }
 
         .krve-v2-search-field {
@@ -966,8 +1065,9 @@ export default function SiteHeader() {
           align-items: center;
           gap: 14px;
           padding: 15px;
-          border: 1px solid rgba(0,0,0,.25);
-          background: #fffdf8;
+          border: 1px solid rgba(202, 160, 78, 0.45);
+          background: #090704;
+          color: #e8d4a8;
         }
 
         .krve-v2-search-field input {
@@ -976,14 +1076,19 @@ export default function SiteHeader() {
           border: 0;
           outline: 0;
           background: transparent;
-          color: #171613;
-          font: 13px Arial,sans-serif;
+          color: #f1e5ce;
+          font: 13px Arial, sans-serif;
+        }
+
+        .krve-v2-search-field input::placeholder {
+          color: #8e8068;
         }
 
         .krve-v2-search-field button {
           display: flex;
           border: 0;
           background: transparent;
+          color: #e8d4a8;
           cursor: pointer;
         }
 
@@ -999,8 +1104,8 @@ export default function SiteHeader() {
         }
 
         .krve-v2-result-heading span {
-          color: #777268;
-          font: 10px Arial,sans-serif;
+          color: #b7a88e;
+          font: 10px Arial, sans-serif;
         }
 
         .krve-v2-result-heading a,
@@ -1008,30 +1113,30 @@ export default function SiteHeader() {
           display: inline-flex;
           align-items: center;
           gap: 7px;
-          color: #8c682c;
-          font: 9px Arial,sans-serif;
+          color: #d6ae63;
+          font: 9px Arial, sans-serif;
           letter-spacing: 1px;
           text-decoration: none;
         }
 
         .krve-v2-results {
-          border-top: 1px solid rgba(0,0,0,.12);
+          border-top: 1px solid rgba(202, 160, 78, 0.2);
         }
 
         .krve-v2-result {
           display: grid;
-          grid-template-columns: 25px 65px minmax(0,1fr) 22px;
+          grid-template-columns: 25px 65px minmax(0, 1fr) 22px;
           align-items: center;
           gap: 15px;
           padding: 12px 0;
-          border-bottom: 1px solid rgba(0,0,0,.1);
-          color: #171613;
+          border-bottom: 1px solid rgba(202, 160, 78, 0.17);
+          color: #f1e5ce;
           text-decoration: none;
         }
 
         .krve-v2-result-number {
-          color: #a79e8e;
-          font: 10px Georgia,serif;
+          color: #b99b63;
+          font: 10px Georgia, serif;
         }
 
         .krve-v2-result-image {
@@ -1039,7 +1144,7 @@ export default function SiteHeader() {
           width: 65px;
           height: 72px;
           overflow: hidden;
-          background: #e8e3d9;
+          background: #211b10;
         }
 
         .krve-v2-result-image img {
@@ -1048,20 +1153,22 @@ export default function SiteHeader() {
 
         .krve-v2-result-copy p {
           margin: 0 0 5px;
-          color: #9a763a;
-          font: 8px Arial,sans-serif;
+          color: #c59b4c;
+          font: 8px Arial, sans-serif;
           text-transform: uppercase;
           letter-spacing: 1px;
         }
 
         .krve-v2-result-copy h3 {
           margin: 0 0 6px;
-          font: 16px Georgia,serif;
+          color: #f1e5ce;
+          font: 16px Georgia, serif;
           font-weight: 400;
         }
 
         .krve-v2-result-copy strong {
-          font: 11px Arial,sans-serif;
+          color: #e5c27c;
+          font: 11px Arial, sans-serif;
         }
 
         .krve-v2-empty {
@@ -1073,19 +1180,19 @@ export default function SiteHeader() {
           gap: 9px;
           padding: 25px;
           text-align: center;
-          color: #8b6c37;
+          color: #d0a44f;
         }
 
         .krve-v2-empty h3 {
           margin: 0;
-          color: #25231d;
-          font: 22px Georgia,serif;
+          color: #f1e5ce;
+          font: 22px Georgia, serif;
           font-weight: 400;
         }
 
         .krve-v2-empty span {
-          color: #777268;
-          font: 11px Arial,sans-serif;
+          color: #b7a88e;
+          font: 11px Arial, sans-serif;
         }
 
         .krve-v2-suggestions {
@@ -1094,12 +1201,12 @@ export default function SiteHeader() {
           align-items: center;
           gap: 15px;
           padding-top: 22px;
-          border-top: 1px solid rgba(0,0,0,.12);
+          border-top: 1px solid rgba(202, 160, 78, 0.2);
         }
 
         .krve-v2-suggestions > span {
-          color: #777268;
-          font: 8px Arial,sans-serif;
+          color: #b7a88e;
+          font: 8px Arial, sans-serif;
           letter-spacing: 1px;
         }
 
@@ -1111,17 +1218,17 @@ export default function SiteHeader() {
 
         .krve-v2-suggestions button {
           padding: 7px 11px;
-          border: 1px solid rgba(0,0,0,.15);
+          border: 1px solid rgba(202, 160, 78, 0.3);
           border-radius: 30px;
           background: transparent;
-          color: #38352d;
-          font: 10px Arial,sans-serif;
+          color: #e1d0b0;
+          font: 10px Arial, sans-serif;
           cursor: pointer;
         }
 
         .krve-v2-suggestions button:hover {
-          border-color: #a77c32;
-          color: #a77c32;
+          border-color: #d5a94f;
+          color: #e7bd69;
         }
 
         /* MOBILE NAVIGATION */
@@ -1136,7 +1243,7 @@ export default function SiteHeader() {
           position: absolute;
           inset: 0;
           border: 0;
-          background: rgba(0,0,0,.65);
+          background: rgba(0, 0, 0, 0.78);
         }
 
         .krve-v2-mobile-drawer {
@@ -1144,19 +1251,26 @@ export default function SiteHeader() {
           top: 0;
           bottom: 0;
           left: 0;
-          width: min(420px,88vw);
+          width: min(420px, 88vw);
           overflow-y: auto;
           padding: 24px 25px;
-          background: #f5f2eb;
-          color: #171613;
-          box-shadow: 15px 0 50px rgba(0,0,0,.2);
-          animation: krveV2Drawer .25s ease both;
+          background:
+            radial-gradient(
+              ellipse at top,
+              rgba(177, 133, 55, 0.1),
+              transparent 55%
+            ),
+            #100d08;
+          color: #f1e5ce;
+          border-right: 1px solid rgba(202, 160, 78, 0.35);
+          box-shadow: 15px 0 50px rgba(0, 0, 0, 0.5);
+          animation: krveV2Drawer 0.25s ease both;
         }
 
         @keyframes krveV2Drawer {
           from {
             transform: translateX(-25px);
-            opacity: .6;
+            opacity: 0.6;
           }
           to {
             transform: translateX(0);
@@ -1169,7 +1283,7 @@ export default function SiteHeader() {
           align-items: center;
           justify-content: space-between;
           padding-bottom: 24px;
-          border-bottom: 1px solid rgba(0,0,0,.14);
+          border-bottom: 1px solid rgba(202, 160, 78, 0.25);
         }
 
         .krve-v2-mobile-head .krve-v2-logo {
@@ -1178,8 +1292,8 @@ export default function SiteHeader() {
 
         .krve-v2-mobile-eyebrow {
           margin: 30px 0 13px;
-          color: #a77c32;
-          font: 9px Arial,sans-serif;
+          color: #d5a94f;
+          font: 9px Arial, sans-serif;
           letter-spacing: 1.5px;
         }
 
@@ -1194,22 +1308,22 @@ export default function SiteHeader() {
           align-items: center;
           gap: 10px;
           padding: 17px 0;
-          border-bottom: 1px solid rgba(0,0,0,.11);
-          color: #25231d;
-          font: 11px Arial,sans-serif;
+          border-bottom: 1px solid rgba(202, 160, 78, 0.17);
+          color: #f1e5ce;
+          font: 11px Arial, sans-serif;
           font-weight: 600;
           letter-spacing: 1px;
           text-decoration: none;
         }
 
         .krve-v2-mobile-links a span {
-          color: #a77c32;
-          font: 11px Georgia,serif;
+          color: #c59b4c;
+          font: 11px Georgia, serif;
         }
 
         .krve-v2-mobile-links a svg {
           justify-self: end;
-          color: #a77c32;
+          color: #d5a94f;
         }
 
         .krve-v2-mobile-search {
@@ -1219,10 +1333,10 @@ export default function SiteHeader() {
           gap: 12px;
           margin-top: 27px;
           padding: 15px;
-          border: 1px solid #292720;
-          background: #171613;
-          color: #f5f2eb;
-          font: 10px Arial,sans-serif;
+          border: 1px solid rgba(202, 160, 78, 0.55);
+          background: #1b150b;
+          color: #f1e5ce;
+          font: 10px Arial, sans-serif;
           letter-spacing: 1px;
           cursor: pointer;
         }
@@ -1242,17 +1356,17 @@ export default function SiteHeader() {
           display: inline-flex;
           align-items: center;
           gap: 7px;
-          color: #343128;
-          font: 9px Arial,sans-serif;
+          color: #e0d0b1;
+          font: 9px Arial, sans-serif;
           text-decoration: none;
         }
 
         .krve-v2-mobile-footer {
           margin-top: 45px;
           padding-top: 17px;
-          border-top: 1px solid rgba(0,0,0,.12);
-          color: #a77c32;
-          font: 8px Arial,sans-serif;
+          border-top: 1px solid rgba(202, 160, 78, 0.2);
+          color: #c59b4c;
+          font: 8px Arial, sans-serif;
           letter-spacing: 2px;
         }
 
@@ -1262,7 +1376,7 @@ export default function SiteHeader() {
           .krve-v2-inner {
             padding-left: 2.5%;
             padding-right: 2.5%;
-            grid-template-columns: 145px minmax(0,1fr) 175px;
+            grid-template-columns: 145px minmax(0, 1fr) 175px;
             column-gap: 15px;
           }
 
@@ -1276,12 +1390,12 @@ export default function SiteHeader() {
           }
 
           .krve-v2-navigation {
-            gap: clamp(10px,1.3vw,17px);
+            gap: clamp(10px, 1.3vw, 17px);
           }
 
           .krve-v2-nav-link {
             font-size: 8px;
-            letter-spacing: .6px;
+            letter-spacing: 0.6px;
           }
 
           .krve-v2-actions {
@@ -1296,7 +1410,7 @@ export default function SiteHeader() {
           .krve-v2-inner {
             min-height: 73px;
             padding: 0 16px;
-            grid-template-columns: 42px minmax(0,1fr) auto;
+            grid-template-columns: 42px minmax(0, 1fr) auto;
             column-gap: 8px;
           }
 
@@ -1309,7 +1423,7 @@ export default function SiteHeader() {
             padding: 5px;
             border: 0;
             background: transparent;
-            color: #171613;
+            color: #e5d2aa;
             cursor: pointer;
           }
 
@@ -1346,12 +1460,18 @@ export default function SiteHeader() {
             width: 25px;
             flex-basis: 25px;
           }
+
+          .krve-v2-signature {
+            min-height: 26px;
+            font-size: 8px;
+            letter-spacing: 1.6px;
+          }
         }
 
         @media (max-width: 430px) {
           .krve-v2-inner {
             padding: 0 10px;
-            grid-template-columns: 34px minmax(0,1fr) auto;
+            grid-template-columns: 34px minmax(0, 1fr) auto;
           }
 
           .krve-v2-actions {
@@ -1376,13 +1496,19 @@ export default function SiteHeader() {
           }
 
           .krve-v2-result {
-            grid-template-columns: 18px 56px minmax(0,1fr) 18px;
+            grid-template-columns: 18px 56px minmax(0, 1fr) 18px;
             gap: 9px;
           }
 
           .krve-v2-result-image {
             width: 56px;
             height: 65px;
+          }
+
+          .krve-v2-signature {
+            gap: 8px;
+            font-size: 7px;
+            letter-spacing: 1.1px;
           }
         }
 
