@@ -29,8 +29,8 @@ import {
   MapPin,
   PackageCheck,
   Settings,
-  ShoppingBag,
   ShieldCheck,
+  ShoppingBag,
   Sparkles,
   TicketPercent,
   UserRound,
@@ -241,11 +241,18 @@ async function getCurrentAccountUser(): Promise<AccountUser | null> {
     cache: "no-store",
   });
 
-  if (response.status === 401) {
+  if (!response.ok) {
     return null;
   }
 
-  const data = await readAuthResponse(response);
+  let data: any = null;
+
+  try {
+    data = await response.json();
+  } catch {
+    return null;
+  }
+
   const rawUser =
     data?.user ??
     data?.customer ??
@@ -675,13 +682,12 @@ function AccountContent() {
       });
 
       const data = await readAuthResponse(response);
-      if (!data?.success) {
+      if (data?.success !== true) {
         throw new Error(data?.message || "Unable to send OTP. Please try again.");
       }
 
       setOtpSent(true);
-      setOtp("");
-      setMessage("OTP sent successfully. Please check your mobile phone.");
+      setMessage("OTP sent. Please check your mobile phone.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to send OTP.");
     } finally {
@@ -719,20 +725,43 @@ function AccountContent() {
         data?.user ??
         null;
 
-      if (!data?.success || !rawUser?.id) {
+      if (!data?.success || !rawUser) {
         throw new Error(data?.message || "OTP verification failed. Please try again.");
       }
 
       const currentUser = normalizeAccountUser(rawUser);
       setUser(currentUser);
-      setPhone("");
-      setOtp("");
-      setOtpSent(false);
       setMessage("Mobile number verified successfully.");
       router.replace("/account");
       router.refresh();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to verify OTP.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function resendOtp() {
+    setMessage("");
+    setBusy(true);
+    try {
+      const response = await fetch("/api/auth/otp/send", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({ phone }),
+        cache: "no-store",
+      });
+      const data = await readAuthResponse(response);
+      if (data?.success !== true) {
+        throw new Error(data?.message || "Unable to resend OTP.");
+      }
+      setMessage("A new OTP has been sent.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Unable to resend OTP.");
     } finally {
       setBusy(false);
     }
@@ -977,11 +1006,11 @@ function AccountContent() {
 
               <div>
                 <small>
-                  ORDERS
+                  PURCHASES
                 </small>
 
                 <strong>
-                  My Purchases
+                  My Orders
                 </strong>
               </div>
 
@@ -990,18 +1019,20 @@ function AccountContent() {
               />
             </Link>
 
-            <Link href="/wishlist">
+            <Link
+              href="/wishlist"
+            >
               <Heart
                 size={19}
               />
 
               <div>
                 <small>
-                  WISHLIST
+                  SAVED STYLE
                 </small>
 
                 <strong>
-                  Saved Pieces
+                  Wishlist
                 </strong>
               </div>
 
@@ -1011,41 +1042,19 @@ function AccountContent() {
             </Link>
 
             <Link
-              href="/ai-stylist"
+              href="/account/profile"
             >
-              <Sparkles
+              <UserRound
                 size={19}
               />
 
               <div>
                 <small>
-                  KRVE AI
+                  IDENTITY
                 </small>
 
                 <strong>
-                  Personal Styling
-                </strong>
-              </div>
-
-              <ArrowRight
-                size={15}
-              />
-            </Link>
-
-            <Link
-              href="/account/offers"
-            >
-              <Gift
-                size={19}
-              />
-
-              <div>
-                <small>
-                  PRIVILEGES
-                </small>
-
-                <strong>
-                  Private Benefits
+                  Profile
                 </strong>
               </div>
 
@@ -1059,28 +1068,28 @@ function AccountContent() {
 
           <section
             className={
-              styles.accountSection
+              styles.section
             }
           >
             <div
               className={
-                styles.sectionHeader
+                styles.sectionHeading
               }
             >
               <div>
                 <span>
-                  YOUR PRIVATE SPACE
+                  YOUR KRVE
+                  SPACE
                 </span>
 
                 <h2>
-                  Account Centre
+                  Account centre
                 </h2>
               </div>
 
               <p>
-                Manage everything
-                connected to your
-                KRVE profile.
+                Everything you need,
+                in one place.
               </p>
             </div>
 
@@ -1090,9 +1099,7 @@ function AccountContent() {
               }
             >
               {accountLinks.map(
-                (
-                  item,
-                ) => {
+                (item) => {
                   const Icon =
                     item.icon;
 
@@ -1101,11 +1108,11 @@ function AccountContent() {
                       href={
                         item.href
                       }
-                      key={
-                        item.href
-                      }
                       className={
                         styles.accountCard
+                      }
+                      key={
+                        item.href
                       }
                     >
                       <div
@@ -1114,18 +1121,15 @@ function AccountContent() {
                         }
                       >
                         <Icon
-                          size={20}
-                          strokeWidth={
-                            1.35
-                          }
+                          size={19}
                         />
                       </div>
 
-                      <small>
+                      <span>
                         {
                           item.eyebrow
                         }
-                      </small>
+                      </span>
 
                       <h3>
                         {
@@ -1139,15 +1143,9 @@ function AccountContent() {
                         }
                       </p>
 
-                      <div
-                        className={
-                          styles.cardArrow
-                        }
-                      >
-                        <ArrowRight
-                          size={15}
-                        />
-                      </div>
+                      <ArrowRight
+                        size={15}
+                      />
                     </Link>
                   );
                 },
@@ -1159,12 +1157,12 @@ function AccountContent() {
 
           <section
             className={
-              styles.accountSection
+              styles.section
             }
           >
             <div
               className={
-                styles.sectionHeader
+                styles.sectionHeading
               }
             >
               <div>
@@ -1173,270 +1171,195 @@ function AccountContent() {
                 </span>
 
                 <h2>
-                  Recent Orders
+                  Recent orders
                 </h2>
               </div>
 
               <Link
                 href="/account/orders"
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "7px",
-                  color: "#d8a529",
-                  fontSize: "8px",
-                  fontWeight: 800,
-                  letterSpacing: ".12em",
-                  textDecoration: "none",
-                }}
-              >
-                VIEW ALL
-                <ArrowRight size={14} />
-              </Link>
-            </div>
-
-            {ordersLoading ? (
-              <div
-                className={styles.accountCard}
-                style={{ cursor: "default" }}
-              >
-                <PackageCheck size={20} />
-                <div>
-                  <small>
-                    KRVE ORDERS
-                  </small>
-                  <h3>
-                    Loading your purchases...
-                  </h3>
-                </div>
-              </div>
-            ) : ordersError ? (
-              <div
-                className={styles.accountCard}
-                style={{ cursor: "default" }}
-              >
-                <ShieldCheck size={20} />
-                <div>
-                  <small>
-                    ORDER HISTORY
-                  </small>
-                  <h3>
-                    Orders are temporarily unavailable.
-                  </h3>
-                  <p>{ordersError}</p>
-                </div>
-              </div>
-            ) : recentOrders.length === 0 ? (
-              <div
-                className={styles.accountCard}
-                style={{ cursor: "default" }}
-              >
-                <ShoppingBag size={20} />
-                <div>
-                  <small>
-                    PURCHASE HISTORY
-                  </small>
-                  <h3>
-                    No orders yet.
-                  </h3>
-                  <p>
-                    Your KRVE purchases will appear here after checkout.
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <div className={styles.accountGrid}>
-                {recentOrders.map((order) => {
-                  const firstItem = order.items?.[0];
-
-                  return (
-                    <Link
-                      href={`/account/orders/${encodeURIComponent(order.id)}`}
-                      key={order.id}
-                      className={styles.accountCard}
-                    >
-                      {firstItem?.image ? (
-                        <img
-                          src={firstItem.image}
-                          alt={firstItem.name}
-                          style={{
-                            width: 58,
-                            height: 72,
-                            objectFit: "cover",
-                            flexShrink: 0,
-                          }}
-                        />
-                      ) : (
-                        <div
-                          className={styles.accountCardIcon}
-                        >
-                          <PackageCheck size={20} strokeWidth={1.35} />
-                        </div>
-                      )}
-
-                      <div style={{ minWidth: 0, flex: 1 }}>
-                        <small>
-                          {order.orderNumber}
-                        </small>
-
-                        <h3>
-                          {firstItem?.name ||
-                            `${order.itemCount} KRVE item${order.itemCount === 1 ? "" : "s"}`}
-                        </h3>
-
-                        <p>
-                          {accountStatusLabel(order.status)}
-                          {" • "}
-                          {formatAccountDate(order.createdAt)}
-                          {" • "}
-                          {accountMoney(order.total, order.currency)}
-                        </p>
-                      </div>
-
-                      <ArrowRight size={15} />
-                    </Link>
-                  );
-                })}
-              </div>
-            )}
-          </section>
-
-          {/* EXPERIENCE */}
-
-          <section
-            className={
-              styles.experience
-            }
-          >
-            <div
-              className={
-                styles.experienceIntro
-              }
-            >
-              <div
                 className={
-                  styles.experienceEyebrow
+                  styles.viewAll
                 }
               >
-                <Sparkles
-                  size={14}
-                />
-
-                KRVE PRIVATE
-                EXPERIENCE
-              </div>
-
-              <h2>
-                Fashion,
-                <span>
-                  curated around
-                  you.
-                </span>
-              </h2>
-
-              <p>
-                Your profile connects
-                shopping, AI styling,
-                saved pieces and
-                future KRVE services
-                into one experience.
-              </p>
-
-              <Link
-                href="/ai-stylist"
-              >
-                EXPLORE AI STYLIST
-
+                VIEW ALL
                 <ArrowRight
                   size={14}
                 />
               </Link>
             </div>
 
+            {ordersLoading ? (
+              <div
+                className={
+                  styles.emptyState
+                }
+              >
+                Loading your orders...
+              </div>
+            ) : ordersError ? (
+              <div
+                className={
+                  styles.emptyState
+                }
+              >
+                {ordersError}
+              </div>
+            ) : recentOrders.length ===
+              0 ? (
+              <div
+                className={
+                  styles.emptyState
+                }
+              >
+                <ShoppingBag
+                  size={25}
+                />
+
+                <strong>
+                  Your KRVE journey
+                  starts here.
+                </strong>
+
+                <p>
+                  Your recent purchases
+                  will appear here.
+                </p>
+
+                <Link
+                  href="/collections"
+                >
+                  EXPLORE COLLECTIONS
+                  <ArrowRight
+                    size={14}
+                  />
+                </Link>
+              </div>
+            ) : (
+              <div
+                className={
+                  styles.ordersList
+                }
+              >
+                {recentOrders.map(
+                  (order) => (
+                    <Link
+                      href={`/account/orders/${order.id}`}
+                      className={
+                        styles.orderRow
+                      }
+                      key={
+                        order.id
+                      }
+                    >
+                      <div
+                        className={
+                          styles.orderIcon
+                        }
+                      >
+                        <PackageCheck
+                          size={20}
+                        />
+                      </div>
+
+                      <div
+                        className={
+                          styles.orderInfo
+                        }
+                      >
+                        <strong>
+                          {order.orderNumber}
+                        </strong>
+
+                        <span>
+                          {formatAccountDate(
+                            order.createdAt,
+                          )}
+                          {" · "}
+                          {order.itemCount}{" "}
+                          {order.itemCount ===
+                          1
+                            ? "item"
+                            : "items"}
+                        </span>
+                      </div>
+
+                      <div
+                        className={
+                          styles.orderTotal
+                        }
+                      >
+                        <strong>
+                          {accountMoney(
+                            order.total,
+                            order.currency,
+                          )}
+                        </strong>
+
+                        <span>
+                          {accountStatusLabel(
+                            order.status,
+                          )}
+                        </span>
+                      </div>
+
+                      <ArrowRight
+                        size={15}
+                      />
+                    </Link>
+                  ),
+                )}
+              </div>
+            )}
+          </section>
+
+          {/* PERSONAL STYLE */}
+
+          <section
+            className={
+              styles.styleBanner
+            }
+          >
+            <div>
+              <span>
+                THE KRVE EXPERIENCE
+              </span>
+
+              <h2>
+                Your style.
+                <em>
+                  Your signature.
+                </em>
+              </h2>
+
+              <p>
+                Discover a more
+                personal way to
+                explore fashion with
+                KRVE.
+              </p>
+
+              <Link
+                href="/virtual-try-on"
+              >
+                EXPLORE YOUR STYLE
+                <ArrowRight
+                  size={15}
+                />
+              </Link>
+            </div>
+
             <div
               className={
-                styles.benefits
+                styles.styleBannerIcon
               }
             >
-              <article>
-                <Sparkles
-                  size={17}
-                />
-
-                <div>
-                  <strong>
-                    Personalised
-                    Recommendations
-                  </strong>
-
-                  <span>
-                    Styling suggestions
-                    shaped around your
-                    profile.
-                  </span>
-                </div>
-              </article>
-
-              <article>
-                <TicketPercent
-                  size={17}
-                />
-
-                <div>
-                  <strong>
-                    Private Client
-                    Offers
-                  </strong>
-
-                  <span>
-                    Selected launches,
-                    benefits and
-                    promotions.
-                  </span>
-                </div>
-              </article>
-
-              <article>
-                <History
-                  size={17}
-                />
-
-                <div>
-                  <strong>
-                    Connected Shopping
-                    History
-                  </strong>
-
-                  <span>
-                    Keep your purchases
-                    connected to one
-                    account.
-                  </span>
-                </div>
-              </article>
-
-              <article>
-                <ShieldCheck
-                  size={17}
-                />
-
-                <div>
-                  <strong>
-                    Secure Account
-                  </strong>
-
-                  <span>
-                    Protected
-                    authentication
-                    powered by
-                    KRVE Central.
-                  </span>
-                </div>
-              </article>
+              <Sparkles
+                size={48}
+              />
             </div>
           </section>
 
-          {/* FOOTER ACTION */}
+          {/* ACCOUNT FOOTER */}
 
           <section
             className={
@@ -1445,19 +1368,16 @@ function AccountContent() {
           >
             <div>
               <ShieldCheck
-                size={19}
+                size={18}
               />
 
-              <div>
-                <small>
-                  SECURE ACCOUNT
-                </small>
-
+              <span>
+                SECURE ACCOUNT
                 <strong>
                   Your KRVE session
                   is protected.
                 </strong>
-              </div>
+              </span>
             </div>
 
             <button
@@ -1483,58 +1403,115 @@ function AccountContent() {
     );
   }
 
-  /* OTP LOGIN */
+  /*
+    =====================================================
+    LOGIN / REGISTER / FORGOT
+    =====================================================
+  */
 
   return (
-    <main className={styles.authPage}>
-      <section className={styles.authShell}>
-        <aside className={styles.authStory}>
-          <div className={styles.storyBrand}>
-            <strong>Kr vE</strong>
-            <span>THE FASHION STUDIO</span>
+    <main
+      className={
+        styles.authPage
+      }
+    >
+      <section
+        className={
+          styles.authShell
+        }
+      >
+        <aside
+          className={
+            styles.authStory
+          }
+        >
+          <div
+            className={
+              styles.storyBrand
+            }
+          >
+            <strong>
+              K
+              <small>
+                rv
+              </small>
+              E
+            </strong>
+
+            <span>
+              THE FASHION STUDIO
+            </span>
           </div>
 
-          <div className={styles.storyCopy}>
-            <small>KRVE PRIVATE ACCESS</small>
+          <div
+            className={
+              styles.storyCopy
+            }
+          >
+            <small>
+              KRVE PRIVATE ACCESS
+            </small>
+
             <h2>
               Your wardrobe.
-              <span>Your world.</span>
+              <span>
+                Your world.
+              </span>
             </h2>
+
             <p>
-              Your personal space for purchases, saved pieces,
-              personalised styling and delivery details.
+              Create one private
+              account for purchases,
+              saved pieces,
+              personalised styling
+              and delivery details.
             </p>
           </div>
 
-          <div className={styles.storySecurity}>
-            <ShieldCheck size={16} />
-            Secure private client access
+          <div
+            className={
+              styles.storySecurity
+            }
+          >
+            <ShieldCheck
+              size={16}
+            />
+
+            Secure private client
+            access
           </div>
         </aside>
 
-        <section className={styles.authCard}>
+        <section
+          className={
+            styles.authCard
+          }
+        >
           <div className={styles.authHeading}>
             <span>{otpSent ? "SECURE VERIFICATION" : "MEMBER ACCOUNT"}</span>
-            <h1>{otpSent ? "Verify your number" : "Welcome back."}</h1>
+
+            <h1>
+              {otpSent ? "Verify your number" : "Login to KRVE"}
+            </h1>
+
             <p>
               {otpSent
                 ? `Enter the 6-digit OTP sent to +91 ${phone}.`
-                : "Enter your mobile number to receive a secure OTP."}
+                : "Enter your mobile number to receive a secure one-time password."}
             </p>
           </div>
 
-          <div className={styles.divider}>
-            <i />
-            <span>✧ KRVE ✧</span>
-            <i />
-          </div>
-
-          {!otpSent ? (
-            <form className={styles.authForm} onSubmit={sendOtp}>
+          <form
+            className={styles.authForm}
+            onSubmit={otpSent ? verifyOtp : sendOtp}
+          >
+            {!otpSent ? (
               <label>
                 <span>MOBILE NUMBER</span>
+
                 <div className={styles.field}>
                   <span className={styles.phonePrefix}>+91</span>
+
                   <input
                     type="tel"
                     inputMode="numeric"
@@ -1550,20 +1527,11 @@ function AccountContent() {
                   />
                 </div>
               </label>
-
-              {message && <div className={styles.authMessage} role="alert">{message}</div>}
-
-              <button type="submit" className={styles.submitButton} disabled={busy}>
-                {busy ? "SENDING OTP..." : "SEND OTP"}
-                {!busy && <ArrowRight size={15} />}
-              </button>
-            </form>
-          ) : (
-            <form className={styles.authForm} onSubmit={verifyOtp}>
+            ) : (
               <label>
-                <span>ENTER 6-DIGIT OTP</span>
+                <span>6-DIGIT OTP</span>
+
                 <div className={styles.field}>
-                  <LockKeyhole size={16} />
                   <input
                     type="text"
                     inputMode="numeric"
@@ -1579,60 +1547,59 @@ function AccountContent() {
                   />
                 </div>
               </label>
+            )}
 
-              {message && <div className={styles.authMessage} role="status">{message}</div>}
-
-              <button type="submit" className={styles.submitButton} disabled={busy}>
-                {busy ? "VERIFYING..." : "VERIFY & CONTINUE"}
-                {!busy && <ArrowRight size={15} />}
-              </button>
-
-              <button
-                type="button"
-                className={styles.forgotButton}
-                disabled={busy}
-                onClick={() => {
-                  setOtpSent(false);
-                  setOtp("");
-                  setMessage("");
-                }}
+            {message && (
+              <div
+                className={styles.authMessage}
+                role="status"
               >
-                CHANGE MOBILE NUMBER
-              </button>
+                {message}
+              </div>
+            )}
 
-              <button
-                type="button"
-                className={styles.forgotButton}
-                disabled={busy}
-                onClick={async () => {
-                  setBusy(true);
-                  setMessage("");
-                  try {
-                    const response = await fetch("/api/auth/otp/send", {
-                      method: "POST",
-                      credentials: "include",
-                      headers: { "Content-Type": "application/json", Accept: "application/json" },
-                      body: JSON.stringify({ phone }),
-                      cache: "no-store",
-                    });
-                    const data = await readAuthResponse(response);
-                    if (!data?.success) throw new Error(data?.message || "Unable to resend OTP.");
-                    setMessage("A new OTP has been sent.");
-                  } catch (error) {
-                    setMessage(error instanceof Error ? error.message : "Unable to resend OTP.");
-                  } finally {
-                    setBusy(false);
-                  }
-                }}
-              >
-                RESEND OTP
-              </button>
-            </form>
-          )}
+            <button
+              type="submit"
+              className={styles.submitButton}
+              disabled={busy}
+            >
+              {busy
+                ? "PLEASE WAIT..."
+                : otpSent
+                  ? "VERIFY & CONTINUE"
+                  : "SEND OTP"}
 
-          <div className={styles.authSwitch}>
-            <span>By continuing, you agree to KRVE&apos;s Terms &amp; Conditions and Privacy Policy.</span>
-          </div>
+              {!busy && (
+                <ArrowRight
+                  size={15}
+                />
+              )}
+            </button>
+
+            {otpSent && (
+              <div className={styles.authSwitch}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOtpSent(false);
+                    setOtp("");
+                    setMessage("");
+                  }}
+                  disabled={busy}
+                >
+                  CHANGE MOBILE NUMBER
+                </button>
+
+                <button
+                  type="button"
+                  onClick={resendOtp}
+                  disabled={busy}
+                >
+                  RESEND OTP
+                </button>
+              </div>
+            )}
+          </form>
 
           <div className={styles.authSecurity}>
             <Check size={13} />
