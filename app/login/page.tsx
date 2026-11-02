@@ -189,7 +189,7 @@ export default function LoginPage() {
       {/* LEFT FASHION IMAGE */}
       <section className={styles.visual}>
         <Image
-          src="/images/krve-login-editorial.jpg"
+          src="/images/krve-login-editorial.png"
           alt="KRVE luxury fashion editorial"
           fill
           priority
