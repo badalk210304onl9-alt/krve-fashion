@@ -37,6 +37,7 @@ import {
 } from "lucide-react";
 
 import styles from "./account.module.css";
+import loginStyles from "../login/login.module.css";
 
 type Mode =
   | "login"
