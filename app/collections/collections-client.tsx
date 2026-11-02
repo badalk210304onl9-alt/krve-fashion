@@ -248,19 +248,7 @@ export default function CollectionsClient({
 
   return (
     <main className={styles.page}>
-      <div className={styles.promoBar}>
-        <span>✦</span>
-        THE KRVE DIWALI EDITION
-        <i />
-        SPECIAL GIFT BOX FOR EVERY CUSTOMER
-        <span>✦</span>
-      </div>
-
-      <div className={styles.stylistBar}>
-        ✦ &nbsp; MEET YOUR PERSONAL AI STYLIST — GET RECOMMENDATIONS &nbsp; <Arrow />
-      </div>
-
-      <section className={styles.hero}>
+       <section className={styles.hero}>
         <div className={styles.heroImage}>
           {getCategoryImage("menswear", initialProducts) && (
             <Image
