@@ -71,7 +71,7 @@ const categories = [
   {
     title: "Men's Collection",
     subtitle: "CONFIDENCE IN EVERY DETAIL",
-    image: "/images/hero-model.jpg",
+    image: "/images/mens-collection.jpg",
     href: "/collections?category=menswear",
     position: "center 25%",
   },
