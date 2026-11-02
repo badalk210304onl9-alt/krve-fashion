@@ -1,647 +1,415 @@
 "use client";
 
-import {
-  FormEvent,
-  useEffect,
-  useState,
-} from "react";
-
+import { FormEvent, useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-
 import styles from "./login.module.css";
 
-type Mode =
-  | "login"
-  | "register";
-
-type Customer = {
-  id: string;
-  firstName: string | null;
-  lastName: string | null;
-  email: string | null;
-  phone: string | null;
-};
-
-type AuthResponse = {
+type ApiResult = {
   success?: boolean;
-
-  data?: {
-    customer?: Customer;
-    token?: string;
-    expiresAt?: string;
-  };
-
-  error?: {
-    message?: string;
-  };
-
   message?: string;
+  data?: {
+    customer?: {
+      id: string;
+      name?: string;
+      fullName?: string;
+      email?: string | null;
+      phone?: string | null;
+    };
+    authenticated?: boolean;
+  };
+  error?: { message?: string };
 };
 
 export default function LoginPage() {
-  const router =
-    useRouter();
+  const router = useRouter();
 
-  const [mode, setMode] =
-    useState<Mode>("login");
-
-  const [firstName, setFirstName] =
-    useState("");
-
-  const [lastName, setLastName] =
-    useState("");
-
-  const [email, setEmail] =
-    useState("");
-
-  const [phone, setPhone] =
-    useState("");
-
-  const [password, setPassword] =
-    useState("");
-
-  const [confirmPassword, setConfirmPassword] =
-    useState("");
-
-  const [showPassword, setShowPassword] =
-    useState(false);
-
-  const [showConfirmPassword, setShowConfirmPassword] =
-    useState(false);
-
-  const [loading, setLoading] =
-    useState(false);
-
-  const [checkingSession, setCheckingSession] =
-    useState(true);
-
-  const [error, setError] =
-    useState("");
-
-  const [success, setSuccess] =
-    useState("");
+  const [phone, setPhone] = useState("");
+  const [otp, setOtp] = useState("");
+  const [step, setStep] = useState<"phone" | "otp">("phone");
+  const [busy, setBusy] = useState(false);
+  const [checking, setChecking] = useState(true);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    const token =
-      window.localStorage.getItem(
-        "krve_customer_token",
-      );
+    let active = true;
 
-    if (token) {
-      router.replace(
-        "/account",
-      );
+    fetch("/api/auth/me", {
+      method: "GET",
+      credentials: "include",
+      cache: "no-store",
+      headers: { Accept: "application/json" },
+    })
+      .then(async (response) => {
+        if (response.ok) {
+          const data = await response.json();
 
-      return;
-    }
+          if (active && data?.authenticated && data?.user) {
+            router.replace("/account");
+            return;
+          }
+        }
 
-    setCheckingSession(false);
+        if (active) setChecking(false);
+      })
+      .catch(() => {
+        if (active) setChecking(false);
+      });
+
+    return () => {
+      active = false;
+    };
   }, [router]);
 
-  function changeMode(
-    nextMode: Mode,
-  ) {
-    setMode(nextMode);
-    setError("");
-    setSuccess("");
+  function cleanPhone(value: string) {
+    return value.replace(/[^\d]/g, "").slice(0, 10);
   }
 
-  async function submit(
-    event: FormEvent<HTMLFormElement>,
-  ) {
+  async function sendOtp(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-
     setError("");
-    setSuccess("");
+    setMessage("");
 
-    if (
-      mode === "register" &&
-      password !== confirmPassword
-    ) {
-      setError(
-        "Passwords do not match.",
-      );
-
+    if (!/^[6-9]\d{9}$/.test(phone)) {
+      setError("Please enter a valid 10-digit Indian mobile number.");
       return;
     }
 
-    if (
-      password.length < 8
-    ) {
-      setError(
-        "Password must contain at least 8 characters.",
-      );
-
-      return;
-    }
-
-    setLoading(true);
+    setBusy(true);
 
     try {
-      const endpoint =
-        mode === "login"
-          ? "/api/customer/login"
-          : "/api/customer/register";
+      const response = await fetch("/api/customer/otp/send", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({ phone: `+91${phone}` }),
+        cache: "no-store",
+      });
 
-      const payload =
-        mode === "login"
-          ? {
-              email,
-              password,
-            }
-          : {
-              firstName,
-              lastName,
-              email,
-              phone,
-              password,
-            };
+      const result = (await response.json()) as ApiResult;
 
-      const response =
-        await fetch(endpoint, {
-          method: "POST",
+      if (!response.ok || !result.success) {
+        throw new Error(
+          result.error?.message ||
+            result.message ||
+            "OTP could not be sent. Please try again."
+        );
+      }
 
-          headers: {
-            "Content-Type":
-              "application/json",
-          },
+      setStep("otp");
+      setMessage("A verification code has been sent to your mobile number.");
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Unable to send OTP."
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
 
-          body: JSON.stringify(
-            payload,
-          ),
-        });
+  async function verifyOtp(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError("");
+    setMessage("");
 
-      const result =
-        (await response.json()) as AuthResponse;
+    if (!/^\d{6}$/.test(otp)) {
+      setError("Enter the 6-digit verification code.");
+      return;
+    }
+
+    setBusy(true);
+
+    try {
+      const response = await fetch("/api/auth/otp/verify", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          phone: `+91${phone}`,
+          code: otp,
+        }),
+        cache: "no-store",
+      });
+
+      const result = (await response.json()) as ApiResult;
 
       if (
         !response.ok ||
-        !result.success
+        !result.success ||
+        !result.data?.authenticated
       ) {
         throw new Error(
           result.error?.message ||
             result.message ||
-            "Something went wrong. Please try again.",
+            "OTP verification failed."
         );
       }
 
-      const token =
-        result.data?.token;
-
-      const customer =
-        result.data?.customer;
-
-      if (!token) {
-        throw new Error(
-          "Login was successful but no customer session was received.",
-        );
-      }
-
-      window.localStorage.setItem(
-        "krve_customer_token",
-        token,
-      );
+      const customer = result.data.customer;
 
       if (customer) {
         window.localStorage.setItem(
           "krve_customer",
-          JSON.stringify(
-            customer,
-          ),
+          JSON.stringify(customer)
         );
       }
 
-      if (
-        result.data?.expiresAt
-      ) {
-        window.localStorage.setItem(
-          "krve_customer_session_expires",
-          result.data.expiresAt,
-        );
-      }
+      setMessage("Welcome to KRVE. Your mobile number is verified.");
 
-      setSuccess(
-        mode === "login"
-          ? "Welcome back to KRVE."
-          : "Your KRVE account has been created.",
-      );
-
-      setTimeout(() => {
-        router.replace(
-          "/account",
-        );
-
+      window.setTimeout(() => {
+        router.replace("/account");
         router.refresh();
-      }, 500);
+      }, 450);
     } catch (err) {
       setError(
-        err instanceof Error
-          ? err.message
-          : "Unable to connect to KRVE.",
+        err instanceof Error ? err.message : "Unable to verify OTP."
       );
     } finally {
-      setLoading(false);
+      setBusy(false);
     }
   }
 
-  if (checkingSession) {
+  if (checking) {
     return (
       <main className={styles.loadingPage}>
-        <div
-          className={
-            styles.loadingSpinner
-          }
-        />
+        <span className={styles.spinner} />
       </main>
     );
   }
 
   return (
     <main className={styles.page}>
-      <div className={styles.backgroundGlow} />
+      {/* LEFT FASHION IMAGE */}
+      <section className={styles.visual}>
+        <Image
+          src="/images/krve-login-editorial.jpg"
+          alt="KRVE luxury fashion editorial"
+          fill
+          priority
+          sizes="(max-width: 800px) 100vw, 56vw"
+          className={styles.visualImage}
+        />
 
-      <section
-        className={styles.card}
-      >
-        <div
-          className={styles.brand}
-        >
-          <Link href="/">
-            KRVE
-          </Link>
+        <div className={styles.visualShade} />
 
-          <span>
-            THE FASHION STUDIO
+        <Link href="/" className={styles.brand}>
+          <strong>KRVE</strong>
+          <span>THE FASHION STUDIO</span>
+        </Link>
+
+        <div className={styles.visualCopy}>
+          <span className={styles.kicker}>
+            THE KRVE EXPERIENCE
           </span>
-        </div>
-
-        <div
-          className={styles.heading}
-        >
-          <p
-            className={
-              styles.eyebrow
-            }
-          >
-            {mode === "login"
-              ? "WELCOME BACK"
-              : "JOIN KRVE"}
-          </p>
 
           <h1>
-            {mode === "login"
-              ? "Sign in to your account"
-              : "Create your account"}
+            Welcome
+            <br />
+            <em>Back.</em>
           </h1>
 
           <p>
-            {mode === "login"
-              ? "Access your KRVE orders, wishlist and personalised shopping experience."
-              : "Create your KRVE account and manage your orders, returns and profile in one place."}
+            CONTINUE YOUR
+            <br />
+            FASHION JOURNEY
           </p>
+
+          <i />
         </div>
 
-        <div
-          className={styles.tabs}
-        >
-          <button
-            type="button"
-            className={
-              mode === "login"
-                ? styles.activeTab
-                : ""
-            }
-            onClick={() =>
-              changeMode(
-                "login",
-              )
-            }
-          >
-            SIGN IN
-          </button>
+        <div className={styles.visualFoot}>
+          MORE THAN FASHION. IT’S KRVE.
+        </div>
+      </section>
 
-          <button
-            type="button"
-            className={
-              mode === "register"
-                ? styles.activeTab
-                : ""
-            }
-            onClick={() =>
-              changeMode(
-                "register",
-              )
-            }
-          >
-            CREATE ACCOUNT
-          </button>
+      {/* RIGHT LOGIN PANEL */}
+      <section className={styles.loginSide}>
+        <div className={styles.topLine}>
+          MORE THAN FASHION. IT’S KRVE.
         </div>
 
-        {error && (
-          <div
-            className={
-              styles.error
-            }
-          >
-            {error}
-          </div>
-        )}
+        <div className={styles.card}>
+          <div className={styles.star}>✧</div>
 
-        {success && (
-          <div
-            className={
-              styles.success
-            }
-          >
-            {success}
-          </div>
-        )}
+          <span className={styles.eyebrow}>
+            {step === "phone" ? "WELCOME TO KRVE" : "ONE LAST STEP"}
+          </span>
 
-        <form
-          onSubmit={submit}
-          className={styles.form}
-        >
-          {mode ===
-            "register" && (
-            <div
-              className={
-                styles.twoColumns
-              }
-            >
-              <label>
-                <span>
-                  FIRST NAME
-                </span>
+          <h2>
+            {step === "phone" ? "Login to KRVE" : "Verify your number"}
+          </h2>
 
-                <input
-                  type="text"
-                  value={
-                    firstName
-                  }
-                  onChange={(event) =>
-                    setFirstName(
-                      event.target
-                        .value,
-                    )
-                  }
-                  placeholder="First name"
-                  autoComplete="given-name"
-                  required
-                />
-              </label>
+          <p className={styles.description}>
+            {step === "phone"
+              ? "Enter your mobile number to receive a secure one-time password."
+              : `We’ve sent a 6-digit code to +91 ${phone}. Enter it below to continue.`}
+          </p>
 
-              <label>
-                <span>
-                  LAST NAME
-                </span>
-
-                <input
-                  type="text"
-                  value={
-                    lastName
-                  }
-                  onChange={(event) =>
-                    setLastName(
-                      event.target
-                        .value,
-                    )
-                  }
-                  placeholder="Last name"
-                  autoComplete="family-name"
-                  required
-                />
-              </label>
+          {error && (
+            <div className={styles.error} role="alert">
+              {error}
             </div>
           )}
 
-          <label>
-            <span>
-              EMAIL ADDRESS
-            </span>
-
-            <input
-              type="email"
-              value={email}
-              onChange={(event) =>
-                setEmail(
-                  event.target
-                    .value,
-                )
-              }
-              placeholder="you@example.com"
-              autoComplete="email"
-              required
-            />
-          </label>
-
-          {mode ===
-            "register" && (
-            <label>
-              <span>
-                MOBILE NUMBER
-              </span>
-
-              <input
-                type="tel"
-                value={phone}
-                onChange={(event) =>
-                  setPhone(
-                    event.target
-                      .value,
-                  )
-                }
-                placeholder="+91 XXXXX XXXXX"
-                autoComplete="tel"
-              />
-            </label>
+          {message && (
+            <div className={styles.success} role="status">
+              {message}
+            </div>
           )}
 
-          <label>
-            <span>
-              PASSWORD
-            </span>
+          {step === "phone" ? (
+            <form onSubmit={sendOtp} className={styles.form}>
+              <label className={styles.fieldLabel} htmlFor="phone">
+                MOBILE NUMBER
+              </label>
 
-            <div
-              className={
-                styles.passwordField
-              }
-            >
+              <div className={styles.phoneField}>
+                <span>+91</span>
+
+                <input
+                  id="phone"
+                  type="tel"
+                  inputMode="numeric"
+                  autoComplete="tel-national"
+                  placeholder="Enter mobile number"
+                  value={phone}
+                  onChange={(event) =>
+                    setPhone(cleanPhone(event.target.value))
+                  }
+                  maxLength={10}
+                  required
+                />
+              </div>
+
+              <button
+                className={styles.submit}
+                type="submit"
+                disabled={busy}
+              >
+                {busy ? "SENDING CODE..." : "SEND OTP"}
+                <span>→</span>
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={verifyOtp} className={styles.form}>
+              <label className={styles.fieldLabel} htmlFor="otp">
+                6-DIGIT OTP
+              </label>
+
               <input
-                type={
-                  showPassword
-                    ? "text"
-                    : "password"
-                }
-                value={password}
+                id="otp"
+                className={styles.otpInput}
+                type="text"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                placeholder="• • • • • •"
+                value={otp}
                 onChange={(event) =>
-                  setPassword(
-                    event.target
-                      .value,
+                  setOtp(
+                    event.target.value.replace(/\D/g, "").slice(0, 6)
                   )
                 }
-                placeholder="Minimum 8 characters"
-                autoComplete={
-                  mode ===
-                  "login"
-                    ? "current-password"
-                    : "new-password"
-                }
+                maxLength={6}
                 required
               />
 
               <button
-                type="button"
-                onClick={() =>
-                  setShowPassword(
-                    (value) =>
-                      !value,
-                  )
-                }
+                className={styles.submit}
+                type="submit"
+                disabled={busy}
               >
-                {showPassword
-                  ? "HIDE"
-                  : "SHOW"}
+                {busy ? "VERIFYING..." : "VERIFY & CONTINUE"}
+                <span>→</span>
               </button>
-            </div>
-          </label>
-
-          {mode ===
-            "register" && (
-            <label>
-              <span>
-                CONFIRM PASSWORD
-              </span>
-
-              <div
-                className={
-                  styles.passwordField
-                }
-              >
-                <input
-                  type={
-                    showConfirmPassword
-                      ? "text"
-                      : "password"
-                  }
-                  value={
-                    confirmPassword
-                  }
-                  onChange={(event) =>
-                    setConfirmPassword(
-                      event.target
-                        .value,
-                    )
-                  }
-                  placeholder="Enter password again"
-                  autoComplete="new-password"
-                  required
-                />
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    setShowConfirmPassword(
-                      (value) =>
-                        !value,
-                    )
-                  }
-                >
-                  {showConfirmPassword
-                    ? "HIDE"
-                    : "SHOW"}
-                </button>
-              </div>
-            </label>
-          )}
-
-          {mode ===
-            "login" && (
-            <div
-              className={
-                styles.formOptions
-              }
-            >
-              <label
-                className={
-                  styles.remember
-                }
-              >
-                <input
-                  type="checkbox"
-                />
-
-                <span>
-                  Remember me
-                </span>
-              </label>
 
               <button
+                className={styles.textButton}
                 type="button"
-                className={
-                  styles.forgot
-                }
-                onClick={() =>
-                  setError(
-                    "Password reset will be connected in the next step.",
-                  )
-                }
+                onClick={() => {
+                  setStep("phone");
+                  setOtp("");
+                  setError("");
+                  setMessage("");
+                }}
+                disabled={busy}
               >
-                Forgot password?
+                CHANGE MOBILE NUMBER
               </button>
-            </div>
+
+              <button
+                className={styles.resend}
+                type="button"
+                onClick={() => {
+                  setStep("phone");
+                  setOtp("");
+                  setError("");
+                  setMessage("Tap SEND OTP to request a new code.");
+                }}
+                disabled={busy}
+              >
+                RESEND OTP
+              </button>
+            </form>
           )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className={
-              styles.submit
-            }
-          >
-            {loading
-              ? "PLEASE WAIT..."
-              : mode ===
-                "login"
-              ? "SIGN IN"
-              : "CREATE ACCOUNT"}
-          </button>
-        </form>
+          <div className={styles.divider}>
+            <span />
+            OR
+            <span />
+          </div>
 
-        <div
-          className={
-            styles.divider
-          }
-        >
-          <span />
-          <p>KRVE</p>
-          <span />
+          <p className={styles.terms}>
+            By continuing, you agree to KRVE’s{" "}
+            <Link href="/terms-and-conditions">
+              Terms &amp; Conditions
+            </Link>{" "}
+            and{" "}
+            <Link href="/privacy-policy">
+              Privacy Policy
+            </Link>
+            .
+          </p>
         </div>
 
-        <p
-          className={
-            styles.bottomText
-          }
-        >
-          {mode === "login"
-            ? "New to KRVE?"
-            : "Already have a KRVE account?"}
+        <div className={styles.benefits}>
+          <div>
+            <b>◇</b>
+            <span>
+              Premium Quality
+              <br />
+              Fashion
+            </span>
+          </div>
 
-          <button
-            type="button"
-            onClick={() =>
-              changeMode(
-                mode === "login"
-                  ? "register"
-                  : "login",
-              )
-            }
-          >
-            {mode === "login"
-              ? " Create account"
-              : " Sign in"}
-          </button>
-        </p>
+          <div>
+            <b>♢</b>
+            <span>
+              Secure &amp; Safe
+              <br />
+              Shopping
+            </span>
+          </div>
+
+          <div>
+            <b>♧</b>
+            <span>
+              Dedicated
+              <br />
+              Support
+            </span>
+          </div>
+        </div>
+
+        <div className={styles.bottomLine}>
+          STEP INTO A MORE STYLISH YOU
+        </div>
       </section>
     </main>
   );
