@@ -4,266 +4,127 @@ import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
-
 import { useCart } from "@/components/cart-provider";
-
-import type {
-  KrveProduct,
-  ProductCategory,
-} from "@/lib/api";
-
+import type { KrveProduct, ProductCategory } from "@/lib/api";
 import styles from "./collections.module.css";
 
 type CategoryFilter = "all" | ProductCategory;
+type SortOption = "featured" | "newest" | "price-low" | "price-high" | "name";
 
-type SortOption =
-  | "featured"
-  | "newest"
-  | "price-low"
-  | "price-high"
-  | "name";
-
-type CollectionsClientProps = {
+type Props = {
   initialProducts: KrveProduct[];
   apiConnected: boolean;
 };
 
-type IconProps = {
-  size?: number;
-};
-
-const categoryOptions: {
+const categories: {
   id: ProductCategory;
   title: string;
-  subtitle: string;
-  number: string;
+  heading: string;
+  description: string;
 }[] = [
   {
     id: "menswear",
-    title: "Men's Wear",
-    subtitle: "Modern tailoring and everyday essentials",
-    number: "01",
+    title: "Menswear",
+    heading: "Dress Sharp. Live Bold.",
+    description: "From everyday essentials to statement pieces.",
   },
   {
     id: "womenswear",
-    title: "Women's Wear",
-    subtitle: "Contemporary silhouettes and timeless style",
-    number: "02",
+    title: "Womenswear",
+    heading: "Elegance in Every Detail.",
+    description: "Contemporary silhouettes and timeless style.",
   },
   {
     id: "kidswear",
-    title: "Kids' Wear",
-    subtitle: "Comfort-first style for little wardrobes",
-    number: "03",
+    title: "Kidswear",
+    heading: "Little Looks. Big Style.",
+    description: "Comfort-first fashion for little wardrobes.",
   },
 ];
 
-type SubcategoryOption = { id: string; title: string; keywords: string[] };
-
-const subcategoriesByMain: Record<string, SubcategoryOption[]> = {
+const subcategories: Record<string, { id: string; title: string; keywords: string[] }[]> = {
   menswear: [
-    { id: "all", title: "All Men's Wear", keywords: [] },
-    { id: "shirts", title: "Shirts", keywords: ["shirt", "shirts", "formal shirt", "casual shirt", "overshirt"] },
     { id: "tshirts", title: "T-Shirts", keywords: ["t-shirt", "tshirt", "tee", "polo"] },
-    { id: "trousers", title: "Trousers", keywords: ["trouser", "trousers", "chino", "formal pant", "pants"] },
+    { id: "shirts", title: "Shirts", keywords: ["shirt", "shirts", "overshirt"] },
+    { id: "ethnic", title: "Ethnic Wear", keywords: ["kurta", "sherwani", "ethnic"] },
+    { id: "trousers", title: "Trousers", keywords: ["trouser", "pant", "chino"] },
     { id: "jeans", title: "Jeans", keywords: ["jean", "denim"] },
-    { id: "ethnic", title: "Ethnic Wear", keywords: ["kurta", "sherwani", "ethnic", "waistcoat"] },
-    { id: "outerwear", title: "Jackets", keywords: ["jacket", "coat", "blazer", "hoodie", "sweatshirt"] },
-    { id: "co-ord", title: "Co-ord Sets", keywords: ["co-ord", "coord", "co ord", "set"] },
-    { id: "other", title: "Other Clothing", keywords: [] },
+    { id: "jackets", title: "Jackets", keywords: ["jacket", "coat", "blazer"] },
+    { id: "sweatshirts", title: "Sweatshirts", keywords: ["sweatshirt", "hoodie"] },
+    { id: "co-ords", title: "Co-ords", keywords: ["co-ord", "coord", "co ord"] },
   ],
   womenswear: [
-    { id: "all", title: "All Women's Wear", keywords: [] },
-    { id: "tops", title: "Tops & Shirts", keywords: ["top", "tops", "shirt", "blouse"] },
-    { id: "dresses", title: "Dresses", keywords: ["dress", "gown", "jumpsuit"] },
-    { id: "coord", title: "Co-ord Sets", keywords: ["co-ord", "coord", "co ord", "cord set", "set"] },
-    { id: "ethnic", title: "Kurtis & Ethnic", keywords: ["kurti", "kurta", "ethnic", "salwar", "suit"] },
-    { id: "bottoms", title: "Jeans & Trousers", keywords: ["jean", "denim", "trouser", "pant", "legging"] },
-    { id: "outerwear", title: "Jackets", keywords: ["jacket", "coat", "blazer", "cardigan"] },
-    { id: "other", title: "Other Clothing", keywords: [] },
+    { id: "tops", title: "Tops", keywords: ["top", "blouse"] },
+    { id: "shirts", title: "Shirts", keywords: ["shirt"] },
+    { id: "dresses", title: "Dresses", keywords: ["dress", "gown"] },
+    { id: "ethnic", title: "Ethnic Wear", keywords: ["kurti", "kurta", "ethnic"] },
+    { id: "trousers", title: "Trousers", keywords: ["trouser", "pant"] },
+    { id: "jeans", title: "Jeans", keywords: ["jean", "denim"] },
+    { id: "jackets", title: "Jackets", keywords: ["jacket", "coat", "blazer"] },
+    { id: "co-ords", title: "Co-ords", keywords: ["co-ord", "coord", "set"] },
   ],
   kidswear: [
-    { id: "all", title: "All Kids' Wear", keywords: [] },
+    { id: "tshirts", title: "T-Shirts", keywords: ["t-shirt", "tshirt", "tee"] },
     { id: "shirts", title: "Shirts", keywords: ["shirt"] },
-    { id: "tshirts", title: "T-Shirts", keywords: ["t-shirt", "tshirt", "tee", "polo"] },
-    { id: "sets", title: "Sets & Co-ords", keywords: ["set", "co-ord", "coord", "combo"] },
-    { id: "dresses", title: "Dresses", keywords: ["dress", "frock", "gown"] },
-    { id: "bottoms", title: "Bottoms", keywords: ["trouser", "pant", "jean", "shorts", "legging"] },
-    { id: "ethnic", title: "Ethnic Wear", keywords: ["kurta", "ethnic", "traditional"] },
-    { id: "outerwear", title: "Jackets & Layers", keywords: ["jacket", "hoodie", "sweatshirt", "coat"] },
-    { id: "other", title: "Other Clothing", keywords: [] },
+    { id: "sets", title: "Sets", keywords: ["set", "combo"] },
+    { id: "dresses", title: "Dresses", keywords: ["dress", "frock"] },
+    { id: "bottoms", title: "Bottoms", keywords: ["trouser", "pant", "shorts"] },
+    { id: "ethnic", title: "Ethnic Wear", keywords: ["kurta", "ethnic"] },
   ],
 };
 
-function detectSubcategory(product: KrveProduct, mainCategory: string): string {
-  // Use the saved subcategory from the product record first. Fall back to keyword
-  // detection for older products that do not have a subcategory saved yet.
-  const savedSubcategory = (product as KrveProduct & { subcategory?: string | null }).subcategory;
-  if (savedSubcategory) {
-    const normalized = savedSubcategory.trim().toLowerCase().replace(/[ _]+/g, "-");
-    const options = subcategoriesByMain[mainCategory] ?? [];
-    const exact = options.find((option) => option.id === normalized);
+function getImage(product: KrveProduct): string | null {
+  const images = [
+    product.image,
+    product.imageUrl,
+    ...(Array.isArray(product.gallery) ? product.gallery : []),
+  ];
+
+  return images.find(
+    (item): item is string => typeof item === "string" && item.trim().length > 0
+  ) ?? null;
+}
+
+function getCategoryImage(
+  category: ProductCategory,
+  products: KrveProduct[]
+): string | null {
+  const product = products.find(
+    (item) => item.category === category && getImage(item)
+  );
+  return product ? getImage(product) : null;
+}
+
+function getSubcategory(product: KrveProduct, category: string): string {
+  const saved = (product as KrveProduct & { subcategory?: string | null }).subcategory;
+
+  if (saved) {
+    const normalized = saved.trim().toLowerCase().replace(/[ _]+/g, "-");
+    const exact = (subcategories[category] ?? []).find(
+      (item) => item.id === normalized || item.title.toLowerCase() === saved.trim().toLowerCase()
+    );
     if (exact) return exact.id;
-    const titleMatch = options.find((option) => option.title.trim().toLowerCase() === savedSubcategory.trim().toLowerCase());
-    if (titleMatch) return titleMatch.id;
   }
 
-  const searchable = [product.name, product.shortDescription, product.description, product.sku]
-    .filter(Boolean).join(" ").toLowerCase().replace(/[–—]/g, "-");
-  const options = subcategoriesByMain[mainCategory] ?? [];
-  // Prefer the most specific keyword match; skip the catch-all option.
-  const matches = options.slice(1).flatMap((option) =>
-    option.keywords.filter((keyword) => searchable.includes(keyword)).map((keyword) => ({ option, keyword })),
-  ).sort((a, b) => b.keyword.length - a.keyword.length);
-  return matches[0]?.option.id ?? "other";
+  const searchable = [
+    product.name,
+    product.shortDescription,
+    product.description,
+    product.sku,
+  ].filter(Boolean).join(" ").toLowerCase();
+
+  const matches = (subcategories[category] ?? [])
+    .flatMap((item) =>
+      item.keywords
+        .filter((keyword) => searchable.includes(keyword))
+        .map((keyword) => ({ id: item.id, length: keyword.length }))
+    )
+    .sort((a, b) => b.length - a.length);
+
+  return matches[0]?.id ?? "other";
 }
 
-function HeartIcon({ size = 21 }: IconProps) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      width={size}
-      height={size}
-      aria-hidden="true"
-    >
-      <path
-        d="
-          M20.4 5.9
-          c-1.9-2-5-1.8-6.8.2
-          L12 7.9
-          10.4 6.1
-          c-1.8-2-4.9-2.2-6.8-.2
-          -2 2.1-1.9 5.5.3 7.7
-          L12 20.9
-          l8.1-7.3
-          c2.2-2.2 2.3-5.6.3-7.7Z
-        "
-      />
-    </svg>
-  );
-}
-
-function BagIcon({ size = 18 }: IconProps) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      width={size}
-      height={size}
-      aria-hidden="true"
-    >
-      <path
-        d="
-          M5.4 8.5
-          h13.2
-          l-.95 11.7
-          H6.35
-          L5.4 8.5Z
-        "
-      />
-
-      <path
-        d="
-          M8.7 8.5
-          V6.8
-          a3.3 3.3 0 0 1 6.6 0
-          v1.7
-        "
-      />
-    </svg>
-  );
-}
-
-function ArrowIcon({ size = 17 }: IconProps) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      width={size}
-      height={size}
-      aria-hidden="true"
-    >
-      <path d="M5 12h14" />
-      <path d="m14 7 5 5-5 5" />
-    </svg>
-  );
-}
-
-function SparkleIcon({ size = 20 }: IconProps) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      width={size}
-      height={size}
-      aria-hidden="true"
-    >
-      <path
-        d="
-          m12 2
-          1.7 5.3
-          L19 9
-          l-5.3 1.7
-          L12 16
-          l-1.7-5.3
-          L5 9
-          l5.3-1.7
-          L12 2Z
-        "
-      />
-
-      <path
-        d="
-          m19 15
-          .8 2.2
-          L22 18
-          l-2.2.8
-          L19 21
-          l-.8-2.2
-          L16 18
-          l2.2-.8
-          L19 15Z
-        "
-      />
-    </svg>
-  );
-}
-
-function FilterIcon({ size = 18 }: IconProps) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      width={size}
-      height={size}
-      aria-hidden="true"
-    >
-      <path d="M4 7h16" />
-      <path d="M7 12h10" />
-      <path d="M10 17h4" />
-    </svg>
-  );
-}
-
-function SearchIcon({ size = 18 }: IconProps) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      width={size}
-      height={size}
-      aria-hidden="true"
-    >
-      <circle
-        cx="10.5"
-        cy="10.5"
-        r="6.3"
-      />
-
-      <path d="m15.4 15.4 4.6 4.6" />
-    </svg>
-  );
-}
-
-function formatPrice(
-  price: number,
-  currency = "INR",
-) {
+function formatPrice(price: number, currency = "INR") {
   return new Intl.NumberFormat("en-IN", {
     style: "currency",
     currency,
@@ -271,1001 +132,345 @@ function formatPrice(
   }).format(price);
 }
 
-function getCategoryLabel(
-  category: ProductCategory,
-) {
-  const matched = categoryOptions.find(
-    (item) => item.id === category,
+function Arrow() {
+  return (
+    <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <path d="M5 12h14M13 6l6 6-6 6" />
+    </svg>
   );
-
-  return matched?.title ?? "KRVE Collection";
 }
 
-/**
- * IMPORTANT:
- * Product images now come ONLY from the live product data.
- *
- * We intentionally do NOT use:
- * /images/products/product-1.jpg
- *
- * because that was a demo/fallback product image.
- */
-function getProductImage(
-  product: KrveProduct,
-): string | null {
-  const candidates = [
-    product.image,
-    product.imageUrl,
-    ...(Array.isArray(product.gallery)
-      ? product.gallery
-      : []),
-  ];
-
-  const validImage = candidates.find(
-    (image): image is string =>
-      typeof image === "string" &&
-      image.trim().length > 0,
+function Heart({ active = false }: { active?: boolean }) {
+  return (
+    <svg viewBox="0 0 24 24" width="22" height="22" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.5">
+      <path d="M20.8 8.8c0 4.2-8.8 10-8.8 10S3.2 13 3.2 8.8a4.4 4.4 0 0 1 8.8-.2 4.4 4.4 0 0 1 8.8.2Z" />
+    </svg>
   );
-
-  return validImage ?? null;
 }
 
-function getCategoryImage(
-  category: ProductCategory,
-  products: KrveProduct[],
-): string | null {
-  const categoryProduct = products.find(
-    (product) =>
-      product.category === category &&
-      Boolean(getProductImage(product)),
-  );
+function ProductPhoto({ product }: { product: KrveProduct }) {
+  const src = getImage(product);
 
-  return categoryProduct
-    ? getProductImage(categoryProduct)
-    : null;
-}
-
-function getCategoryCount(
-  category: ProductCategory,
-  products: KrveProduct[],
-) {
-  return products.filter(
-    (product) =>
-      product.category === category,
-  ).length;
-}
-
-function ProductImage({
-  product,
-  className,
-  sizes,
-}: {
-  product: KrveProduct;
-  className?: string;
-  sizes: string;
-}) {
-  const image = getProductImage(product);
-
-  if (!image) {
-    return (
-      <span
-        className={className}
-        aria-label={`${product.name} image unavailable`}
-      >
-        <span
-          style={{
-            position: "absolute",
-            inset: 0,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "24px",
-            textAlign: "center",
-            fontSize: "12px",
-            letterSpacing: "0.12em",
-            opacity: 0.65,
-          }}
-        >
-          IMAGE UNAVAILABLE
-        </span>
-      </span>
-    );
+  if (!src) {
+    return <div className={styles.productPhotoFallback}>KRVE</div>;
   }
 
   return (
-    <span className={className}>
-      <Image
-        src={image}
-        alt={product.name}
-        fill
-        sizes={sizes}
-      />
-    </span>
+    <Image
+      src={src}
+      alt={product.name}
+      fill
+      sizes="(max-width: 650px) 50vw, 25vw"
+    />
   );
 }
 
 export default function CollectionsClient({
   initialProducts,
   apiConnected,
-}: CollectionsClientProps) {
-  const {
-    wishlist,
-    toggleWishlist,
-  } = useCart();
-
+}: Props) {
+  const { wishlist, toggleWishlist } = useCart();
   const searchParams = useSearchParams();
 
-  const urlCategory =
-    searchParams.get("category");
-
-  const initialCategory: CategoryFilter =
+  const urlCategory = searchParams.get("category");
+  const startingCategory: CategoryFilter =
     urlCategory === "menswear" ||
     urlCategory === "womenswear" ||
     urlCategory === "kidswear"
       ? urlCategory
-      : "all";
+      : "menswear";
 
-  const [
-    activeCategory,
-    setActiveCategory,
-  ] = useState<CategoryFilter>(
-    initialCategory,
-  );
-
+  const [activeCategory, setActiveCategory] =
+    useState<CategoryFilter>(startingCategory);
   const [activeSubcategory, setActiveSubcategory] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortOption, setSortOption] = useState<SortOption>("featured");
 
-  const [
-    sortOption,
-    setSortOption,
-  ] = useState<SortOption>(
-    "featured",
-  );
+  const activeInfo = categories.find((item) => item.id === activeCategory) ?? categories[0];
 
-  const [
-    searchQuery,
-    setSearchQuery,
-  ] = useState("");
+  const activeSubcategories =
+    activeCategory === "all" ? [] : subcategories[activeCategory] ?? [];
 
   const visibleProducts = useMemo(() => {
     let result = [...initialProducts];
 
     if (activeCategory !== "all") {
       result = result.filter((product) => product.category === activeCategory);
+
       if (activeSubcategory !== "all") {
-        result = result.filter((product) => detectSubcategory(product, activeCategory) === activeSubcategory);
+        result = result.filter(
+          (product) => getSubcategory(product, activeCategory) === activeSubcategory
+        );
       }
     }
 
-    const cleanSearch =
-      searchQuery.trim().toLowerCase();
+    const query = searchQuery.trim().toLowerCase();
 
-    if (cleanSearch) {
-      result = result.filter(
-        (product) => {
-          const content = [
-            product.name,
-            product.category,
-            product.description,
-            product.shortDescription,
-            product.sku,
-          ]
-            .filter(Boolean)
-            .join(" ")
-            .toLowerCase();
-
-          return content.includes(
-            cleanSearch,
-          );
-        },
+    if (query) {
+      result = result.filter((product) =>
+        [
+          product.name,
+          product.category,
+          product.description,
+          product.shortDescription,
+          product.sku,
+        ].filter(Boolean).join(" ").toLowerCase().includes(query)
       );
     }
 
     if (sortOption === "price-low") {
+      result.sort((a, b) => a.price - b.price);
+    } else if (sortOption === "price-high") {
+      result.sort((a, b) => b.price - a.price);
+    } else if (sortOption === "name") {
+      result.sort((a, b) => a.name.localeCompare(b.name));
+    } else if (sortOption === "newest") {
       result.sort(
-        (first, second) =>
-          first.price - second.price,
+        (a, b) =>
+          new Date(b.createdAt || 0).getTime() -
+          new Date(a.createdAt || 0).getTime()
       );
-    }
-
-    if (sortOption === "price-high") {
-      result.sort(
-        (first, second) =>
-          second.price - first.price,
-      );
-    }
-
-    if (sortOption === "name") {
-      result.sort(
-        (first, second) =>
-          first.name.localeCompare(
-            second.name,
-          ),
-      );
-    }
-
-    if (sortOption === "newest") {
-      result.sort(
-        (first, second) =>
-          new Date(
-            second.createdAt || 0,
-          ).getTime() -
-          new Date(
-            first.createdAt || 0,
-          ).getTime(),
-      );
-    }
-
-    if (sortOption === "featured") {
-      result.sort(
-        (first, second) => {
-          if (
-            first.featured !==
-            second.featured
-          ) {
-            return first.featured
-              ? -1
-              : 1;
-          }
-
-          if (
-            first.newArrival !==
-            second.newArrival
-          ) {
-            return first.newArrival
-              ? -1
-              : 1;
-          }
-
-          return 0;
-        },
-      );
+    } else {
+      result.sort((a, b) => {
+        if (a.featured !== b.featured) return a.featured ? -1 : 1;
+        if (a.newArrival !== b.newArrival) return a.newArrival ? -1 : 1;
+        return 0;
+      });
     }
 
     return result;
-  }, [
-    activeCategory,
-    activeSubcategory,
-    initialProducts,
-    searchQuery,
-    sortOption,
-  ]);
+  }, [initialProducts, activeCategory, activeSubcategory, searchQuery, sortOption]);
 
-  function selectCategory(
-    category: CategoryFilter,
-  ) {
+  function chooseCategory(category: CategoryFilter) {
     setActiveCategory(category);
     setActiveSubcategory("all");
-
-    window.setTimeout(() => {
-      document
-        .getElementById(
-          "collection-products",
-        )
-        ?.scrollIntoView({
-          behavior: "smooth",
-          block: "start",
-        });
-    }, 50);
   }
 
   return (
     <main className={styles.page}>
+      <div className={styles.promoBar}>
+        <span>✦</span>
+        THE KRVE DIWALI EDITION
+        <i />
+        SPECIAL GIFT BOX FOR EVERY CUSTOMER
+        <span>✦</span>
+      </div>
+
+      <div className={styles.stylistBar}>
+        ✦ &nbsp; MEET YOUR PERSONAL AI STYLIST — GET RECOMMENDATIONS &nbsp; <Arrow />
+      </div>
+
       <section className={styles.hero}>
-        <div
-          className={styles.heroPattern}
-        />
-
-        <div
-          className={styles.heroMonogram}
-        >
-          K
-        </div>
-
-        <div
-          className={styles.heroContent}
-        >
-          <div className={styles.eyebrow}>
-            <span />
-
-            <SparkleIcon />
-
-            KRVE PRIVATE COLLECTIONS
-          </div>
-
-          <h1>
-            Designed for
-            <em>
-              every wardrobe.
-            </em>
-          </h1>
-
-          <p>
-            Discover premium clothing for men, women and kids—curated through the refined world of KRVE.
-          </p>
-
-          <div
-            className={styles.heroMeta}
-          >
-            <div>
-              <strong>03</strong>
-
-              <span>
-                MAIN CATEGORIES
-              </span>
-            </div>
-
-            <div>
-              <strong>
-                {initialProducts.length}
-              </strong>
-
-              <span>
-                LIVE PRODUCTS
-              </span>
-            </div>
-
-            <div>
-              <strong>
-                {apiConnected
-                  ? "LIVE"
-                  : "OFF"}
-              </strong>
-
-              <span>
-                KEOS CONNECTION
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div className={styles.heroCard}>
-          <SparkleIcon size={35} />
-
-          <p>KRVE INTELLIGENCE</p>
-
-          <h2>
-            Your personal
-            <em>
-              fashion edit.
-            </em>
-          </h2>
-
-          <span>
-            Let KRVE AI understand
-            your style and recommend
-            pieces selected around
-            your personality.
-          </span>
-
-          <Link href="/ai-stylist">
-            OPEN AI STYLIST
-            <ArrowIcon />
-          </Link>
-        </div>
-      </section>
-
-      <section
-        className={styles.categorySection}
-      >
-        <header
-          className={styles.categoryHeading}
-        >
-          <div>
-            <p>
-              EXPLORE BY CATEGORY
-            </p>
-
-            <h2>
-              Shop your world.
-            </h2>
-          </div>
-
-          <span>
-            Three wardrobes. One considered KRVE experience.
-          </span>
-        </header>
-
-        <div
-          className={styles.categoryGrid}
-        >
-          {categoryOptions.map(
-            (category) => {
-              const count =
-                getCategoryCount(
-                  category.id,
-                  initialProducts,
-                );
-
-              const categoryImage =
-                getCategoryImage(
-                  category.id,
-                  initialProducts,
-                );
-
-              return (
-                <button
-                  key={category.id}
-                  type="button"
-                  className={`${
-                    styles.categoryCard
-                  } ${
-                    activeCategory ===
-                    category.id
-                      ? styles.activeCategoryCard
-                      : ""
-                  }`}
-                  onClick={() =>
-                    selectCategory(
-                      category.id,
-                    )
-                  }
-                >
-                  {categoryImage ? (
-                    <Image
-                      src={categoryImage}
-                      alt={
-                        category.title
-                      }
-                      fill
-                      sizes="
-                        (max-width: 650px)
-                        100vw,
-                        (max-width: 1100px)
-                        50vw,
-                        33vw
-                      "
-                    />
-                  ) : (
-                    <span
-                      style={{
-                        position:
-                          "absolute",
-                        inset: 0,
-                        background:
-                          "linear-gradient(135deg, #111, #292929)",
-                      }}
-                    />
-                  )}
-
-                  <span
-                    className={
-                      styles.categoryShade
-                    }
-                  />
-
-                  <span
-                    className={
-                      styles.categoryNumber
-                    }
-                  >
-                    {category.number}
-                  </span>
-
-                  <div
-                    className={
-                      styles.categoryCopy
-                    }
-                  >
-                    <p>
-                      {count} LIVE
-                      PIECES
-                    </p>
-
-                    <h3>
-                      {category.title}
-                    </h3>
-
-                    <span>
-                      {category.subtitle}
-                    </span>
-
-                    <strong>
-                      EXPLORE
-                      <ArrowIcon />
-                    </strong>
-                  </div>
-                </button>
-              );
-            },
+        <div className={styles.heroImage}>
+          {getCategoryImage("menswear", initialProducts) && (
+            <Image
+              src={getCategoryImage("menswear", initialProducts)!}
+              alt="KRVE menswear collection"
+              fill
+              priority
+              sizes="100vw"
+            />
           )}
         </div>
 
-        {activeCategory !== "all" && (
-          <div className={styles.subcategoryPanel} aria-label="Clothing subcategories">
-            <div className={styles.subcategoryIntro}>
-              <span>EXPLORE THE EDIT</span>
-              <strong>{getCategoryLabel(activeCategory)}</strong>
-            </div>
-            <div className={styles.subcategorySlider}>
-              {(subcategoriesByMain[activeCategory] ?? []).map((subcategory) => {
-                const count = initialProducts.filter((product) =>
-                  product.category === activeCategory &&
-                  (subcategory.id === "all" || detectSubcategory(product, activeCategory) === subcategory.id)
-                ).length;
-                return (
-                  <button
-                    key={subcategory.id}
-                    type="button"
-                    className={`${styles.subcategoryChip} ${activeSubcategory === subcategory.id ? styles.activeSubcategoryChip : ""}`}
-                    onClick={() => {
-                      setActiveSubcategory(subcategory.id);
-                      window.setTimeout(() => document.getElementById("collection-products")?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
-                    }}
-                  >
-                    <span>{subcategory.title}</span>
-                    <small>{count} {count === 1 ? "piece" : "pieces"}</small>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
+        <div className={styles.heroSecondImage}>
+          {getCategoryImage("womenswear", initialProducts) && (
+            <Image
+              src={getCategoryImage("womenswear", initialProducts)!}
+              alt="KRVE womenswear collection"
+              fill
+              sizes="40vw"
+            />
+          )}
+        </div>
+
+        <div className={styles.heroOverlay} />
+
+        <div className={styles.heroContent}>
+          <p>EXPLORE KRVE</p>
+          <h1>Our <em>Collections</em></h1>
+          <div className={styles.heroRule} />
+          <span>FASHION FOR EVERY YOU</span>
+          <a href="#krve-category-tabs">
+            EXPLORE THE EDIT <Arrow />
+          </a>
+        </div>
+        <div className={styles.heroCurve} />
       </section>
 
-      <section
-        id="collection-products"
-        className={styles.collectionArea}
-      >
-        <header
-          className={styles.collectionHeader}
-        >
+      <section className={styles.collectionSection} id="krve-category-tabs">
+        <div className={styles.categoryTabs}>
+          <span />
+          {categories.map((category) => (
+            <button
+              key={category.id}
+              type="button"
+              onClick={() => chooseCategory(category.id)}
+              className={activeCategory === category.id ? styles.activeTab : ""}
+            >
+              {category.title}
+            </button>
+          ))}
+          <span />
+        </div>
+
+        <header className={styles.sectionHeading}>
           <div>
-            <p>
-              THE PRIVATE EDIT
-            </p>
-
-            <h2>
-              {activeCategory === "all"
-                ? "All Clothing"
-                : activeSubcategory !== "all"
-                  ? (subcategoriesByMain[activeCategory]?.find((item) => item.id === activeSubcategory)?.title ?? getCategoryLabel(activeCategory))
-                  : getCategoryLabel(activeCategory)}
-            </h2>
-
-            <span>
-              Explore premium pieces
-              controlled directly
-              through the KRVE
-              Enterprise Operating
-              System.
-            </span>
+            <p>{activeCategory === "all" ? "THE KRVE EDIT" : activeInfo.title.toUpperCase()}</p>
+            <h2>{activeCategory === "all" ? "Explore Every Style." : activeInfo.heading}</h2>
+            <span>{activeCategory === "all" ? "Discover the latest KRVE collections." : activeInfo.description}</span>
           </div>
 
-          <div
-            className={styles.resultCount}
-          >
-            <strong>
-              {visibleProducts.length}
-            </strong>
-
-            <span>PIECES</span>
+          <div className={styles.sliderArrows}>
+            <button
+              type="button"
+              aria-label="Previous category"
+              onClick={() => {
+                const index = categories.findIndex((item) => item.id === activeCategory);
+                chooseCategory(categories[(index + categories.length - 1) % categories.length].id);
+              }}
+            >
+              ‹
+            </button>
+            <button
+              type="button"
+              aria-label="Next category"
+              onClick={() => {
+                const index = categories.findIndex((item) => item.id === activeCategory);
+                chooseCategory(categories[(index + 1) % categories.length].id);
+              }}
+            >
+              ›
+            </button>
           </div>
         </header>
 
-        <div className={styles.toolbar}>
-          <div className={styles.filters}>
-            <div
-              className={
-                styles.filterLabel
-              }
-            >
-              <FilterIcon />
-              FILTER
-            </div>
+        {activeSubcategories.length > 0 && (
+          <div className={styles.subcategorySlider}>
+            {activeSubcategories.map((item) => {
+              const count = initialProducts.filter(
+                (product) =>
+                  product.category === activeCategory &&
+                  getSubcategory(product, activeCategory) === item.id
+              ).length;
 
-            <button
-              type="button"
-              className={
-                activeCategory ===
-                "all"
-                  ? styles.activeFilter
-                  : ""
-              }
-              onClick={() => {
-                setActiveCategory("all");
-                setActiveSubcategory("all");
-              }}
-            >
-              ALL
-            </button>
+              const imageProduct = initialProducts.find(
+                (product) =>
+                  product.category === activeCategory &&
+                  getSubcategory(product, activeCategory) === item.id &&
+                  getImage(product)
+              );
 
-            {categoryOptions.map(
-              (category) => (
+              return (
                 <button
-                  key={category.id}
                   type="button"
-                  className={
-                    activeCategory ===
-                    category.id
-                      ? styles.activeFilter
-                      : ""
-                  }
-                  onClick={() => {
-                    setActiveCategory(category.id);
-                    setActiveSubcategory("all");
-                  }}
+                  key={item.id}
+                  className={`${styles.subcategoryItem} ${activeSubcategory === item.id ? styles.activeSubcategory : ""}`}
+                  onClick={() => setActiveSubcategory(
+                    activeSubcategory === item.id ? "all" : item.id
+                  )}
                 >
-                  {category.title.toUpperCase()}
+                  <span className={styles.subcategoryImage}>
+                    {imageProduct && <ProductPhoto product={imageProduct} />}
+                  </span>
+                  <span className={styles.subcategoryName}>{item.title}</span>
+                  <small>{count} {count === 1 ? "piece" : "pieces"}</small>
                 </button>
-              ),
-            )}
+              );
+            })}
           </div>
+        )}
 
-          <div
-            className={
-              styles.searchSortArea
-            }
-          >
-            <label
-              className={
-                styles.productSearch
-              }
+        <div className={styles.productToolbar}>
+          <span>{visibleProducts.length} PIECES</span>
+          <label>
+            <span>SEARCH</span>
+            <input
+              type="search"
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              placeholder="Search collection"
+            />
+          </label>
+          <label>
+            <span>SORT</span>
+            <select
+              value={sortOption}
+              onChange={(event) => setSortOption(event.target.value as SortOption)}
             >
-              <SearchIcon />
-
-              <input
-                type="search"
-                value={searchQuery}
-                onChange={(event) =>
-                  setSearchQuery(
-                    event.target.value,
-                  )
-                }
-                placeholder="Search products"
-                aria-label="Search products"
-              />
-            </label>
-
-            <label
-              className={styles.sort}
-            >
-              <span>SORT BY</span>
-
-              <select
-                value={sortOption}
-                onChange={(event) =>
-                  setSortOption(
-                    event.target
-                      .value as SortOption,
-                  )
-                }
-              >
-                <option value="featured">
-                  Featured
-                </option>
-
-                <option value="newest">
-                  Newest
-                </option>
-
-                <option value="price-low">
-                  Price: Low to High
-                </option>
-
-                <option value="price-high">
-                  Price: High to Low
-                </option>
-
-                <option value="name">
-                  Product Name
-                </option>
-              </select>
-            </label>
-          </div>
+              <option value="featured">Featured</option>
+              <option value="newest">Newest</option>
+              <option value="price-low">Price: Low to High</option>
+              <option value="price-high">Price: High to Low</option>
+              <option value="name">Product Name</option>
+            </select>
+          </label>
         </div>
 
         {!apiConnected && (
-          <div
-            className={
-              styles.connectionNotice
-            }
-          >
-            <SparkleIcon />
-
-            <div>
-              <strong>
-                Central API unavailable
-              </strong>
-
-              <span>
-                Products will appear
-                here when the KEOS API
-                connection is available.
-              </span>
-            </div>
-          </div>
+          <p className={styles.apiNotice}>
+            Products could not be loaded. Please check the KEOS connection.
+          </p>
         )}
 
         {visibleProducts.length > 0 ? (
-          <div
-            className={
-              styles.productGrid
-            }
-          >
-            {visibleProducts.map(
-              (product, index) => {
-                const saved =
-                  wishlist.includes(
-                    product.id,
-                  );
+          <div className={styles.productGrid}>
+            {visibleProducts.map((product) => {
+              const saved = wishlist.includes(product.id);
 
-                return (
-                  <article
-                    key={product.id}
-                    className={
-                      styles.productCard
-                    }
+              return (
+                <article className={styles.productCard} key={product.id}>
+                  <Link
+                    href={`/product/${product.slug}`}
+                    className={styles.productImage}
+                    aria-label={`View ${product.name}`}
                   >
-                    <div
-                      className={
-                        styles.cardNumber
-                      }
-                    >
-                      {String(
-                        index + 1,
-                      ).padStart(2, "0")}
+                    <ProductPhoto product={product} />
+                    {!product.inStock && (
+                      <span className={styles.stockBadge}>OUT OF STOCK</span>
+                    )}
+                  </Link>
+
+                  <button
+                    type="button"
+                    className={`${styles.wishlistButton} ${saved ? styles.saved : ""}`}
+                    onClick={() => toggleWishlist(product.id)}
+                    aria-label={saved ? "Remove from wishlist" : "Add to wishlist"}
+                  >
+                    <Heart active={saved} />
+                  </button>
+
+                  <div className={styles.productInfo}>
+                    <div>
+                      <p>KRVE COLLECTION</p>
+                      <Link href={`/product/${product.slug}`}>
+                        <h3>{product.name}</h3>
+                      </Link>
                     </div>
-
-                    <button
-                      type="button"
-                      className={`${
-                        styles.wishlistButton
-                      } ${
-                        saved
-                          ? styles.saved
-                          : ""
-                      }`}
-                      onClick={() =>
-                        toggleWishlist(
-                          product.id,
-                        )
-                      }
-                      aria-label={
-                        saved
-                          ? `Remove ${product.name} from wishlist`
-                          : `Save ${product.name} to wishlist`
-                      }
-                    >
-                      <HeartIcon />
-                    </button>
-
-                    <Link
-                      href={`/product/${product.slug}`}
-                      className={
-                        styles.productImage
-                      }
-                      aria-label={`Open ${product.name}`}
-                    >
-                      <ProductImage
-                        product={product}
-                        sizes="
-                          (max-width: 650px)
-                          100vw,
-                          (max-width: 1000px)
-                          50vw,
-                          25vw
-                        "
-                      />
-
-                      <span
-                        className={
-                          styles.imageShade
-                        }
-                      />
-
-                      <span
-                        className={
-                          styles.categoryBadge
-                        }
-                      >
-                        {getCategoryLabel(
-                          product.category,
-                        ).toUpperCase()}
-                      </span>
-
-                      {!product.inStock && (
-                        <span
-                          className={
-                            styles.stockBadge
-                          }
-                        >
-                          OUT OF STOCK
-                        </span>
-                      )}
-                    </Link>
-
-                    <div
-                      className={
-                        styles.productContent
-                      }
-                    >
-                      <div
-                        className={
-                          styles.productHeading
-                        }
-                      >
-                        <div>
-                          <p>
-                            KRVE PRIVATE
-                            COLLECTION
-                          </p>
-
-                          <h3>
-                            {product.name}
-                          </h3>
-                        </div>
-
-                        <div
-                          className={
-                            styles.priceArea
-                          }
-                        >
-                          <strong>
-                            {formatPrice(
-                              product.price,
-                              product.currency,
-                            )}
-                          </strong>
-
-                          {product.compareAtPrice &&
-                            product.compareAtPrice >
-                              product.price && (
-                              <del>
-                                {formatPrice(
-                                  product.compareAtPrice,
-                                  product.currency,
-                                )}
-                              </del>
-                            )}
-                        </div>
-                      </div>
-
-                      <div
-                        className={
-                          styles.productMeta
-                        }
-                      >
-                        <span>
-                          {product.stockQuantity >
-                          0
-                            ? `${product.stockQuantity} in stock`
-                            : "Currently unavailable"}
-                        </span>
-
-                        {product.newArrival && (
-                          <span>
-                            NEW ARRIVAL
-                          </span>
-                        )}
-                      </div>
-
-                      <div
-                        className={
-                          styles.productActions
-                        }
-                      >
-                        <Link
-                          href={`/product/${product.slug}`}
-                          className={
-                            styles.detailsButton
-                          }
-                        >
-                          DISCOVER
-                          <ArrowIcon />
-                        </Link>
-
-                        <Link
-                          href={`/product/${product.slug}`}
-                          className={
-                            styles.addButton
-                          }
-                          aria-label={`Open ${product.name}`}
-                        >
-                          <BagIcon />
-
-                          {product.inStock
-                            ? "ADD"
-                            : "VIEW"}
-                        </Link>
-                      </div>
-                    </div>
-                  </article>
-                );
-              },
-            )}
+                    <strong>
+                      {formatPrice(product.price, product.currency)}
+                    </strong>
+                  </div>
+                </article>
+              );
+            })}
           </div>
         ) : (
-          <section
-            className={
-              styles.emptyState
-            }
-          >
-            <div>
-              <SparkleIcon size={37} />
-            </div>
-
-            <p>
-              NO PRODUCTS FOUND
-            </p>
-
-            <h2>
-              This KRVE collection
-              is being curated.
-            </h2>
-
-            <span>
-              No published products
-              were returned from the
-              KRVE store API for this
-              selection.
-            </span>
-
+          <div className={styles.emptyState}>
+            <p>THE KRVE EDIT</p>
+            <h2>No products found.</h2>
+            <span>Try another category or search term.</span>
             <button
               type="button"
               onClick={() => {
-                setActiveCategory(
-                  "all",
-                );
-
+                setActiveCategory("all");
+                setActiveSubcategory("all");
                 setSearchQuery("");
               }}
             >
-              VIEW ALL COLLECTIONS
-              <ArrowIcon />
+              VIEW ALL COLLECTIONS <Arrow />
             </button>
-          </section>
-        )}
-      </section>
-
-      <section className={styles.aiBanner}>
-        <div className={styles.aiIcon}>
-          <SparkleIcon size={32} />
-        </div>
-
-        <div>
-          <p>
-            KRVE PERSONAL STYLIST
-          </p>
-
-          <h2>
-            Find the collection
-            <em>
-              made for you.
-            </em>
-          </h2>
-
-          <span>
-            Receive intelligent recommendations across men's, women's and kids' clothing.
-          </span>
-        </div>
-
-        <Link href="/ai-stylist">
-          GET RECOMMENDATIONS
-          <ArrowIcon />
-        </Link>
-      </section>
-
-      <section
-        className={
-          styles.serviceStrip
-        }
-      >
-        {categoryOptions.map(
-          (category) => (
-            <div key={category.id}>
-              <strong>
-                {category.number}
-              </strong>
-
-              <p>
-                {category.title.toUpperCase()}
-
-                <span>
-                  {category.subtitle}
-                </span>
-              </p>
-            </div>
-          ),
+          </div>
         )}
       </section>
     </main>
