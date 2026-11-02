@@ -67,13 +67,15 @@ async function loadNewArrivals(): Promise<Product[]> {
   }
 }
 
+/* CATEGORY CAMPAIGNS */
+
 const categories = [
   {
     title: "Men's Collection",
     subtitle: "CONFIDENCE IN EVERY DETAIL",
     image: "/images/mens-collection.jpg",
     href: "/collections?category=menswear",
-    position: "center 25%",
+    position: "center",
   },
   {
     title: "Women's Collection",
@@ -97,6 +99,8 @@ const categories = [
     position: "center",
   },
 ];
+
+/* EXCLUSIVE COLLECTIONS */
 
 const collections = [
   {
@@ -138,6 +142,7 @@ export default async function HomePage() {
     <main className="krve-home">
 
       {/* HERO CAMPAIGN */}
+
       <section className="kh-hero">
         <Image
           src="/images/hero-banner.png"
@@ -204,6 +209,7 @@ export default async function HomePage() {
       </section>
 
       {/* CATEGORY CAMPAIGNS */}
+
       <section className="kh-category-section">
         {categories.map((category) => (
           <Link
@@ -216,7 +222,9 @@ export default async function HomePage() {
               alt={category.title}
               fill
               sizes="(max-width: 700px) 50vw, 25vw"
-              style={{ objectPosition: category.position }}
+              style={{
+                objectPosition: category.position,
+              }}
             />
 
             <div className="kh-category-overlay" />
@@ -231,6 +239,7 @@ export default async function HomePage() {
       </section>
 
       {/* SERVICE PROMISE */}
+
       <section className="kh-benefits">
         <div>
           <span>✧</span>
@@ -266,20 +275,28 @@ export default async function HomePage() {
       </section>
 
       {/* EXCLUSIVE COLLECTIONS */}
+
       <section className="kh-collections">
         <div className="kh-section-intro">
-          <span className="kh-eyebrow">EXPLORE OUR WORLD</span>
+          <span className="kh-eyebrow">
+            EXPLORE OUR WORLD
+          </span>
+
           <h2>
             Exclusive
             <br />
             <em>Collections.</em>
           </h2>
+
           <p>
             Curated for every mood, every occasion
             and every version of you.
           </p>
 
-          <Link href="/collections" className="kh-text-link">
+          <Link
+            href="/collections"
+            className="kh-text-link"
+          >
             VIEW ALL COLLECTIONS <span>→</span>
           </Link>
         </div>
@@ -312,17 +329,27 @@ export default async function HomePage() {
       </section>
 
       {/* NEW ARRIVALS */}
+
       <section className="kh-new-arrivals">
         <div className="kh-products-heading">
           <div>
-            <span className="kh-eyebrow">THE LATEST FROM KRVE</span>
+            <span className="kh-eyebrow">
+              THE LATEST FROM KRVE
+            </span>
+
             <h2>
               Discover the <em>New Edit.</em>
             </h2>
-            <p>Fresh arrivals. Refined details. Your signature style.</p>
+
+            <p>
+              Fresh arrivals. Refined details. Your signature style.
+            </p>
           </div>
 
-          <Link href="/collections" className="kh-button kh-button-dark">
+          <Link
+            href="/collections"
+            className="kh-button kh-button-dark"
+          >
             VIEW ALL PRODUCTS →
           </Link>
         </div>
@@ -338,11 +365,14 @@ export default async function HomePage() {
           ) : (
             <div className="kh-empty-products">
               <span>✧</span>
+
               <h3>THE NEXT EDIT IS COMING</h3>
+
               <p>
                 New arrivals published through KRVE will
                 automatically appear here.
               </p>
+
               <Link href="/collections">
                 EXPLORE COLLECTIONS →
               </Link>
@@ -352,6 +382,7 @@ export default async function HomePage() {
       </section>
 
       {/* AI VIRTUAL STUDIO */}
+
       <section className="kh-ai-studio">
         <div className="kh-ai-image">
           <Image
@@ -360,6 +391,7 @@ export default async function HomePage() {
             fill
             sizes="(max-width: 700px) 100vw, 48vw"
           />
+
           <div />
         </div>
 
@@ -386,16 +418,25 @@ export default async function HomePage() {
             <span>✧ SMART SIZE GUIDE</span>
           </div>
 
-          <Link href="/ai-stylist" className="kh-button kh-button-gold">
+          <Link
+            href="/ai-stylist"
+            className="kh-button kh-button-gold"
+          >
             EXPERIENCE KRVE AI <span>→</span>
           </Link>
         </div>
 
-        <div className="kh-ai-watermark">KRVE AI</div>
+        <div className="kh-ai-watermark">
+          KRVE AI
+        </div>
       </section>
 
       {/* FESTIVE CAMPAIGN */}
-      <Link href="/collections" className="kh-festive">
+
+      <Link
+        href="/collections"
+        className="kh-festive"
+      >
         <Image
           src="/images/products/product-4.jpg"
           alt="KRVE festive collection"
@@ -419,7 +460,9 @@ export default async function HomePage() {
             Make every celebration unforgettable.
           </p>
 
-          <b>EXPLORE THE FESTIVE EDIT <i>→</i></b>
+          <b>
+            EXPLORE THE FESTIVE EDIT <i>→</i>
+          </b>
         </div>
 
         <div className="kh-festive-side">
@@ -428,6 +471,7 @@ export default async function HomePage() {
       </Link>
 
       {/* BRAND STORY */}
+
       <section className="kh-brand-story">
         <div className="kh-story-image">
           <Image
@@ -439,12 +483,16 @@ export default async function HomePage() {
         </div>
 
         <div className="kh-story-copy">
-          <span className="kh-eyebrow">OUR PHILOSOPHY</span>
+          <span className="kh-eyebrow">
+            OUR PHILOSOPHY
+          </span>
+
           <h2>
             More Than Fashion.
             <br />
             <em>It's a Movement.</em>
           </h2>
+
           <p>
             KRVE — The Fashion Studio brings together
             contemporary design, individual expression
@@ -453,13 +501,17 @@ export default async function HomePage() {
             It is how you move through the world.
           </p>
 
-          <Link href="/about" className="kh-text-link">
+          <Link
+            href="/about"
+            className="kh-text-link"
+          >
             DISCOVER OUR STORY <span>→</span>
           </Link>
         </div>
       </section>
 
       {/* BRAND CLOSING STRIP */}
+
       <section className="kh-closing">
         <span>DESIGNED FOR YOU</span>
         <i />
