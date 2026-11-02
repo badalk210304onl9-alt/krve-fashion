@@ -105,32 +105,32 @@ const categories = [
 const collections = [
   {
     title: "Ethnic Wear",
-    image: "/images/products/product-4.jpg",
+    image: "/images/ethnicwear.png",
     href: "/collections?category=ethnic-wear",
   },
   {
     title: "Casual Wear",
-    image: "/images/hero-model.jpg",
+    image: "/images/casualwear.png",
     href: "/collections?category=menswear",
   },
   {
     title: "Sarees",
-    image: "/images/try-on.jpg",
+    image: "/images/sarees.png",
     href: "/collections?category=womenswear",
   },
   {
     title: "Kurtis",
-    image: "/images/products/product-3.jpg",
+    image: "/images/kurtis.png",
     href: "/collections?category=womenswear",
   },
   {
     title: "Hoodies",
-    image: "/images/products/product-2.jpg",
+    image: "/images/hoodie.png",
     href: "/collections?category=menswear",
   },
   {
     title: "T-Shirts",
-    image: "/images/products/product-1.jpg",
+    image: "/images/t-shirts.png",
     href: "/collections?category=menswear",
   },
 ];
