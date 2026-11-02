@@ -249,17 +249,15 @@ export default function CollectionsClient({
   return (
     <main className={styles.page}>
        <section className={styles.hero}>
-        <div className={styles.heroImage}>
-          {getCategoryImage("menswear", initialProducts) && (
-            <Image
-              src={getCategoryImage("menswear", initialProducts)!}
-              alt="KRVE menswear collection"
-              fill
-              priority
-              sizes="100vw"
-            />
-          )}
-        </div>
+       <div className={styles.heroImage}>
+  <Image
+    src="/images/collections-hero.png"
+    alt="KRVE Luxury Fashion Collections"
+    fill
+    priority
+    sizes="100vw"
+  />
+</div>
 
         <div className={styles.heroSecondImage}>
           {getCategoryImage("womenswear", initialProducts) && (
