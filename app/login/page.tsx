@@ -46,7 +46,11 @@ export default function LoginPage() {
         if (response.ok) {
           const data = await response.json();
 
-          if (active && data?.authenticated && data?.user) {
+          if (
+            active &&
+            data?.authenticated &&
+            (data?.user || data?.customer || data?.data?.customer)
+          ) {
             router.replace("/account");
             return;
           }
@@ -64,7 +68,7 @@ export default function LoginPage() {
   }, [router]);
 
   function cleanPhone(value: string) {
-    return value.replace(/[^\d]/g, "").slice(0, 10);
+    return value.replace(/\D/g, "").slice(0, 10);
   }
 
   async function sendOtp(event: FormEvent<HTMLFormElement>) {
@@ -80,13 +84,14 @@ export default function LoginPage() {
     setBusy(true);
 
     try {
-      const response = await fetch("/api/customer/otp/send", {
+      const response = await fetch("/api/auth/otp/send", {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
         },
-        body: JSON.stringify({ phone: `+91${phone}` }),
+        body: JSON.stringify({ phone }),
         cache: "no-store",
       });
 
@@ -96,7 +101,7 @@ export default function LoginPage() {
         throw new Error(
           result.error?.message ||
             result.message ||
-            "OTP could not be sent. Please try again."
+            "OTP could not be sent. Please try again.",
         );
       }
 
@@ -104,7 +109,7 @@ export default function LoginPage() {
       setMessage("A verification code has been sent to your mobile number.");
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Unable to send OTP."
+        err instanceof Error ? err.message : "Unable to send OTP.",
       );
     } finally {
       setBusy(false);
@@ -148,28 +153,26 @@ export default function LoginPage() {
         throw new Error(
           result.error?.message ||
             result.message ||
-            "OTP verification failed."
+            "OTP verification failed. Please try again.",
         );
       }
 
       const customer = result.data.customer;
 
-      if (customer) {
+      if (customer && typeof window !== "undefined") {
         window.localStorage.setItem(
           "krve_customer",
-          JSON.stringify(customer)
+          JSON.stringify(customer),
         );
       }
 
       setMessage("Welcome to KRVE. Your mobile number is verified.");
 
-      window.setTimeout(() => {
-        router.replace("/account");
-        router.refresh();
-      }, 450);
+      router.replace("/account");
+      router.refresh();
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Unable to verify OTP."
+        err instanceof Error ? err.message : "Unable to verify OTP.",
       );
     } finally {
       setBusy(false);
@@ -186,10 +189,9 @@ export default function LoginPage() {
 
   return (
     <main className={styles.page}>
-      {/* LEFT FASHION IMAGE */}
       <section className={styles.visual}>
         <Image
-          src="/images/krve-login-editorial.png"
+          src="/images/krve-login-editorial.jpg"
           alt="KRVE luxury fashion editorial"
           fill
           priority
@@ -205,22 +207,17 @@ export default function LoginPage() {
         </Link>
 
         <div className={styles.visualCopy}>
-          <span className={styles.kicker}>
-            THE KRVE EXPERIENCE
-          </span>
-
+          <span className={styles.kicker}>THE KRVE EXPERIENCE</span>
           <h1>
             Welcome
             <br />
             <em>Back.</em>
           </h1>
-
           <p>
             CONTINUE YOUR
             <br />
             FASHION JOURNEY
           </p>
-
           <i />
         </div>
 
@@ -229,7 +226,6 @@ export default function LoginPage() {
         </div>
       </section>
 
-      {/* RIGHT LOGIN PANEL */}
       <section className={styles.loginSide}>
         <div className={styles.topLine}>
           MORE THAN FASHION. IT’S KRVE.
@@ -239,7 +235,7 @@ export default function LoginPage() {
           <div className={styles.star}>✧</div>
 
           <span className={styles.eyebrow}>
-            {step === "phone" ? "WELCOME TO KRVE" : "ONE LAST STEP"}
+            {step === "phone" ? "MEMBER ACCESS" : "SECURE VERIFICATION"}
           </span>
 
           <h2>
@@ -313,7 +309,7 @@ export default function LoginPage() {
                 value={otp}
                 onChange={(event) =>
                   setOtp(
-                    event.target.value.replace(/\D/g, "").slice(0, 6)
+                    event.target.value.replace(/\D/g, "").slice(0, 6),
                   )
                 }
                 maxLength={6}
@@ -346,11 +342,40 @@ export default function LoginPage() {
               <button
                 className={styles.resend}
                 type="button"
-                onClick={() => {
-                  setStep("phone");
-                  setOtp("");
+                onClick={async () => {
                   setError("");
-                  setMessage("Tap SEND OTP to request a new code.");
+                  setMessage("");
+                  setBusy(true);
+
+                  try {
+                    const response = await fetch("/api/auth/otp/send", {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                        Accept: "application/json",
+                      },
+                      body: JSON.stringify({ phone }),
+                      cache: "no-store",
+                    });
+
+                    const result = (await response.json()) as ApiResult;
+
+                    if (!response.ok || !result.success) {
+                      throw new Error(
+                        result.message || "Unable to resend OTP.",
+                      );
+                    }
+
+                    setMessage("A new OTP has been sent to your mobile number.");
+                  } catch (err) {
+                    setError(
+                      err instanceof Error
+                        ? err.message
+                        : "Unable to resend OTP.",
+                    );
+                  } finally {
+                    setBusy(false);
+                  }
                 }}
                 disabled={busy}
               >
@@ -367,14 +392,8 @@ export default function LoginPage() {
 
           <p className={styles.terms}>
             By continuing, you agree to KRVE’s{" "}
-            <Link href="/terms-and-conditions">
-              Terms &amp; Conditions
-            </Link>{" "}
-            and{" "}
-            <Link href="/privacy-policy">
-              Privacy Policy
-            </Link>
-            .
+            <Link href="/terms">Terms &amp; Conditions</Link> and{" "}
+            <Link href="/privacy">Privacy Policy</Link>.
           </p>
         </div>
 
